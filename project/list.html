@@ -224,11 +224,9 @@
                 <div class="ph-badge" id="projectBadge">Loading...</div>
                 
                 <div class="ph-nav-group" aria-expanded="false">
-                    <i class="bi bi-grid-3x3-gap-fill text-secondary"></i>
+                    <i class="bi bi-house-fill text-secondary"></i>
                     <span class="ph-project-name" id="projectNameHeader">Loading Project...</span>
                 </div>
-
-                
 
                 <!-- Right Side Option -->
                 <div class="position-absolute end-0 me-3">
@@ -247,7 +245,7 @@
 
                 <!-- Judul Halaman -->
                 <div class="text-center mb-5">
-                    <h1 class="fw-bold display-5 mb-1" style="color:#111;">To-dos</h1>
+                    <h1 class="fw-bold display-5 mb-1" style="color:#111;">All List</h1>
                     <p class="text-muted">Manage your tasks efficiently.</p>
                 </div>
 
@@ -256,7 +254,7 @@
                     <input type="text" id="inputListName" class="input-list-title" placeholder="Name this list...">
                     <div class="border rounded mb-3 p-2 bg-white" style="min-height: 100px;" contenteditable="true" id="inputListDesc"></div>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-success rounded-pill px-4 btn-save-list" onclick="saveNewList()">Add this list</button>
+                        <button class="btn btn-dlg-green rounded-pill px-4 btn-save-list" onclick="saveNewList()">Add this list</button>
                         <button class="btn btn-light border rounded-pill px-4" onclick="toggleNewListForm()">Cancel</button>
                     </div>
                 </div>
@@ -287,210 +285,257 @@
 
     <!-- Script JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // --- 1. KONFIGURASI API (PASTIKAN URL SUDAH BENAR) ---
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzsRHbU5WcucXdIhQeOFBaWQFvqO1kwGk72dHIfYWKtNcQF7ds5tTOyZNAmEWCQX_M/exec';
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // --- KONFIGURASI API ---
+            const API_URL = 'https://script.google.com/macros/s/AKfycbzsRHbU5WcucXdIhQeOFBaWQFvqO1kwGk72dHIfYWKtNcQF7ds5tTOyZNAmEWCQX_M/exec';
 
-        // Ambil ID dari URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const projectId = urlParams.get('id');
+            // Ambil ID dari URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectId = urlParams.get('id');
 
-        // --- 2. INIT LOAD ---
-        document.addEventListener("DOMContentLoaded", function() {
-            console.log("Start Loading Page. Project ID:", projectId);
+            // --- INIT LOAD ---
+            document.addEventListener("DOMContentLoaded", function() {
+                if(!projectId) {
+                    alert("Error: Tidak ada Project ID di URL.");
+                    document.getElementById('loadingState').innerHTML = '<span class="text-danger">Error: Missing ID</span>';
+                    return;
+                }
 
-            if(!projectId) {
-                alert("Error: Tidak ada Project ID di URL.");
-                document.getElementById('loadingState').innerHTML = '<span class="text-danger">Error: Missing ID</span>';
-                return;
+                // Set Link Back
+                const backLink = document.getElementById('linkBackToProject');
+                if(backLink) backLink.href = `../project/project.html?id=${projectId}`;
+
+                fetchListsData();
+            });
+
+            // --- FETCH DATA ---
+            function fetchListsData() {
+                const loading = document.getElementById('loadingState');
+                const container = document.getElementById('listsContainer');
+                const emptyState = document.getElementById('emptyState');
+                
+                loading.style.display = 'block';
+                container.innerHTML = '';
+                if(emptyState) emptyState.style.display = 'none';
+
+                fetch(`${API_URL}?action=getProjectData&id=${projectId}`)
+                .then(res => res.json())
+                .then(response => {
+                    if(response.status === 'success') {
+                        const data = response.data;
+                        
+                        // Update Header
+                        if(data.project) {
+                            document.getElementById('projectNameHeader').innerText = data.project.name;
+                            document.getElementById('projectBadge').innerText = data.project.department || 'Project';
+                        }
+
+                        // Render Lists
+                        const lists = data.lists || [];
+                        renderLists(lists);
+                    } else {
+                        showError("Gagal memuat data: " + response.message);
+                    }
+                })
+                .catch(err => {
+                    showError("Terjadi kesalahan sistem.");
+                })
+                .finally(() => {
+                    loading.style.display = 'none';
+                });
             }
 
-            // Set Link Back
-            const backLink = document.getElementById('linkBackToProject');
-            if(backLink) backLink.href = `../project/project.html?id=${projectId}`;
+            // --- RENDER LISTS & TASK FORM ---
+            function renderLists(lists) {
+                const container = document.getElementById('listsContainer');
+                const emptyState = document.getElementById('emptyState');
+                
+                container.innerHTML = '';
 
-            // Fetch Data
-            fetchListsData();
-        });
-
-        // --- 3. FETCH DATA ---
-        function fetchListsData() {
-            const loading = document.getElementById('loadingState');
-            const container = document.getElementById('listsContainer');
-            const emptyState = document.getElementById('emptyState');
-            
-            loading.style.display = 'block';
-            container.innerHTML = '';
-            if(emptyState) emptyState.style.display = 'none';
-
-            console.log("Fetching data from API...");
-
-            fetch(`${API_URL}?action=getProjectData&id=${projectId}`)
-            .then(res => res.json())
-            .then(response => {
-                console.log("Full API Response:", response); // LIHAT INI DI CONSOLE
-
-                if(response.status === 'success') {
-                    const data = response.data;
+                if (lists.length === 0) {
+                    if(emptyState) emptyState.style.display = 'block';
+                    return;
+                }
+                if(emptyState) emptyState.style.display = 'none';
+                
+                lists.forEach(list => {
+                    let tasksHtml = '';
                     
-                    // 1. Update Header Project
-                    if(data.project) {
-                        document.getElementById('projectNameHeader').innerText = data.project.name;
-                        document.getElementById('projectBadge').innerText = data.project.department || 'Project';
+                    // Render Tasks
+                    if (list.tasks && list.tasks.length > 0) {
+                        list.tasks.forEach(task => {
+                            const status = String(task.status || '').toLowerCase();
+                            const isDone = ['done', 'completed', 'true', 'checklist'].includes(status);
+                            const checkedAttr = isDone ? 'checked' : '';
+                            const textClass = isDone ? 'text-decoration-line-through text-muted' : 'text-dark';
+
+                            tasksHtml += `
+                                <div class="todo-row p-2 border-bottom d-flex align-items-start hover-bg-light rounded">
+                                    <input type="checkbox" class="todo-check me-3" ${checkedAttr} onclick="event.stopPropagation()">
+                                    <div class="w-100">
+                                        <div class="${textClass}">${task.title || '(No Title)'}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        tasksHtml = '<div class="text-muted small ps-4 fst-italic mb-2">No tasks yet.</div>';
                     }
 
-                    // 2. Render Lists
-                    // Gunakan array kosong jika data.lists null/undefined
-                    const lists = data.lists || [];
-                    console.log("Lists data:", lists);
-                    
-                    renderLists(lists);
-                } else {
-                    console.error("API Error Message:", response.message);
-                    showError("Gagal memuat data: " + response.message);
-                }
-            })
-            .catch(err => {
-                console.error("Fetch/JS Error:", err);
-                showError("Terjadi kesalahan sistem (Cek Console).");
-            })
-            .finally(() => {
-                // MATIKAN LOADING APAPUN YANG TERJADI
-                loading.style.display = 'none';
-            });
-        }
-
-        // --- 4. RENDER LISTS (DIPERBAIKI) ---
-        function renderLists(lists) {
-            const container = document.getElementById('listsContainer');
-            const emptyState = document.getElementById('emptyState');
-            
-            container.innerHTML = ''; // Reset
-
-            // Jika list kosong, tampilkan Empty State
-            if (lists.length === 0) {
-                console.log("Data list kosong, menampilkan Empty State.");
-                if(emptyState) emptyState.style.display = 'block';
-                return;
-            }
-
-            // Jika ada data, sembunyikan Empty State
-            if(emptyState) emptyState.style.display = 'none';
-            
-            lists.forEach(list => {
-                let tasksHtml = '';
-                
-                // Render Tasks (Cek apakah tasks ada)
-                if (list.tasks && list.tasks.length > 0) {
-                    list.tasks.forEach(task => {
-                        const status = String(task.status || '').toLowerCase();
-                        const isDone = ['done', 'completed', 'true', 'checklist'].includes(status);
-                        const checkedAttr = isDone ? 'checked' : '';
-                        const textClass = isDone ? 'text-decoration-line-through text-muted' : 'text-dark';
-
-                        tasksHtml += `
-                            <div class="todo-row p-2 border-bottom d-flex align-items-start hover-bg-light rounded">
-                                <input type="checkbox" class="todo-check me-3" ${checkedAttr} onclick="event.stopPropagation()">
-                                <div class="w-100">
-                                    <div class="${textClass}">${task.title || '(No Title)'}</div>
-                                    ${task.assignedTo ? `<small class="text-muted"><i class="bi bi-person-fill"></i> ${task.assignedTo}</small>` : ''}
-                                </div>
+                    // Render List Group
+                    const listHtml = `
+                        <div class="mb-5 bg-white p-4 rounded-4 border shadow-sm">
+                            <!-- LINK TITLE KE LIST-DETAIL -->
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                                <a href="list-detail.html?listId=${list.id}&projectId=${projectId}" class="text-decoration-none text-dark">
+                                    <h4 class="fw-bold mb-0 hover-text-blue">${list.name}</h4>
+                                </a>
+                                <button class="btn btn-sm btn-light text-muted"><i class="bi bi-three-dots"></i></button>
                             </div>
-                        `;
-                    });
-                } else {
-                    tasksHtml = '<div class="text-muted small ps-4 fst-italic">No tasks yet.</div>';
-                }
+                            
+                            <p class="text-muted small mb-3">${list.desc || ''}</p>
+                            
+                            <div class="todo-list-items">
+                                ${tasksHtml}
+                            </div>
 
-                // Render Group HTML
-                const listHtml = `
-                    <div class="mb-5 bg-white p-4 rounded-4 border shadow-sm">
-                        <div class="todo-group-label" style="font-size: 1.2rem; border-bottom: 2px solid #1f2937; padding-bottom:5px; margin-bottom:15px;">
-                            ${list.name}
+                            <!-- ADD TASK SECTION -->
+                            <div class="todo-creation-wrapper mt-3 ms-2">
+                                
+                                <!-- Button Trigger -->
+                                <button id="btn-add-${list.id}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" 
+                                    onclick="showTaskInput('${list.id}')">
+                                    <i class="bi bi-plus"></i> Add a to-do
+                                </button>
+
+                                <!-- Form Input (Hidden Default) -->
+                                <div id="form-add-${list.id}" class="mt-2" style="display:none;">
+                                    <input type="text" id="input-task-${list.id}" class="form-control mb-2" placeholder="Describe this to-do...">
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-success rounded-pill px-3" onclick="saveTask('${list.id}')">Add this to-do</button>
+                                        <button class="btn btn-sm btn-light border rounded-pill px-3" onclick="hideTaskInput('${list.id}')">Cancel</button>
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
-                        <p class="text-muted small mb-3">${list.desc || ''}</p>
-                        
-                        <div class="todo-list-items">
-                            ${tasksHtml}
-                        </div>
-
-                        <!-- Tombol Add di dalam List -->
-                        <div class="todo-creation-wrapper mt-3 ms-4">
-                            <button class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" onclick="alert('Fitur Add Task Backend belum diaktifkan')">
-                                <i class="bi bi-plus"></i> Add a to-do
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                container.insertAdjacentHTML('beforeend', listHtml);
-            });
-        }
-
-        // --- 5. CREATE NEW LIST ---
-        function saveNewList() {
-            const name = document.getElementById('inputListName').value;
-            const desc = document.getElementById('inputListDesc').innerText;
-            const btn = document.querySelector('.btn-save-list');
-
-            if(!name) { alert("List name cannot be empty"); return; }
-            
-            btn.innerText = "Saving...";
-            btn.disabled = true;
-
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'createList',
-                    projectId: projectId,
-                    listName: name,
-                    description: desc
-                })
-            })
-            .then(res => res.json())
-            .then(resp => {
-                if(resp.status === 'success') {
-                    document.getElementById('inputListName').value = '';
-                    document.getElementById('inputListDesc').innerText = '';
-                    toggleNewListForm();
-                    fetchListsData(); // Reload
-                } else {
-                    alert('Error: ' + resp.message);
-                }
-            })
-            .catch(err => {
-                alert("Gagal menyimpan. Cek koneksi.");
-            })
-            .finally(() => {
-                btn.innerText = "Add this list";
-                btn.disabled = false;
-            });
-        }
-
-        // Helpers
-        function toggleNewListForm() {
-            const form = document.getElementById('newListForm');
-            const empty = document.getElementById('emptyState');
-            const container = document.getElementById('listsContainer');
-
-            if (form.style.display === 'none' || form.style.display === '') {
-                form.style.display = 'block';
-                if(empty) empty.style.display = 'none';
-            } else {
-                form.style.display = 'none';
-                if(container.innerHTML === '') if(empty) empty.style.display = 'block';
+                    `;
+                    
+                    container.insertAdjacentHTML('beforeend', listHtml);
+                });
             }
-        }
 
-        function showError(msg) {
-            document.getElementById('loadingState').style.display = 'none';
-            const errDiv = document.getElementById('errorState');
-            errDiv.innerHTML = msg;
-            errDiv.style.display = 'block';
-        }
+            // --- TASK UI INTERACTION ---
+            function showTaskInput(listId) {
+                document.getElementById(`btn-add-${listId}`).style.display = 'none';
+                document.getElementById(`form-add-${listId}`).style.display = 'block';
+                document.getElementById(`input-task-${listId}`).focus();
+            }
 
-        function toggleSidebar() { document.getElementById('sidebarNav').classList.toggle('show'); }
-        function execCmd(command, value = null) { document.execCommand(command, false, value); }
-    </script>
+            function hideTaskInput(listId) {
+                document.getElementById(`btn-add-${listId}`).style.display = 'inline-block';
+                document.getElementById(`form-add-${listId}`).style.display = 'none';
+                document.getElementById(`input-task-${listId}`).value = '';
+            }
+
+            // --- CREATE NEW TASK FUNCTION ---
+            function saveTask(listId) {
+                const input = document.getElementById(`input-task-${listId}`);
+                const title = input.value;
+                const btn = input.nextElementSibling.querySelector('.btn-success');
+
+                if (!title) { alert("Please enter a task title"); return; }
+
+                // Loading state
+                btn.innerText = "Saving...";
+                btn.disabled = true;
+
+                fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'createTask',
+                        listId: listId,
+                        title: title
+                    })
+                })
+                .then(res => res.json())
+                .then(resp => {
+                    if(resp.status === 'success') {
+                        // Refresh data tanpa reload page penuh
+                        fetchListsData();
+                    } else {
+                        alert("Error: " + resp.message);
+                    }
+                })
+                .catch(err => {
+                    alert("Connection failed.");
+                })
+                .finally(() => {
+                    btn.innerText = "Add this to-do";
+                    btn.disabled = false;
+                    hideTaskInput(listId);
+                });
+            }
+
+            // --- CREATE NEW LIST ---
+            function saveNewList() {
+                const name = document.getElementById('inputListName').value;
+                const desc = document.getElementById('inputListDesc').innerText;
+                const btn = document.querySelector('.btn-save-list');
+
+                if(!name) { alert("List name cannot be empty"); return; }
+                
+                btn.innerText = "Saving...";
+                btn.disabled = true;
+
+                fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'createList',
+                        projectId: projectId,
+                        listName: name,
+                        description: desc
+                    })
+                })
+                .then(res => res.json())
+                .then(resp => {
+                    if(resp.status === 'success') {
+                        document.getElementById('inputListName').value = '';
+                        document.getElementById('inputListDesc').innerText = '';
+                        toggleNewListForm();
+                        fetchListsData();
+                    } else {
+                        alert('Error: ' + resp.message);
+                    }
+                })
+                .finally(() => {
+                    btn.innerText = "Add this list";
+                    btn.disabled = false;
+                });
+            }
+
+            // Helpers
+            function toggleNewListForm() {
+                const form = document.getElementById('newListForm');
+                const empty = document.getElementById('emptyState');
+                
+                if (form.style.display === 'none' || form.style.display === '') {
+                    form.style.display = 'block';
+                    if(empty) empty.style.display = 'none';
+                } else {
+                    form.style.display = 'none';
+                }
+            }
+
+            function showError(msg) {
+                document.getElementById('loadingState').style.display = 'none';
+                const errDiv = document.getElementById('errorState');
+                errDiv.innerHTML = msg;
+                errDiv.style.display = 'block';
+            }
+
+            function toggleSidebar() { document.getElementById('sidebarNav').classList.toggle('show'); }
+        </script>
 </body>
 </html>
