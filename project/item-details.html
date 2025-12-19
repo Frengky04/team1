@@ -3,213 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Detail</title>
+    <title>Task Detail - Dialogika</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link href="../assets/css/style.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { background-color: #e5e7eb; }
-        .main-content { margin-left: 290px; width: calc(100% - 290px); padding: 40px; min-height: 100vh; }
-        @media (max-width: 991px) { .main-content { margin-left: 0; width: 100%; padding: 20px; } }
+        body { background-color: #f3f4f6; font-family: 'Poppins', sans-serif; padding: 40px 20px; }
+        .detail-card {
+            max-width: 850px; margin: 0 auto; background: white;
+            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 40px;
+        }
+        .task-title { font-size: 2rem; font-weight: 700; color: #1f2937; margin-bottom: 5px; }
+        .meta-info { color: #6b7280; font-size: 0.9rem; margin-bottom: 30px; }
         
-        .main-card {
-            max-width: 900px; margin: 0 auto; background: white; border-radius: 16px;
-            padding: 50px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid #d1d5db;
+        .info-grid { display: grid; grid-template-columns: 150px 1fr; gap: 15px; margin-bottom: 30px; }
+        .label { font-weight: 600; color: #4b5563; text-align: right; padding-right: 20px; }
+        .value { color: #1f2937; border-bottom: 1px solid #f3f4f6; padding-bottom: 5px; }
+
+        .comment-box {
+            border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; margin-top: 20px;
         }
-        .task-checkbox-lg {
-            width: 45px; height: 45px; border: 3px solid #d1d5db; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+        #commentInput {
+            min-height: 100px; padding: 15px; outline: none; font-size: 0.95rem;
         }
-        .task-checkbox-lg:hover { border-color: var(--dlg-blue); }
-        .task-checkbox-lg.checked { background-color: #10b981; border-color: #10b981; color: white; }
+        .comment-footer {
+            background: #f9fafb; padding: 10px 15px; border-top: 1px solid #e5e7eb;
+            display: flex; justify-content: flex-end;
+        }
+        
+        .comment-item { display: flex; gap: 15px; margin-bottom: 20px; }
+        .avatar {
+            width: 40px; height: 40px; border-radius: 50%; background: #3b82f6;
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; flex-shrink: 0;
+        }
+        .comment-content {
+            background: #f9fafb; border: 1px solid #e5e7eb; padding: 12px 15px;
+            border-radius: 0 12px 12px 12px; width: 100%;
+        }
+
+        .todo-check-large {
+            width: 35px; height: 35px; border: 2px solid #d1d5db; border-radius: 8px;
+            margin-right: 20px; cursor: pointer;
+        }
+        
+        .breadcrumb-nav { font-size: 0.85rem; margin-bottom: 20px; }
+        .breadcrumb-nav a { text-decoration: none; color: #3b82f6; }
     </style>
 </head>
 <body>
 
-    <nav class="top-bar">
-        <!-- (Isi Nav Bar sama) -->
-        <div class="logo-center"><img src="https://www.dialogika.co/assets/img/logo.webp" height="35"></div>
-    </nav>
+    <div class="detail-card">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <a href="../home.html">Dashboard</a> /
+            <a id="breadProject" href="#">Project</a> /
+            <span class="text-muted">Task Detail</span>
+        </div>
 
-    <div class="dashboard-container">
-        <aside class="sidebar" id="sidebarNav">
-             <!-- (Isi Sidebar sama) -->
-             <div class="sidebar-scroll-wrapper">
-                <a href="../home.html" class="sidebar-link"><i class="bi bi-columns-gap"></i> Dashboard</a>
-             </div>
-        </aside>
+        <!-- Task Header -->
+        <div class="d-flex align-items-start">
+            <input type="checkbox" id="taskCheckbox" class="todo-check-large" onchange="updateStatus()">
+            <div>
+                <h1 id="taskTitle" class="task-title">Loading...</h1>
+                <div class="meta-info">Added by <span id="creatorName">User Demo</span></div>
+            </div>
+        </div>
 
-        <main class="main-content">
+        <!-- Info Grid -->
+        <div class="info-grid mt-4">
+            <div class="label">Assigned to</div>
+            <div class="value" id="assignedTo">Unassigned</div>
             
-            <!-- BREADCRUMB SIMPLE -->
-            <div class="mb-4 text-muted small">
-                <a href="../home.html" class="text-decoration-none text-muted">Home</a> /
-                <a href="#" id="linkProject" class="text-decoration-none text-muted">Project</a> /
-                <a href="#" id="linkList" class="text-decoration-none text-muted">List</a> /
-                <span class="fw-bold text-dark">Task Detail</span>
+            <div class="label">Notes</div>
+            <div class="value text-muted" id="taskNotes">No additional notes.</div>
+        </div>
+
+        <hr class="my-5">
+
+        <!-- Comments Section -->
+        <div id="commentsWrapper">
+            <!-- Komentar akan di-load di sini -->
+        </div>
+
+        <!-- Comment Form -->
+        <div class="comment-item mt-4">
+            <div class="avatar">RA</div>
+            <div class="w-100">
+                <div class="comment-box">
+                    <div id="commentInput" contenteditable="true" class="text-muted">Add a comment here...</div>
+                    <div class="comment-footer">
+                        <button class="btn btn-success rounded-pill px-4 btn-sm fw-bold" onclick="postComment()">Comment</button>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <div class="main-card">
-                
-                <!-- HEADER TASK -->
-                <div class="d-flex align-items-start gap-3 mb-4">
-                    <!-- Checkbox Besar -->
-                    <div id="bigCheckbox" class="task-checkbox-lg flex-shrink-0" onclick="toggleTaskStatus()">
-                        <i class="bi bi-check-lg fs-3 d-none" id="checkIcon"></i>
-                    </div>
-                    <div>
-                        <h1 class="fw-bold mb-1" style="font-size: 2rem;" id="taskTitle">Loading...</h1>
-                        <p class="text-muted small">Added by <span class="fw-bold">User Demo</span></p>
-                    </div>
-                </div>
-
-                <!-- METADATA FORM (Static for MVP) -->
-                <div class="row mb-3 align-items-center">
-                    <div class="col-md-3 text-md-end fw-bold text-secondary">Assigned to</div>
-                    <div class="col-md-9 border-bottom border-dashed pb-1 text-muted">Unassigned</div>
-                </div>
-                <div class="row mb-5 align-items-start">
-                    <div class="col-md-3 text-md-end fw-bold text-secondary pt-1">Notes</div>
-                    <div class="col-md-9 border-bottom border-dashed pb-1 text-muted">No additional notes.</div>
-                </div>
-
-                <hr class="opacity-10 my-5">
-
-                <!-- COMMENT SECTION -->
-                <div id="taskComments" class="d-flex flex-column gap-3 mb-4">
-                    <!-- Comments injected here -->
-                </div>
-
-                <!-- COMMENT EDITOR -->
-                <div class="d-flex gap-3">
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:45px; height:45px;">RA</div>
-                    <div class="w-100 border rounded-3 overflow-hidden">
-                        <div id="taskCommentInput" class="p-3 bg-light text-muted" contenteditable="true" style="min-height:100px; outline:none;">Add a comment here...</div>
-                        <div class="p-2 bg-white border-top text-end">
-                            <button class="btn btn-success rounded-pill px-4 btn-sm fw-bold" onclick="postTaskComment()">Comment</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SUBSCRIBERS -->
-                <div class="mt-5 pt-4 border-top">
-                    <h6 class="fw-bold">Subscribers</h6>
-                    <p class="small text-muted mb-3">People notified on this task.</p>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width:30px; height:30px; font-size:0.7rem;">RA</div>
-                        <button class="btn btn-light border rounded-pill px-3 py-1 btn-sm">Add/remove people...</button>
-                    </div>
-                </div>
-
+        <!-- Subscribers Section -->
+        <div class="mt-5">
+            <h6 class="fw-bold">Subscribers</h6>
+            <small class="text-muted d-block mb-3">People notified on this task.</small>
+            <div class="d-flex align-items-center gap-2" id="subsContainer">
+                <!-- Subscriber Avatars -->
             </div>
-        </main>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const API_URL = 'GANTI_DENGAN_URL_DEPLOY_TERBARU_ANDA'; // <--- UPDATE INI
-
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzsRHbU5WcucXdIhQeOFBaWQFvqO1kwGk72dHIfYWKtNcQF7ds5tTOyZNAmEWCQX_M/exec';
+        
         const urlParams = new URLSearchParams(window.location.search);
         const taskId = urlParams.get('taskId');
         const projectId = urlParams.get('projectId');
-        let currentListId = null;
 
         document.addEventListener("DOMContentLoaded", function() {
-            if(!taskId || !projectId) return alert("Missing Parameters");
-            
-            // Set basic links
-            document.getElementById('linkProject').href = `../project/project.html?id=${projectId}`;
-            
-            fetchTaskData();
+            if(!taskId || !projectId) {
+                alert("Missing ID parameters");
+                return;
+            }
+
+            // UI Logic for placeholder
+            const input = document.getElementById('commentInput');
+            input.addEventListener('focus', () => { if(input.innerText === 'Add a comment here...') input.innerText = ''; });
+            input.addEventListener('blur', () => { if(input.innerText.trim() === '') input.innerText = 'Add a comment here...'; });
+
+            loadData();
         });
 
-        function fetchTaskData() {
+        function loadData() {
             fetch(`${API_URL}?action=getProjectData&id=${projectId}`)
             .then(res => res.json())
             .then(response => {
                 if(response.status === 'success') {
                     const data = response.data;
                     
-                    document.getElementById('linkProject').innerText = data.project.name;
-
-                    // Cari Task ini ada di list mana
-                    let foundTask = null;
+                    // 1. Cari Task di dalam Lists
+                    let targetTask = null;
                     data.lists.forEach(list => {
-                        const t = list.tasks.find(x => x.id === taskId);
-                        if(t) {
-                            foundTask = t;
-                            currentListId = list.id; // Simpan List ID untuk comment
-                            document.getElementById('linkList').innerText = list.name;
-                            document.getElementById('linkList').href = `list-detail.html?listId=${list.id}&projectId=${projectId}`;
-                        }
+                        const found = list.tasks.find(t => t.id === taskId);
+                        if(found) targetTask = found;
                     });
 
-                    if(foundTask) {
-                        document.getElementById('taskTitle').innerText = foundTask.title;
-                        // Update Checkbox UI
-                        const isDone = ['done', 'true'].includes(foundTask.status);
-                        const box = document.getElementById('bigCheckbox');
-                        const icon = document.getElementById('checkIcon');
-                        if(isDone) {
-                            box.classList.add('checked');
-                            icon.classList.remove('d-none');
-                        }
+                    if(targetTask) {
+                        renderTask(targetTask, data.project);
                         
-                        // Render Comments (Filter by taskId)
-                        const tComments = data.comments ? data.comments.filter(c => c.taskId === taskId) : [];
-                        renderComments(tComments);
+                        // 2. Filter & Render Komentar khusus Task ini
+                        const taskComments = data.comments.filter(c => c.contextId === taskId);
+                        renderComments(taskComments);
+
+                        // 3. Render Subscribers
+                        const taskSubs = data.subscribers.filter(s => s.contextId === taskId);
+                        renderSubscribers(taskSubs);
+                    } else {
+                        document.getElementById('taskTitle').innerText = "Task Not Found";
                     }
                 }
             });
         }
 
+        function renderTask(task, project) {
+            document.getElementById('taskTitle').innerText = task.title;
+            document.getElementById('taskCheckbox').checked = ['done', 'completed'].includes(task.status.toLowerCase());
+            document.getElementById('assignedTo').innerText = task.assignedTo || 'Unassigned';
+            document.getElementById('breadProject').innerText = project.name;
+            document.getElementById('breadProject').href = `../project/project.html?id=${projectId}`;
+        }
+
         function renderComments(comments) {
-            const container = document.getElementById('taskComments');
-            container.innerHTML = '';
+            const wrapper = document.getElementById('commentsWrapper');
+            wrapper.innerHTML = '';
+            
             comments.forEach(c => {
+                const initial = c.userId ? c.userId.substring(0,2).toUpperCase() : 'U';
+                const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '';
+                
                 const html = `
-                    <div class="d-flex gap-3">
-                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:40px; height:40px;">U</div>
-                        <div class="bg-white border rounded p-3 w-100">
+                    <div class="comment-item">
+                        <div class="avatar bg-secondary">${initial}</div>
+                        <div class="comment-content">
                             <div class="d-flex justify-content-between mb-1">
-                                <strong class="small">User Demo</strong>
-                                <small class="text-muted">${new Date(c.date).toLocaleDateString()}</small>
+                                <strong class="small">${c.userId}</strong>
+                                <small class="text-muted" style="font-size:0.7rem">${date}</small>
                             </div>
-                            <div>${c.text}</div>
+                            <div class="small">${c.text}</div>
                         </div>
-                    </div>`;
-                container.insertAdjacentHTML('beforeend', html);
+                    </div>
+                `;
+                wrapper.insertAdjacentHTML('beforeend', html);
             });
         }
 
-        function postTaskComment() {
-            const input = document.getElementById('taskCommentInput');
-            const text = input.innerText;
-            if(text.trim() === '' || text.includes('Add a comment')) return;
+        function renderSubscribers(subs) {
+            const container = document.getElementById('subsContainer');
+            container.innerHTML = '';
+            subs.forEach(s => {
+                const initial = s.userId ? s.userId.substring(0,2).toUpperCase() : 'U';
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="avatar" style="width:30px; height:30px; font-size:0.7rem;">${initial}</div>
+                `);
+            });
+            container.insertAdjacentHTML('beforeend', `<button class="btn btn-light border rounded-pill px-3 py-1 btn-sm text-muted small" style="font-size:0.7rem">Add/remove people...</button>`);
+        }
 
-            input.innerText = "Posting...";
-            
+        function postComment() {
+            const input = document.getElementById('commentInput');
+            const text = input.innerText.trim();
+            if(!text || text === 'Add a comment here...') return;
+
+            const btn = event.target;
+            btn.innerText = 'Posting...';
+            btn.disabled = true;
+
             fetch(API_URL, {
                 method: 'POST',
                 body: JSON.stringify({
                     action: 'createComment',
+                    contextType: 'task',
+                    contextId: taskId,
                     projectId: projectId,
-                    taskId: taskId, // Kirim Task ID
-                    listId: currentListId, // Optional, biar lengkap datanya
-                    text: text
+                    text: text,
+                    userId: 'RA' // Hardcoded demo user
                 })
-            }).then(res => res.json()).then(resp => {
-                input.innerText = "Add a comment here...";
-                fetchTaskData();
+            })
+            .then(res => res.json())
+            .then(resp => {
+                input.innerText = 'Add a comment here...';
+                loadData(); // Refresh
+            })
+            .finally(() => {
+                btn.innerText = 'Comment';
+                btn.disabled = false;
             });
         }
 
-        function toggleTaskStatus() {
-            // Visual Toggle Only for now (Backend update logic can be added later)
-            const box = document.getElementById('bigCheckbox');
-            const icon = document.getElementById('checkIcon');
-            box.classList.toggle('checked');
-            icon.classList.toggle('d-none');
+        function updateStatus() {
+            const isChecked = document.getElementById('taskCheckbox').checked;
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'updateTaskStatus',
+                    taskId: taskId,
+                    status: isChecked ? 'done' : 'open'
+                })
+            });
         }
     </script>
 </body>
