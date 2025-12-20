@@ -284,257 +284,312 @@
 
     <!-- Script JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            // --- KONFIGURASI API ---
-            const API_URL = 'https://script.google.com/macros/s/AKfycbzsRHbU5WcucXdIhQeOFBaWQFvqO1kwGk72dHIfYWKtNcQF7ds5tTOyZNAmEWCQX_M/exec';
+    
+    <script>
+        // --- KONFIGURASI API ---
+        // Pastikan ini URL Deploy terbaru dari App Script V2.2 Anda
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzsRHbU5WcucXdIhQeOFBaWQFvqO1kwGk72dHIfYWKtNcQF7ds5tTOyZNAmEWCQX_M/exec';
 
-            // Ambil ID dari URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const projectId = urlParams.get('id');
+        // Ambil ID dari URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = urlParams.get('id');
 
-            // --- INIT LOAD ---
-            document.addEventListener("DOMContentLoaded", function() {
-                if(!projectId) {
-                    alert("Error: Tidak ada Project ID di URL.");
-                    document.getElementById('loadingState').innerHTML = '<span class="text-danger">Error: Missing ID</span>';
-                    return;
-                }
-
-                // Set Link Back
-                const backLink = document.getElementById('linkBackToProject');
-                if(backLink) backLink.href = `../project/project.html?id=${projectId}`;
-
-                fetchListsData();
-            });
-
-            // --- FETCH DATA ---
-            function fetchListsData() {
-                const loading = document.getElementById('loadingState');
-                const container = document.getElementById('listsContainer');
-                const emptyState = document.getElementById('emptyState');
-                
-                loading.style.display = 'block';
-                container.innerHTML = '';
-                if(emptyState) emptyState.style.display = 'none';
-
-                fetch(`${API_URL}?action=getProjectData&id=${projectId}`)
-                .then(res => res.json())
-                .then(response => {
-                    if(response.status === 'success') {
-                        const data = response.data;
-                        
-                        // Update Header
-                        if(data.project) {
-                            document.getElementById('projectNameHeader').innerText = data.project.name;
-                            document.getElementById('projectBadge').innerText = data.project.department || 'Project';
-                        }
-
-                        // Render Lists
-                        const lists = data.lists || [];
-                        renderLists(lists);
-                    } else {
-                        showError("Gagal memuat data: " + response.message);
-                    }
-                })
-                .catch(err => {
-                    showError("Terjadi kesalahan sistem.");
-                })
-                .finally(() => {
-                    loading.style.display = 'none';
-                });
+        // --- INIT LOAD ---
+        document.addEventListener("DOMContentLoaded", function() {
+            if(!projectId) {
+                alert("Error: Tidak ada Project ID di URL.");
+                document.getElementById('loadingState').innerHTML = '<span class="text-danger">Error: Missing ID</span>';
+                return;
             }
 
-            // --- RENDER LISTS & TASK FORM ---
-            function renderLists(lists) {
-                const container = document.getElementById('listsContainer');
-                const emptyState = document.getElementById('emptyState');
-                
-                container.innerHTML = '';
+            // Set Link Back
+            const backLink = document.getElementById('linkBackToProject');
+            if(backLink) backLink.href = `../project/project.html?id=${projectId}`;
 
-                if (lists.length === 0) {
-                    if(emptyState) emptyState.style.display = 'block';
-                    return;
-                }
-                if(emptyState) emptyState.style.display = 'none';
-                
-                lists.forEach(list => {
-                    let tasksHtml = '';
+            fetchListsData();
+        });
+
+        // --- FETCH DATA ---
+        function fetchListsData() {
+            const loading = document.getElementById('loadingState');
+            const container = document.getElementById('listsContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            loading.style.display = 'block';
+            container.innerHTML = '';
+            if(emptyState) emptyState.style.display = 'none';
+
+            fetch(`${API_URL}?action=getProjectData&id=${projectId}`)
+            .then(res => res.json())
+            .then(response => {
+                if(response.status === 'success') {
+                    const data = response.data;
                     
-                    // Render Tasks
-                    if (list.tasks && list.tasks.length > 0) {
-                        list.tasks.forEach(task => {
-                            const status = String(task.status || '').toLowerCase();
-                            const isDone = ['done', 'completed', 'true', 'checklist'].includes(status);
-                            const checkedAttr = isDone ? 'checked' : '';
-                            const textClass = isDone ? 'text-decoration-line-through text-muted' : 'text-dark';
+                    // Update Header Logic (Hybrid Data Support)
+                    const pName = (data.project && data.project.name) ? data.project.name : data.name;
+                    const pDept = (data.project && data.project.department) ? data.project.department : (data.department || 'Project');
 
-                            tasksHtml += `
-                                <div class="todo-row p-2 border-bottom d-flex align-items-start hover-bg-light rounded">
-                                    <input type="checkbox" class="todo-check me-3" ${checkedAttr} onclick="event.stopPropagation()">
-                                    <div class="w-100">
-                                        <div class="${textClass}">${task.title || '(No Title)'}</div>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                    } else {
-                        tasksHtml = '<div class="text-muted small ps-4 fst-italic mb-2">No tasks yet.</div>';
-                    }
+                    const headerEl = document.getElementById('projectNameHeader');
+                    const badgeEl = document.getElementById('projectBadge');
 
-                    // Render List Group
-                    const listHtml = `
-                        <div class="mb-5 bg-white p-4 rounded-4 border shadow-sm">
-                            <!-- LINK TITLE KE LIST-DETAIL -->
-                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                                <a href="list-detail.html?listId=${list.id}&projectId=${projectId}" class="text-decoration-none text-dark">
-                                    <h4 class="fw-bold mb-0 hover-text-blue">${list.name}</h4>
-                                </a>
-                                <button class="btn btn-sm btn-light text-muted"><i class="bi bi-three-dots"></i></button>
-                            </div>
-                            
-                            <p class="text-muted small mb-3">${list.desc || ''}</p>
-                            
-                            <div class="todo-list-items">
-                                ${tasksHtml}
-                            </div>
+                    if (headerEl) headerEl.innerText = pName || "Project";
+                    if (badgeEl) badgeEl.innerText = pDept;
 
-                            <!-- ADD TASK SECTION -->
-                            <div class="todo-creation-wrapper mt-3 ms-2">
+                    // Render Lists
+                    const lists = data.lists || [];
+                    renderLists(lists);
+                } else {
+                    showError("Gagal memuat data: " + response.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showError("Terjadi kesalahan sistem.");
+            })
+            .finally(() => {
+                loading.style.display = 'none';
+            });
+        }
+
+        // --- RENDER LISTS & TASKS (UPDATED) ---
+        function renderLists(lists) {
+            const container = document.getElementById('listsContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            container.innerHTML = '';
+
+            if (lists.length === 0) {
+                if(emptyState) emptyState.style.display = 'block';
+                return;
+            }
+            if(emptyState) emptyState.style.display = 'none';
+            
+            lists.forEach(list => {
+                let tasksHtml = '';
+                
+                // Render Tasks
+                if (list.tasks && list.tasks.length > 0) {
+                    list.tasks.forEach(task => {
+                        const status = String(task.status || '').toLowerCase();
+                        const isDone = ['done', 'completed', 'true', 'checklist'].includes(status);
+                        const checkedAttr = isDone ? 'checked' : '';
+                        
+                        // Class untuk strikethrough jika sudah selesai
+                        const textClass = isDone ? 'text-decoration-line-through text-muted' : 'text-dark';
+
+                        // --- UPDATE BAGIAN INI ---
+                        tasksHtml += `
+                            <div class="todo-row p-2 border-bottom d-flex align-items-start hover-bg-light rounded" 
+                                 style="cursor:pointer;"
+                                 onclick="goToItemDetail('${task.id}')">
                                 
-                                <!-- Button Trigger -->
-                                <button id="btn-add-${list.id}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" 
-                                    onclick="showTaskInput('${list.id}')">
-                                    <i class="bi bi-plus"></i> Add a to-do
-                                </button>
-
-                                <!-- Form Input (Hidden Default) -->
-                                <div id="form-add-${list.id}" class="mt-2" style="display:none;">
-                                    <input type="text" id="input-task-${list.id}" class="form-control mb-2" placeholder="Describe this to-do...">
-                                    <div class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-success rounded-pill px-3" onclick="saveTask('${list.id}')">Add this to-do</button>
-                                        <button class="btn btn-sm btn-light border rounded-pill px-3" onclick="hideTaskInput('${list.id}')">Cancel</button>
-                                    </div>
+                                <!-- CHECKBOX: Stop Propagation agar tidak memicu pindah halaman saat di-klik -->
+                                <input type="checkbox" class="todo-check me-3" ${checkedAttr} 
+                                       onclick="toggleTaskStatus(this, '${task.id}'); event.stopPropagation();">
+                                
+                                <div class="w-100">
+                                    <div class="${textClass}" id="title-${task.id}">${task.title || '(No Title)'}</div>
                                 </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    tasksHtml = '<div class="text-muted small ps-4 fst-italic mb-2">No tasks yet.</div>';
+                }
 
+                // Render List Group
+                const listHtml = `
+                    <div class="mb-5 bg-white p-4 rounded-4 border shadow-sm">
+                        <!-- LINK TITLE KE LIST-DETAIL -->
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                            <a href="list-detail.html?listId=${list.id}&projectId=${projectId}" class="text-decoration-none text-dark">
+                                <h4 class="fw-bold mb-0 hover-text-blue">${list.name}</h4>
+                            </a>
+                            <button class="btn btn-sm btn-light text-muted"><i class="bi bi-three-dots"></i></button>
+                        </div>
+                        
+                        <p class="text-muted small mb-3">${list.desc || ''}</p>
+                        
+                        <div class="todo-list-items">
+                            ${tasksHtml}
+                        </div>
+
+                        <!-- ADD TASK SECTION -->
+                        <div class="todo-creation-wrapper mt-3 ms-2">
+                            <button id="btn-add-${list.id}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" 
+                                onclick="showTaskInput('${list.id}')">
+                                <i class="bi bi-plus"></i> Add a to-do
+                            </button>
+
+                            <div id="form-add-${list.id}" class="mt-2" style="display:none;">
+                                <input type="text" id="input-task-${list.id}" class="form-control mb-2" placeholder="Describe this to-do...">
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-success rounded-pill px-3" onclick="saveTask('${list.id}')">Add this to-do</button>
+                                    <button class="btn btn-sm btn-light border rounded-pill px-3" onclick="hideTaskInput('${list.id}')">Cancel</button>
+                                </div>
                             </div>
                         </div>
-                    `;
-                    
-                    container.insertAdjacentHTML('beforeend', listHtml);
-                });
-            }
-
-            // --- TASK UI INTERACTION ---
-            function showTaskInput(listId) {
-                document.getElementById(`btn-add-${listId}`).style.display = 'none';
-                document.getElementById(`form-add-${listId}`).style.display = 'block';
-                document.getElementById(`input-task-${listId}`).focus();
-            }
-
-            function hideTaskInput(listId) {
-                document.getElementById(`btn-add-${listId}`).style.display = 'inline-block';
-                document.getElementById(`form-add-${listId}`).style.display = 'none';
-                document.getElementById(`input-task-${listId}`).value = '';
-            }
-
-            // --- CREATE NEW TASK FUNCTION ---
-            function saveTask(listId) {
-                const input = document.getElementById(`input-task-${listId}`);
-                const title = input.value;
-                const btn = input.nextElementSibling.querySelector('.btn-success');
-
-                if (!title) { alert("Please enter a task title"); return; }
-
-                // Loading state
-                btn.innerText = "Saving...";
-                btn.disabled = true;
-
-                fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'createTask',
-                        listId: listId,
-                        title: title
-                    })
-                })
-                .then(res => res.json())
-                .then(resp => {
-                    if(resp.status === 'success') {
-                        // Refresh data tanpa reload page penuh
-                        fetchListsData();
-                    } else {
-                        alert("Error: " + resp.message);
-                    }
-                })
-                .catch(err => {
-                    alert("Connection failed.");
-                })
-                .finally(() => {
-                    btn.innerText = "Add this to-do";
-                    btn.disabled = false;
-                    hideTaskInput(listId);
-                });
-            }
-
-            // --- CREATE NEW LIST ---
-            function saveNewList() {
-                const name = document.getElementById('inputListName').value;
-                const desc = document.getElementById('inputListDesc').innerText;
-                const btn = document.querySelector('.btn-save-list');
-
-                if(!name) { alert("List name cannot be empty"); return; }
+                    </div>
+                `;
                 
-                btn.innerText = "Saving...";
-                btn.disabled = true;
+                container.insertAdjacentHTML('beforeend', listHtml);
+            });
+        }
 
-                fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'createList',
-                        projectId: projectId,
-                        listName: name,
-                        description: desc
-                    })
-                })
-                .then(res => res.json())
-                .then(resp => {
-                    if(resp.status === 'success') {
-                        document.getElementById('inputListName').value = '';
-                        document.getElementById('inputListDesc').innerText = '';
-                        toggleNewListForm();
-                        fetchListsData();
-                    } else {
-                        alert('Error: ' + resp.message);
-                    }
-                })
-                .finally(() => {
-                    btn.innerText = "Add this list";
-                    btn.disabled = false;
-                });
+        // --- FUNGSI BARU: NAVIGASI KE ITEM DETAIL ---
+        function goToItemDetail(taskId) {
+            // Arahkan ke item-details.html dengan parameter taskId dan projectId
+            window.location.href = `item-details.html?taskId=${taskId}&projectId=${projectId}`;
+        }
+
+        // --- FUNGSI BARU: UPDATE STATUS CHECKBOX ---
+        function toggleTaskStatus(checkbox, taskId) {
+            const isChecked = checkbox.checked;
+            const statusStr = isChecked ? 'done' : 'open';
+            const titleEl = document.getElementById(`title-${taskId}`);
+
+            // 1. Update UI Langsung (Optimistic UI)
+            if(isChecked) {
+                titleEl.classList.add('text-decoration-line-through', 'text-muted');
+                titleEl.classList.remove('text-dark');
+            } else {
+                titleEl.classList.remove('text-decoration-line-through', 'text-muted');
+                titleEl.classList.add('text-dark');
             }
 
-            // Helpers
-            function toggleNewListForm() {
-                const form = document.getElementById('newListForm');
-                const empty = document.getElementById('emptyState');
-                
-                if (form.style.display === 'none' || form.style.display === '') {
-                    form.style.display = 'block';
-                    if(empty) empty.style.display = 'none';
+            console.log(`Updating task ${taskId} to ${statusStr}...`);
+
+            // 2. Kirim ke Backend
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'updateTaskStatus',
+                    taskId: taskId,
+                    status: statusStr
+                })
+            })
+            .then(res => res.json())
+            .then(response => {
+                if(response.status === 'success') {
+                    console.log("Status updated successfully");
                 } else {
-                    form.style.display = 'none';
+                    console.error("Update failed:", response.message);
+                    // Revert UI jika gagal (opsional)
+                    checkbox.checked = !isChecked;
+                    alert("Gagal update status. Cek koneksi.");
                 }
-            }
+            })
+            .catch(err => console.error("Network error:", err));
+        }
 
-            function showError(msg) {
-                document.getElementById('loadingState').style.display = 'none';
-                const errDiv = document.getElementById('errorState');
-                errDiv.innerHTML = msg;
-                errDiv.style.display = 'block';
-            }
+        // --- TASK UI INTERACTION (SAMA SEPERTI SEBELUMNYA) ---
+        function showTaskInput(listId) {
+            document.getElementById(`btn-add-${listId}`).style.display = 'none';
+            document.getElementById(`form-add-${listId}`).style.display = 'block';
+            document.getElementById(`input-task-${listId}`).focus();
+        }
 
-            function toggleSidebar() { document.getElementById('sidebarNav').classList.toggle('show'); }
-        </script>
+        function hideTaskInput(listId) {
+            document.getElementById(`btn-add-${listId}`).style.display = 'inline-block';
+            document.getElementById(`form-add-${listId}`).style.display = 'none';
+            document.getElementById(`input-task-${listId}`).value = '';
+        }
+
+        // --- CREATE NEW TASK FUNCTION ---
+        function saveTask(listId) {
+            const input = document.getElementById(`input-task-${listId}`);
+            const title = input.value;
+            const btn = input.nextElementSibling.querySelector('.btn-success');
+
+            if (!title) { alert("Please enter a task title"); return; }
+
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'createTask',
+                    listId: listId,
+                    title: title
+                })
+            })
+            .then(res => res.json())
+            .then(resp => {
+                if(resp.status === 'success') {
+                    fetchListsData(); // Refresh data
+                } else {
+                    alert("Error: " + resp.message);
+                }
+            })
+            .catch(err => {
+                alert("Connection failed.");
+            })
+            .finally(() => {
+                btn.innerText = "Add this to-do";
+                btn.disabled = false;
+                hideTaskInput(listId);
+            });
+        }
+
+        // --- CREATE NEW LIST ---
+        function saveNewList() {
+            const name = document.getElementById('inputListName').value;
+            const desc = document.getElementById('inputListDesc').innerText;
+            const btn = document.querySelector('.btn-save-list');
+
+            if(!name) { alert("List name cannot be empty"); return; }
+            
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'createList',
+                    projectId: projectId,
+                    listName: name,
+                    description: desc
+                })
+            })
+            .then(res => res.json())
+            .then(resp => {
+                if(resp.status === 'success') {
+                    document.getElementById('inputListName').value = '';
+                    document.getElementById('inputListDesc').innerText = '';
+                    toggleNewListForm();
+                    fetchListsData();
+                } else {
+                    alert('Error: ' + resp.message);
+                }
+            })
+            .finally(() => {
+                btn.innerText = "Add this list";
+                btn.disabled = false;
+            });
+        }
+
+        // Helpers
+        function toggleNewListForm() {
+            const form = document.getElementById('newListForm');
+            const empty = document.getElementById('emptyState');
+            
+            if (form.style.display === 'none' || form.style.display === '') {
+                form.style.display = 'block';
+                if(empty) empty.style.display = 'none';
+            } else {
+                form.style.display = 'none';
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('loadingState').style.display = 'none';
+            const errDiv = document.getElementById('errorState');
+            errDiv.innerHTML = msg;
+            errDiv.style.display = 'block';
+        }
+
+        function toggleSidebar() { document.getElementById('sidebarNav').classList.toggle('show'); }
+    </script>
 </body>
 </html>
