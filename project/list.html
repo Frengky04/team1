@@ -226,7 +226,6 @@
         const projectId = new URLSearchParams(window.location.search).get('id');
         const dialogikaColors = ['#0B2B6A', '#F9C72E', '#231f20', '#7204cf', '#006a4e', '#e7181a', '#f7b12c', '#0163ea', '#1c84e3', '#444444', '#011548'];
         
-        // Konfigurasi Warna Palette Dialogika (Sesuai Versi Baru)
         const tagPalette = [
             '#D3E5EF', '#D3DFFB', '#E7E2F9', '#F1DDF3', '#F9DEDC', '#FDECC8', '#E2F2D1',
             '#7204cf', '#0163ea', '#1c84e3', '#006a4e', '#0B2B6A', '#F9C72E', '#e7181a',
@@ -263,7 +262,6 @@
                 .finally(() => document.getElementById('loadingState').style.display = 'none');
         }
 
-        // --- UPDATED RENDER LISTS ---
         function renderLists(lists) {
             const container = document.getElementById('listsContainer');
             container.innerHTML = '';
@@ -274,12 +272,10 @@
             document.getElementById('emptyState').style.display = 'none';
 
             lists.forEach(list => {
-                // Render Status Badges untuk Header List
                 const statusBadgesHtml = (list.statuses || []).sort((a,b) => a.position - b.position).map(s => `
                     <div class="status-badge-main" style="background:${s.color || '#64748b'}">${s.name}</div>
                 `).join('');
 
-                // Render Task Items
                 const tasksHtml = (list.tasks || []).map(t => {
                     const done = ['done', 'true', 'completed'].includes(t.status?.toLowerCase());
                     return `
@@ -298,7 +294,6 @@
                            class="text-dark fw-bold h4 text-decoration-none hover-text-blue">${list.name}</a>
                     </div>
                     
-                    <!-- STATUS CONTAINER DI BAWAH JUDUL LIST -->
                     <div class="status-pill-container">
                         ${statusBadgesHtml}
                         <button class="btn-add-status" onclick="promptNewStatus('${list.id}')" title="Add Status">
@@ -313,48 +308,62 @@
                             <i class="bi bi-plus"></i> Add a to-do
                         </button>
                         
-                        <!-- FORM ADD TASK -->
                         <div id="form-add-${list.id}" class="task-create-panel" style="display:none">
                             <input type="text" id="task-title-${list.id}" class="task-title-large" placeholder="Task Name">
                             
                             <div class="meta-grid-container">
-                                <div>
-                                    <div class="meta-row">
-                                        <div class="meta-icon"><i class="bi bi-record-circle"></i></div>
-                                        <div class="meta-label">Status</div>
-                                        <div class="meta-value">
-                                            ${renderStatusDropdown(list.statuses, list.id)}
-                                        </div>
-                                    </div>
-                                    <div class="meta-row">
-                                        <div class="meta-icon"><i class="bi bi-calendar4"></i></div>
-                                        <div class="meta-label">Dates</div>
-                                        <div class="meta-value d-flex gap-2">
-                                            <input type="date" id="task-start-${list.id}" class="ghost-input p-0">
-                                            <input type="date" id="task-due-${list.id}" class="ghost-input p-0">
-                                        </div>
+                                <!-- Baris 1: Status & Priority -->
+                                <div class="meta-row">
+                                    <div class="meta-icon"><i class="bi bi-record-circle"></i></div>
+                                    <div class="meta-label">Status</div>
+                                    <div class="meta-value">${renderStatusDropdown(list.statuses, list.id)}</div>
+                                </div>
+                                <div class="meta-row">
+                                    <div class="meta-icon"><i class="bi bi-flag"></i></div>
+                                    <div class="meta-label">Priority</div>
+                                    <div class="meta-value">
+                                        <select id="task-priority-${list.id}" class="ghost-input">
+                                            <option value="normal">Normal</option>
+                                            <option value="high">High</option>
+                                            <option value="urgent">Urgent</option>
+                                        </select>
                                     </div>
                                 </div>
-                                <div>
-                                    <div class="meta-row">
-                                        <div class="meta-icon"><i class="bi bi-flag"></i></div>
-                                        <div class="meta-label">Priority</div>
-                                        <div class="meta-value">
-                                            <select id="task-priority-${list.id}" class="ghost-input">
-                                                <option value="normal">Normal</option>
-                                                <option value="high">High</option>
-                                                <option value="urgent">Urgent</option>
-                                            </select>
-                                        </div>
+
+                                <!-- Baris 2: Dates & Sprint Points -->
+                                <div class="meta-row">
+                                    <div class="meta-icon"><i class="bi bi-calendar4"></i></div>
+                                    <div class="meta-label">Dates</div>
+                                    <div class="meta-value d-flex gap-2">
+                                        <input type="date" id="task-start-${list.id}" class="ghost-input p-0" title="Start Date">
+                                        <span class="text-muted">-</span>
+                                        <input type="date" id="task-due-${list.id}" class="ghost-input p-0" title="Due Date">
                                     </div>
-                                    <div class="meta-row">
-                                        <div class="meta-icon"><i class="bi bi-tags"></i></div>
-                                        <div class="meta-label">Tags</div>
-                                        <div class="meta-value position-relative">
-                                            <div id="selected-tags-${list.id}" class="d-flex flex-wrap gap-1 mb-1"></div>
-                                            <input type="text" class="ghost-input w-100" placeholder="Search or add tags..." oninput="handleTagSearch(this, '${list.id}')">
-                                            <div id="tag-dropdown-${list.id}" class="tag-dropdown"></div>
-                                        </div>
+                                </div>
+                                <div class="meta-row">
+                                    <div class="meta-icon"><i class="bi bi-star"></i></div>
+                                    <div class="meta-label">Sprint points</div>
+                                    <div class="meta-value">
+                                        <input type="number" id="task-points-${list.id}" class="ghost-input" placeholder="Empty" min="0">
+                                    </div>
+                                </div>
+
+                                <!-- Baris 3: Track Time & Tags -->
+                                <div class="meta-row">
+                                    <div class="meta-icon"><i class="bi bi-stopwatch"></i></div>
+                                    <div class="meta-label">Track time</div>
+                                    <div class="meta-value d-flex align-items-center gap-2">
+                                        <span class="text-muted small">Empty</span>
+                                        <button class="btn btn-sm btn-light border-0 py-0" style="font-size:0.7rem"><i class="bi bi-play-fill"></i> Start</button>
+                                    </div>
+                                </div>
+                                <div class="meta-row">
+                                    <div class="meta-icon"><i class="bi bi-tags"></i></div>
+                                    <div class="meta-label">Tags</div>
+                                    <div class="meta-value position-relative">
+                                        <div id="selected-tags-${list.id}" class="d-flex flex-wrap gap-1 mb-1"></div>
+                                        <input type="text" class="ghost-input w-100" placeholder="Search or add tags..." oninput="handleTagSearch(this, '${list.id}')">
+                                        <div id="tag-dropdown-${list.id}" class="tag-dropdown"></div>
                                     </div>
                                 </div>
                             </div>
@@ -374,7 +383,6 @@
             });
         }
 
-        // --- UPDATED STATUS DROPDOWN ---
         function renderStatusDropdown(statuses, lid) {
             if (!statuses || statuses.length === 0) {
                 return `
@@ -438,7 +446,7 @@
 
         function saveTask(lid) {
             const title = document.getElementById(`task-title-${lid}`).value;
-            if (!title) return alert("Title is required");
+            if (!title) return alert("Task Name is required");
 
             const payload = {
                 action: 'createTask',
@@ -449,10 +457,18 @@
                 priority: document.getElementById(`task-priority-${lid}`).value,
                 description: document.getElementById(`task-desc-${lid}`).innerHTML,
                 status: document.getElementById(`task-status-${lid}`)?.value || 'OPEN',
+                points: document.getElementById(`task-points-${lid}`).value || 0, // Ambil data points
                 tagIds: selectedTags.map(t => t.id)
             };
 
-            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }).then(() => fetchData());
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Digunakan jika Apps Script tidak memberikan response JSON karena CORS
+                body: JSON.stringify(payload)
+            }).then(() => {
+                fetchData();
+                hideTaskForm(lid);
+            });
         }
 
         // --- ENHANCED TAG SYSTEM ---
@@ -660,6 +676,9 @@
         function hideTaskForm(lid) {
             document.getElementById(`btn-add-${lid}`).style.display = 'inline-block';
             document.getElementById(`form-add-${lid}`).style.display = 'none';
+            // Reset points value if needed
+            const pointsInput = document.getElementById(`task-points-${lid}`);
+            if(pointsInput) pointsInput.value = '';
         }
         function toggleSidebar() { document.getElementById('sidebarNav').classList.toggle('show'); }
 
