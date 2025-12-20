@@ -12,99 +12,34 @@
     <link href="../assets/css/style.css" rel="stylesheet" />
 
     <style>
-        /* --- CSS KHUSUS LIST.HTML --- */
         body { background-color: #e5e7eb; }
+        .main-content { margin-left: 290px; width: calc(100% - 290px); padding: 40px; min-height: 100vh; }
+        @media (max-width: 991px) { .main-content { margin-left: 0; width: 100%; padding: 20px; } }
 
-        /* FIX LAYOUT: Pastikan konten ada di sebelah kanan sidebar */
-        .main-content {
-            margin-left: 290px;
-            width: calc(100% - 290px);
-            padding: 40px;
-            min-height: 100vh;
-        }
-        @media (max-width: 991px) {
-            .main-content { margin-left: 0; width: 100%; padding: 20px; }
-        }
-
-        /* --- 1. PROJECT CONTEXT CARD (KARTU BELAKANG/ATAS) --- */
+        /* Project Context Card (Breadcrumb Style) */
         .project-context-card {
-            max-width: 800px; /* LEBIH KECIL dari card list */
-            width: 90%;
-            background-color: #fff;
-            color: #1f2937; /* Dark Navy */
-            margin: 20px auto -20px auto; /* Margin bottom negatif agar tertiban card bawah */
-            padding: 15px 25px 35px 25px; /* Padding bawah lebih besar untuk area tiban */
-            border-radius: 16px 16px 0 0; /* Rounded atas */
-            position: relative;
-            z-index: 1; /* Layer bawah */
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            max-width: 800px; width: 90%; background: #1f2937; color: white;
+            margin: 20px auto -20px auto; padding: 15px 25px 35px 25px;
+            border-radius: 16px 16px 0 0; position: relative; z-index: 1;
+            display: flex; align-items: center; justify-content: center;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
         }
-
-        /* Badge Sample Project */
         .ph-badge {
-            background: #FDE047; /* Yellow */
-            color: #854D0E;
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 4px 8px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            margin-right: 15px;
-            letter-spacing: 0.5px;
-            position: absolute;
-            left: 30px;
-            top: 38%;
-            transform: translateY(-50%);
+            background: #FDE047; color: #854D0E; font-size: 0.7rem; font-weight: 800;
+            padding: 4px 8px; border-radius: 4px; text-transform: uppercase;
+            position: absolute; left: 30px; top: 38%; transform: translateY(-50%);
         }
-
-        /* Menu Trigger */
-        .ph-nav-group {
-            display: flex; align-items: center; gap: 10px;
-            background: #1f2937; padding: 6px 15px; border-radius: 50px;
-            cursor: pointer; transition: 0.2s;
-        }
-        .ph-nav-group:hover { background: #0B2B6A; }
-        .ph-project-name { font-weight: 700; color: white; font-size: 1rem; }
-        
-        /* --- BREADCRUMB STYLES (Tambahkan ini) --- */
         .ph-crumb-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.1); /* Background transparan halus */
-            padding: 8px 20px;
-            border-radius: 50px;
-            font-size: 0.95rem;
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255, 255, 255, 0.1); padding: 8px 20px;
+            border-radius: 50px; font-size: 0.95rem;
         }
+        .ph-crumb-link { text-decoration: none; color: #d1d5db; font-weight: 500; transition: 0.2s; display: flex; align-items: center; }
+        .ph-crumb-link:hover { color: white; }
+        .ph-crumb-active { color: white; font-weight: 700; border-bottom: 2px solid #FDE047; padding-bottom: 2px; }
+        .ph-sep { font-size: 0.8rem; color: #6b7280; }
 
-        .ph-crumb-link {
-            text-decoration: none;
-            color: #d1d5db; /* Abu-abu terang */
-            font-weight: 500;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-        }
-        .ph-crumb-link:hover {
-            color: white; /* Putih saat hover */
-        }
-        
-        .ph-crumb-active {
-            color: white;
-            font-weight: 700;
-            border-bottom: 2px solid #FDE047; /* Garis bawah kuning */
-            padding-bottom: 2px;
-        }
-        
-        .ph-sep {
-            font-size: 0.8rem;
-            color: #6b7280; /* Abu-abu gelap untuk panah */
-        }
-
-        /* 2. KARTU PUTIH (Main Content) */
+        /* Main List Card */
         .main-list-card {
             max-width: 1000px; width: 100%; margin: 0 auto 50px auto;
             background: white; border-radius: 16px;
@@ -112,73 +47,25 @@
             padding: 60px; position: relative; z-index: 2;
             border: 1px solid #d1d5db; min-height: 400px;
         }
-
-        /* Tombol New List */
         .btn-new-list {
-            position: absolute; top: 40px; right: 40px;
-            background-color: #0B2B6A; color: white; border-radius: 50px;
-            padding: 8px 24px; font-weight: 600; border: none;
-            box-shadow: 0 4px 10px rgba(11, 43, 106, 0.2); transition: 0.2s;
+            position: absolute; top: 40px; right: 40px; background: #0B2B6A; color: white;
+            border-radius: 50px; padding: 8px 24px; font-weight: 600; border: none;
+            transition: 0.2s;
         }
-        .btn-new-list:hover { background-color: #08204e; transform: translateY(-2px); }
+        .btn-new-list:hover { background: #08204e; transform: translateY(-2px); }
 
-        /* Form New List */
-        .new-list-form-wrapper {
-            background: white; border: 1px solid #e5e7eb; border-radius: 12px;
-            padding: 25px; margin-bottom: 40px; display: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-        .input-list-title {
-            font-size: 1.5rem; font-weight: 700; border: none; width: 100%;
-            outline: none; margin-bottom: 15px; color: #1f2937; border-bottom: 2px solid transparent;
-        }
-        .input-list-title:focus { border-bottom-color: #e5e7eb; }
-        
-        /* Empty State */
-        .empty-state-card {
-            border: 2px dashed #FDE047; background-color: #FFFCF5;
-            border-radius: 12px; padding: 50px 20px; text-align: center;
-            margin-top: 30px; display: none;
-        }
-
-        /* List Items Styling */
-        .todo-group-label {
-            font-size: 1.2rem; font-weight: 800; color: #1f2937;
-            margin-top: 40px; margin-bottom: 15px; border-bottom: 3px solid #1f2937;
-            display: inline-block; padding-bottom: 5px;
-        }
-        .todo-row {
-            padding: 12px 10px; border-bottom: 1px solid #f3f4f6;
-            display: flex; align-items: start; transition: 0.2s;
-        }
+        /* List Items */
+        .todo-row { padding: 12px 10px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: start; transition: 0.2s; }
         .todo-row:hover { background-color: #f8fafc; border-radius: 6px; }
         .todo-check { width: 22px; height: 22px; margin-right: 15px; cursor: pointer; }
         
-        /* New Todo Form (Inner) */
-        .todo-creation-wrapper { margin-top: 15px; margin-bottom: 20px; }
-        .new-todo-card {
-            background: white; border: 1px solid #d1d5db; border-radius: 8px; padding: 0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display: none;
-        }
-        .todo-form-header { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid #f3f4f6; }
-        .todo-input-desc { border: none; outline: none; width: 100%; font-size: 1.1rem; color: #374151; }
-        .todo-form-body { padding: 20px; }
-        .todo-form-row { display: flex; align-items: center; margin-bottom: 12px; }
-        .todo-label { width: 140px; text-align: right; margin-right: 20px; font-weight: 600; color: #374151; font-size: 0.95rem; }
-        .todo-input-detail { flex-grow: 1; border: 1px solid transparent; border-radius: 4px; padding: 6px 10px; color: #4b5563; font-size: 0.95rem; }
-        .todo-input-detail:hover, .todo-input-detail:focus { border-color: #d1d5db; background: #f9fafb; outline: none; }
-        .todo-form-footer { padding: 15px 20px; background: #f9fafb; border-top: 1px solid #f3f4f6; display: flex; gap: 10px; }
-
-        @media (max-width: 768px) {
-            .ph-badge { display: none; }
-            .main-list-card { padding: 30px 20px; border-radius: 0; }
-            .btn-new-list { position: static; display: block; width: 100%; margin-bottom: 20px; }
-        }
+        /* New List Form */
+        .new-list-form-wrapper { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; margin-bottom: 40px; display: none; }
+        .input-list-title { font-size: 1.5rem; font-weight: 700; border: none; width: 100%; outline: none; margin-bottom: 15px; color: #1f2937; }
     </style>
 </head>
 <body>
 
-    <!-- 1. TOP BAR -->
     <nav class="top-bar">
         <div class="d-flex align-items-center">
             <button class="mobile-toggle me-3" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
@@ -190,179 +77,126 @@
     </nav>
 
     <div class="dashboard-container">
-        
-        <!-- 2. SIDEBAR (Light, Smart Filters, Pending Widget) -->
         <aside class="sidebar" id="sidebarNav">
-            
-            <!-- WRAPPER UNTUK AREA YANG BISA DI-SCROLL -->
             <div class="sidebar-scroll-wrapper">
-                
-                <!-- Smart Filters (4 Kotak Besar) -->
-                <div class="smart-filters-grid">
-                    <a href="#" class="filter-card">
-                        <div class="filter-top"><div class="filter-icon bg-icon-dark"><i class="bi bi-archive-fill"></i></div><div class="filter-count">429</div></div>
-                        <div class="filter-label">All Tasks</div>
-                    </a>
-                    <a href="#" class="filter-card">
-                        <div class="filter-top"><div class="filter-icon bg-icon-blue"><i class="bi bi-calendar-event-fill"></i></div><div class="filter-count">25</div></div>
-                        <div class="filter-label">Today</div>
-                    </a>
-                    <a href="#" class="filter-card">
-                        <div class="filter-top"><div class="filter-icon bg-icon-orange"><i class="bi bi-flag-fill"></i></div><div class="filter-count">21</div></div>
-                        <div class="filter-label">Urgent</div>
-                    </a>
-                    <a href="#" class="filter-card">
-                        <div class="filter-top"><div class="filter-icon bg-icon-red"><i class="bi bi-calendar-check-fill"></i></div><div class="filter-count">30</div></div>
-                        <div class="filter-label">Assigned</div>
-                    </a>
-                </div>
-
-                <!-- Navigation Links -->
                 <div class="nav-category">Main Navigation</div>
-                <a href="#" class="sidebar-link active"><i class="bi bi-columns-gap"></i> Dashboard</a>
-                <a href="#" class="sidebar-link"><i class="bi bi-list-columns-reverse"></i> Lineup <span class="sidebar-badge">4</span></a>
-                <a href="#" class="sidebar-link"><i class="bi bi-chat-dots"></i> Pings</a>
-                <a href="#" class="sidebar-link"><i class="bi bi-bell"></i> Hey!</a>
-                <a href="#" class="sidebar-link"><i class="bi bi-activity"></i> Activity</a>
-                <a href="#" class="sidebar-link"><i class="bi bi-person-circle"></i> My Stuff</a>
-
-                <div class="nav-category mt-4">System</div>
-                <a href="#" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
-                <a href="#" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
-
-            </div> <!-- End Scroll Wrapper -->
-
-            <!-- PENDING WIDGET (Pinned di Bawah, di luar scroll wrapper) -->
-            <div class="pending-widget">
-                <div class="fire-icon-wrapper"><i class="bi bi-fire fire-icon"></i></div>
-                <h6 class="fw-bold" style="color:#0B2B6A; margin-bottom: 5px;">Pending Tasks</h6>
-                <p class="small text-muted mb-3">You have 5 approvals waiting.</p>
-                <button class="btn-review">Review Now</button>
-                
-                <!-- COPYRIGHT (Muncul hanya saat scroll mentok bawah) -->
-                <div class="sidebar-copyright">
-                    &copy; 2025 PT Dialogika Persona Indonesia
-                </div>
+                <a href="../home.html" class="sidebar-link active"><i class="bi bi-columns-gap"></i> Dashboard</a>
+                <a href="#" class="sidebar-link"><i class="bi bi-list-columns-reverse"></i> Lineup</a>
+                <div class="sidebar-copyright">&copy; 2025 PT Dialogika Persona Indonesia</div>
             </div>
-
         </aside>
 
-        <!-- 3. MAIN CONTENT -->
-        <main class="main-content" style="width: 100%;">
+        <main class="main-content">
             
-
-            <!-- A. KARTU BELAKANG (BREADCRUMB NAV) -->
+            <!-- BREADCRUMB HEADER -->
             <div class="project-context-card">
-                
-                <!-- Badge Sample Project -->
                 <div class="ph-badge" id="projectBadge">Loading...</div>
-
-                <!-- Breadcrumb Navigation -->
                 <div class="ph-crumb-container">
-                    <!-- 1. Home Link -->
-                    <a href="../home.html" class="ph-crumb-link" title="Back to Dashboard">
-                        <i class="bi bi-house-fill"></i>
-                    </a>
-                    
-                    <!-- Separator (>) -->
+                    <a href="../home.html" class="ph-crumb-link" title="Dashboard"><i class="bi bi-house-fill"></i></a>
                     <i class="bi bi-chevron-right ph-sep"></i>
-
-                    <!-- 2. Project Name (Active) -->
-                    <!-- ID ini penting agar JavaScript fetchListsData() bisa mengisinya -->
                     <span class="ph-crumb-active" id="projectNameHeader">Loading Project...</span>
                 </div>
-
-                <!-- Right Side Option -->
                 <div class="position-absolute end-0 me-3">
                     <button class="btn btn-link text-white text-opacity-50"><i class="bi bi-three-dots"></i></button>
                 </div>
-                
             </div>
 
-            <!-- B. KARTU DEPAN (LIST KONTEN) -->
+            <!-- MAIN CONTENT CARD -->
             <div class="main-list-card">
-                
-                <!-- Tombol New List -->
-                <button class="btn-new-list btn-dlg-blue" onclick="toggleNewListForm()">
-                    <i class="bi bi-plus-lg me-1"></i> New List
-                </button>
+                <button class="btn-new-list" onclick="toggleNewListForm()"><i class="bi bi-plus-lg me-1"></i> New List</button>
 
-                <!-- Judul Halaman -->
                 <div class="text-center mb-5">
                     <h1 class="fw-bold display-5 mb-1" style="color:#111;">All List</h1>
                     <p class="text-muted">Manage your tasks efficiently.</p>
                 </div>
 
-                <!-- FORM NEW LIST (Hidden) -->
+                <!-- New List Form -->
                 <div id="newListForm" class="new-list-form-wrapper">
                     <input type="text" id="inputListName" class="input-list-title" placeholder="Name this list...">
                     <div class="border rounded mb-3 p-2 bg-white" style="min-height: 100px;" contenteditable="true" id="inputListDesc"></div>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-dlg-green rounded-pill px-4 btn-save-list" onclick="saveNewList()">Add this list</button>
+                        <button class="btn btn-success rounded-pill px-4 btn-save-list" onclick="saveNewList()">Add this list</button>
                         <button class="btn btn-light border rounded-pill px-4" onclick="toggleNewListForm()">Cancel</button>
                     </div>
                 </div>
 
-                <!-- LOADING INDICATOR -->
                 <div id="loadingState" class="text-center py-5">
                     <div class="spinner-border text-primary" role="status"></div>
                     <p class="text-muted mt-2">Loading lists...</p>
                 </div>
 
-                <!-- EMPTY STATE -->
-                <div id="emptyState" class="empty-state-card" style="display: none;">
-                    <i class="bi bi-check-circle display-4 text-warning mb-3 d-block"></i>
-                    <h3 class="fw-bold text-secondary">No to-do lists just yet</h3>
-                    <p class="text-muted">Get started by creating a new list above.</p>
+                <div id="listsContainer"></div>
+                <div id="emptyState" class="text-center text-muted fst-italic py-5" style="display:none;">No lists yet.</div>
+
+                <hr class="my-5 opacity-25">
+
+                <!-- COMMENT SECTION (PROJECT LEVEL) -->
+                <div class="mt-5">
+                    <h5 class="fw-bold mb-4 text-dark">Discussion</h5>
+                    
+                    <div id="commentsWrapper" class="d-flex flex-column gap-3 mb-4">
+                        <!-- Comments will be loaded here -->
+                    </div>
+
+                    <!-- Comment Input -->
+                    <div class="d-flex gap-3">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:40px; height:40px;">RA</div>
+                        <div class="w-100 border rounded-3 overflow-hidden">
+                            <div id="commentInput" class="p-3 bg-light text-muted" contenteditable="true" style="min-height:80px; outline:none;">Add a comment...</div>
+                            <div class="p-2 bg-white border-top text-end">
+                                <button class="btn btn-success rounded-pill px-4 btn-sm fw-bold" onclick="postComment()">Post comment</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- ERROR STATE -->
-                <div id="errorState" class="alert alert-danger text-center" style="display: none;"></div>
-
-                <!-- LIST CONTAINER -->
-                <div id="listsContainer"></div>
+                <!-- SUBSCRIBER SECTION (PROJECT LEVEL) -->
+                <div class="mt-5 pt-4 border-top">
+                    <h6 class="fw-bold">Subscribers</h6>
+                    <p class="small text-muted mb-3">People listed below will be notified when comments are posted on this project.</p>
+                    
+                    <div class="d-flex align-items-center gap-2 flex-wrap" id="subsContainer">
+                        <!-- Subs avatars here -->
+                        <button class="btn btn-light border rounded-pill px-3 py-1 btn-sm text-muted small">Add/remove people...</button>
+                    </div>
+                    
+                    <!-- Subscribe Button -->
+                    <div class="mt-3 p-2 bg-light rounded-pill d-inline-block border">
+                        <small class="text-dark fw-bold px-2" id="subStatusText">You’re subscribed</small>
+                        <button class="btn btn-sm btn-link text-muted text-decoration-none p-0" style="font-size:0.8rem;" id="subToggleBtn" onclick="toggleSubscription()">Unsubscribe me</button>
+                    </div>
+                </div>
 
             </div>
-            
         </main>
     </div>
 
     <!-- Script JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script>
-        // --- KONFIGURASI API ---
-        // Pastikan ini URL Deploy terbaru dari App Script V2.2 Anda
+        // GANTI DENGAN URL DEPLOY TERBARU!
         const API_URL = 'https://script.google.com/macros/s/AKfycbzsRHbU5WcucXdIhQeOFBaWQFvqO1kwGk72dHIfYWKtNcQF7ds5tTOyZNAmEWCQX_M/exec';
 
-        // Ambil ID dari URL
         const urlParams = new URLSearchParams(window.location.search);
         const projectId = urlParams.get('id');
+        let isSubscribed = false; // State lokal untuk status subscribe
 
-        // --- INIT LOAD ---
         document.addEventListener("DOMContentLoaded", function() {
             if(!projectId) {
-                alert("Error: Tidak ada Project ID di URL.");
-                document.getElementById('loadingState').innerHTML = '<span class="text-danger">Error: Missing ID</span>';
+                alert("Error: Missing Project ID");
                 return;
             }
-
-            // Set Link Back
-            const backLink = document.getElementById('linkBackToProject');
-            if(backLink) backLink.href = `../project/project.html?id=${projectId}`;
+            // Logic placeholder text
+            const input = document.getElementById('commentInput');
+            input.addEventListener('focus', () => { if(input.innerText === 'Add a comment...') input.innerText = ''; });
+            input.addEventListener('blur', () => { if(input.innerText.trim() === '') input.innerText = 'Add a comment...'; });
 
             fetchListsData();
         });
 
-        // --- FETCH DATA ---
         function fetchListsData() {
             const loading = document.getElementById('loadingState');
-            const container = document.getElementById('listsContainer');
-            const emptyState = document.getElementById('emptyState');
-            
             loading.style.display = 'block';
-            container.innerHTML = '';
-            if(emptyState) emptyState.style.display = 'none';
 
             fetch(`${API_URL}?action=getProjectData&id=${projectId}`)
             .then(res => res.json())
@@ -370,270 +204,204 @@
                 if(response.status === 'success') {
                     const data = response.data;
                     
-                    // Update Header Logic (Hybrid Data Support)
+                    // Header
                     const pName = (data.project && data.project.name) ? data.project.name : data.name;
-                    const pDept = (data.project && data.project.department) ? data.project.department : (data.department || 'Project');
-
-                    const headerEl = document.getElementById('projectNameHeader');
-                    const badgeEl = document.getElementById('projectBadge');
-
-                    if (headerEl) headerEl.innerText = pName || "Project";
-                    if (badgeEl) badgeEl.innerText = pDept;
+                    const pDept = (data.project && data.project.department) ? data.project.department : "Project";
+                    document.getElementById('projectNameHeader').innerText = pName;
+                    document.getElementById('projectBadge').innerText = pDept;
 
                     // Render Lists
-                    const lists = data.lists || [];
-                    renderLists(lists);
+                    renderLists(data.lists || []);
+
+                    // Render Comments (Filter for Project ID)
+                    // Note: Komentar project biasanya punya contextId = projectId
+                    const projComments = data.comments ? data.comments.filter(c => c.projectId === projectId && (!c.listId || c.listId === "") && (!c.taskId || c.taskId === "")) : [];
+                    renderComments(projComments);
+
+                    // Render Subscribers (Filter for Project ID)
+                    const projSubs = data.subscribers ? data.subscribers.filter(s => s.contextId === projectId) : [];
+                    renderSubscribers(projSubs);
+
                 } else {
-                    showError("Gagal memuat data: " + response.message);
+                    alert("Error: " + response.message);
                 }
-            })
-            .catch(err => {
-                console.error(err);
-                showError("Terjadi kesalahan sistem.");
             })
             .finally(() => {
                 loading.style.display = 'none';
             });
         }
 
-        // --- RENDER LISTS & TASKS (UPDATED) ---
+        // --- RENDER FUNCTIONS ---
         function renderLists(lists) {
             const container = document.getElementById('listsContainer');
-            const emptyState = document.getElementById('emptyState');
-            
             container.innerHTML = '';
+            if(lists.length === 0) { document.getElementById('emptyState').style.display='block'; return; }
+            document.getElementById('emptyState').style.display='none';
 
-            if (lists.length === 0) {
-                if(emptyState) emptyState.style.display = 'block';
-                return;
-            }
-            if(emptyState) emptyState.style.display = 'none';
-            
             lists.forEach(list => {
                 let tasksHtml = '';
-                
-                // Render Tasks
                 if (list.tasks && list.tasks.length > 0) {
                     list.tasks.forEach(task => {
-                        const status = String(task.status || '').toLowerCase();
-                        const isDone = ['done', 'completed', 'true', 'checklist'].includes(status);
-                        const checkedAttr = isDone ? 'checked' : '';
-                        
-                        // Class untuk strikethrough jika sudah selesai
-                        const textClass = isDone ? 'text-decoration-line-through text-muted' : 'text-dark';
-
-                        // --- UPDATE BAGIAN INI ---
+                        const isDone = ['done', 'true'].includes(task.status);
+                        const chk = isDone ? 'checked' : '';
+                        const cls = isDone ? 'text-decoration-line-through text-muted' : 'text-dark';
                         tasksHtml += `
                             <div class="todo-row p-2 border-bottom d-flex align-items-start hover-bg-light rounded" 
-                                 style="cursor:pointer;"
-                                 onclick="goToItemDetail('${task.id}')">
-                                
-                                <!-- CHECKBOX: Stop Propagation agar tidak memicu pindah halaman saat di-klik -->
-                                <input type="checkbox" class="todo-check me-3" ${checkedAttr} 
-                                       onclick="toggleTaskStatus(this, '${task.id}'); event.stopPropagation();">
-                                
-                                <div class="w-100">
-                                    <div class="${textClass}" id="title-${task.id}">${task.title || '(No Title)'}</div>
-                                </div>
-                            </div>
-                        `;
+                                 style="cursor:pointer;" onclick="window.location.href='item-details.html?taskId=${task.id}&projectId=${projectId}'">
+                                <input type="checkbox" class="todo-check me-3" ${chk} onclick="toggleTaskStatus(this, '${task.id}'); event.stopPropagation();">
+                                <div class="w-100"><div class="${cls}" id="title-${task.id}">${task.title}</div></div>
+                            </div>`;
                     });
-                } else {
-                    tasksHtml = '<div class="text-muted small ps-4 fst-italic mb-2">No tasks yet.</div>';
-                }
+                } else { tasksHtml = '<div class="text-muted small ps-4 fst-italic mb-2">No tasks yet.</div>'; }
 
-                // Render List Group
-                const listHtml = `
+                const html = `
                     <div class="mb-5 bg-white p-4 rounded-4 border shadow-sm">
-                        <!-- LINK TITLE KE LIST-DETAIL -->
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
                             <a href="list-detail.html?listId=${list.id}&projectId=${projectId}" class="text-decoration-none text-dark">
                                 <h4 class="fw-bold mb-0 hover-text-blue">${list.name}</h4>
                             </a>
                             <button class="btn btn-sm btn-light text-muted"><i class="bi bi-three-dots"></i></button>
                         </div>
-                        
                         <p class="text-muted small mb-3">${list.desc || ''}</p>
-                        
-                        <div class="todo-list-items">
-                            ${tasksHtml}
-                        </div>
-
-                        <!-- ADD TASK SECTION -->
+                        <div class="todo-list-items">${tasksHtml}</div>
                         <div class="todo-creation-wrapper mt-3 ms-2">
-                            <button id="btn-add-${list.id}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" 
-                                onclick="showTaskInput('${list.id}')">
-                                <i class="bi bi-plus"></i> Add a to-do
-                            </button>
-
+                            <button id="btn-add-${list.id}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" onclick="showTaskInput('${list.id}')"><i class="bi bi-plus"></i> Add a to-do</button>
                             <div id="form-add-${list.id}" class="mt-2" style="display:none;">
                                 <input type="text" id="input-task-${list.id}" class="form-control mb-2" placeholder="Describe this to-do...">
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-success rounded-pill px-3" onclick="saveTask('${list.id}')">Add this to-do</button>
+                                    <button class="btn btn-sm btn-success rounded-pill px-3" onclick="saveTask('${list.id}')">Add</button>
                                     <button class="btn btn-sm btn-light border rounded-pill px-3" onclick="hideTaskInput('${list.id}')">Cancel</button>
                                 </div>
                             </div>
                         </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function renderComments(comments) {
+            const wrapper = document.getElementById('commentsWrapper');
+            wrapper.innerHTML = '';
+            comments.forEach(c => {
+                const date = new Date(c.date).toLocaleDateString();
+                const html = `
+                    <div class="d-flex gap-3">
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:40px; height:40px;">U</div>
+                        <div class="bg-white border rounded p-3 w-100 shadow-sm">
+                            <div class="d-flex justify-content-between mb-1">
+                                <strong class="small text-dark">User Demo</strong>
+                                <small class="text-muted" style="font-size:0.7rem">${date}</small>
+                            </div>
+                            <div class="text-dark small">${c.text}</div>
+                        </div>
+                    </div>`;
+                wrapper.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function renderSubscribers(subs) {
+            const container = document.getElementById('subsContainer');
+            // Bersihkan avatar lama tapi sisakan tombol add
+            container.innerHTML = '';
+            
+            isSubscribed = false; // Reset check
+
+            subs.forEach(s => {
+                // Cek jika current user (USER-DEMO) ada di list
+                if(s.userId === "USER-DEMO") isSubscribed = true;
+
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" 
+                         style="width:30px; height:30px; font-size:0.7rem;" title="${s.userId}">
+                         ${s.userId.substring(0,2)}
                     </div>
-                `;
-                
-                container.insertAdjacentHTML('beforeend', listHtml);
+                `);
             });
+            container.insertAdjacentHTML('beforeend', `<button class="btn btn-light border rounded-pill px-3 py-1 btn-sm text-muted small">Add/remove people...</button>`);
+
+            updateSubscribeBtn();
         }
 
-        // --- FUNGSI BARU: NAVIGASI KE ITEM DETAIL ---
-        function goToItemDetail(taskId) {
-            // Arahkan ke item-details.html dengan parameter taskId dan projectId
-            window.location.href = `item-details.html?taskId=${taskId}&projectId=${projectId}`;
-        }
-
-        // --- FUNGSI BARU: UPDATE STATUS CHECKBOX ---
-        function toggleTaskStatus(checkbox, taskId) {
-            const isChecked = checkbox.checked;
-            const statusStr = isChecked ? 'done' : 'open';
-            const titleEl = document.getElementById(`title-${taskId}`);
-
-            // 1. Update UI Langsung (Optimistic UI)
-            if(isChecked) {
-                titleEl.classList.add('text-decoration-line-through', 'text-muted');
-                titleEl.classList.remove('text-dark');
+        function updateSubscribeBtn() {
+            const text = document.getElementById('subStatusText');
+            const btn = document.getElementById('subToggleBtn');
+            if(isSubscribed) {
+                text.innerText = "You’re subscribed";
+                btn.innerText = "Unsubscribe me";
             } else {
-                titleEl.classList.remove('text-decoration-line-through', 'text-muted');
-                titleEl.classList.add('text-dark');
+                text.innerText = "You’re not subscribed";
+                btn.innerText = "Subscribe me";
             }
-
-            console.log(`Updating task ${taskId} to ${statusStr}...`);
-
-            // 2. Kirim ke Backend
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'updateTaskStatus',
-                    taskId: taskId,
-                    status: statusStr
-                })
-            })
-            .then(res => res.json())
-            .then(response => {
-                if(response.status === 'success') {
-                    console.log("Status updated successfully");
-                } else {
-                    console.error("Update failed:", response.message);
-                    // Revert UI jika gagal (opsional)
-                    checkbox.checked = !isChecked;
-                    alert("Gagal update status. Cek koneksi.");
-                }
-            })
-            .catch(err => console.error("Network error:", err));
         }
 
-        // --- TASK UI INTERACTION (SAMA SEPERTI SEBELUMNYA) ---
-        function showTaskInput(listId) {
-            document.getElementById(`btn-add-${listId}`).style.display = 'none';
-            document.getElementById(`form-add-${listId}`).style.display = 'block';
-            document.getElementById(`input-task-${listId}`).focus();
-        }
-
-        function hideTaskInput(listId) {
-            document.getElementById(`btn-add-${listId}`).style.display = 'inline-block';
-            document.getElementById(`form-add-${listId}`).style.display = 'none';
-            document.getElementById(`input-task-${listId}`).value = '';
-        }
-
-        // --- CREATE NEW TASK FUNCTION ---
-        function saveTask(listId) {
-            const input = document.getElementById(`input-task-${listId}`);
-            const title = input.value;
-            const btn = input.nextElementSibling.querySelector('.btn-success');
-
-            if (!title) { alert("Please enter a task title"); return; }
-
-            btn.innerText = "Saving...";
-            btn.disabled = true;
+        // --- ACTIONS ---
+        function postComment() {
+            const input = document.getElementById('commentInput');
+            const text = input.innerText;
+            if(text === 'Add a comment...' || text.trim() === '') return;
 
             fetch(API_URL, {
                 method: 'POST',
                 body: JSON.stringify({
-                    action: 'createTask',
-                    listId: listId,
-                    title: title
+                    action: 'createComment',
+                    projectId: projectId,
+                    text: text
                 })
-            })
-            .then(res => res.json())
-            .then(resp => {
-                if(resp.status === 'success') {
-                    fetchListsData(); // Refresh data
-                } else {
-                    alert("Error: " + resp.message);
-                }
-            })
-            .catch(err => {
-                alert("Connection failed.");
-            })
-            .finally(() => {
-                btn.innerText = "Add this to-do";
-                btn.disabled = false;
-                hideTaskInput(listId);
+            }).then(() => {
+                input.innerText = 'Add a comment...';
+                fetchListsData(); // Refresh to see new comment
             });
         }
 
-        // --- CREATE NEW LIST ---
+        function toggleSubscription() {
+            const btn = document.getElementById('subToggleBtn');
+            btn.disabled = true;
+            
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'toggleSubscription',
+                    contextType: 'project',
+                    contextId: projectId
+                })
+            }).then(res => res.json()).then(resp => {
+                if(resp.status === 'success') {
+                    fetchListsData(); // Refresh subscribers list
+                }
+                btn.disabled = false;
+            });
+        }
+
+        // --- TASK LOGIC (SAME AS BEFORE) ---
+        function showTaskInput(id) { document.getElementById(`form-add-${id}`).style.display='block'; document.getElementById(`btn-add-${id}`).style.display='none'; }
+        function hideTaskInput(id) { document.getElementById(`form-add-${id}`).style.display='none'; document.getElementById(`btn-add-${id}`).style.display='inline-block'; }
+        function toggleTaskStatus(chk, tid) {
+            const title = document.getElementById(`title-${tid}`);
+            if(chk.checked) { title.classList.add('text-decoration-line-through','text-muted'); title.classList.remove('text-dark'); }
+            else { title.classList.remove('text-decoration-line-through','text-muted'); title.classList.add('text-dark'); }
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action:'updateTaskStatus', taskId:tid, status:chk.checked?'done':'open' }) });
+        }
+        function saveTask(listId) {
+            const title = document.getElementById(`input-task-${listId}`).value;
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'createTask', listId: listId, title: title }) })
+            .then(() => fetchListsData());
+        }
+        
+        function toggleNewListForm() {
+            const form = document.getElementById('newListForm');
+            form.style.display = (form.style.display === 'none') ? 'block' : 'none';
+        }
         function saveNewList() {
             const name = document.getElementById('inputListName').value;
             const desc = document.getElementById('inputListDesc').innerText;
-            const btn = document.querySelector('.btn-save-list');
-
-            if(!name) { alert("List name cannot be empty"); return; }
-            
-            btn.innerText = "Saving...";
-            btn.disabled = true;
-
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'createList',
-                    projectId: projectId,
-                    listName: name,
-                    description: desc
-                })
-            })
-            .then(res => res.json())
-            .then(resp => {
-                if(resp.status === 'success') {
-                    document.getElementById('inputListName').value = '';
-                    document.getElementById('inputListDesc').innerText = '';
-                    toggleNewListForm();
-                    fetchListsData();
-                } else {
-                    alert('Error: ' + resp.message);
-                }
-            })
-            .finally(() => {
-                btn.innerText = "Add this list";
-                btn.disabled = false;
+            fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'createList', projectId: projectId, listName: name, description: desc }) })
+            .then(() => {
+                document.getElementById('inputListName').value='';
+                document.getElementById('inputListDesc').innerText='';
+                toggleNewListForm();
+                fetchListsData();
             });
         }
-
-        // Helpers
-        function toggleNewListForm() {
-            const form = document.getElementById('newListForm');
-            const empty = document.getElementById('emptyState');
-            
-            if (form.style.display === 'none' || form.style.display === '') {
-                form.style.display = 'block';
-                if(empty) empty.style.display = 'none';
-            } else {
-                form.style.display = 'none';
-            }
-        }
-
-        function showError(msg) {
-            document.getElementById('loadingState').style.display = 'none';
-            const errDiv = document.getElementById('errorState');
-            errDiv.innerHTML = msg;
-            errDiv.style.display = 'block';
-        }
-
         function toggleSidebar() { document.getElementById('sidebarNav').classList.toggle('show'); }
     </script>
 </body>
