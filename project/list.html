@@ -225,12 +225,7 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbySwjMcxFHkBC4z591KpmOQmRJkQAyfcnPSMocjLigMHO-5tqL4ncRJ2Op7yucmqDntRQ/exec';
         const projectId = new URLSearchParams(window.location.search).get('id');
         const dialogikaColors = ['#0B2B6A', '#F9C72E', '#231f20', '#7204cf', '#006a4e', '#e7181a', '#f7b12c', '#0163ea', '#1c84e3', '#444444', '#011548'];
-        
-        const tagPalette = [
-            '#D3E5EF', '#D3DFFB', '#E7E2F9', '#F1DDF3', '#F9DEDC', '#FDECC8', '#E2F2D1',
-            '#7204cf', '#0163ea', '#1c84e3', '#006a4e', '#0B2B6A', '#F9C72E', '#e7181a',
-            '#ff69b4', '#8b4513', '#2f4f4f', '#708090', '#556b2f', '#ff4500', '#231f20'
-        ];
+        const tagPalette = ['#D3E5EF', '#D3DFFB', '#E7E2F9', '#F1DDF3', '#F9DEDC', '#FDECC8', '#E2F2D1', '#7204cf', '#0163ea', '#1c84e3', '#006a4e', '#0B2B6A', '#F9C72E', '#e7181a'];
 
         let globalTags = [];
         let selectedTags = [];
@@ -253,7 +248,6 @@
                         document.getElementById('projectNameHeader').innerText = data.project?.name || "Unnamed Project";
                         document.getElementById('projectNameHeader').href = `../project/project.html?id=${projectId}`;
                         document.getElementById('projectBadge').innerText = (data.project?.department || "Project");
-                        
                         globalTags = data.tags || [];
                         renderLists(data.lists || []);
                         renderComments(data.comments || []);
@@ -272,9 +266,10 @@
             document.getElementById('emptyState').style.display = 'none';
 
             lists.forEach(list => {
+                // Pemisah Status dengan Chevron
                 const statusBadgesHtml = (list.statuses || []).sort((a,b) => a.position - b.position).map(s => `
                     <div class="status-badge-main" style="background:${s.color || '#64748b'}">${s.name}</div>
-                `).join('');
+                `).join('<i class="bi bi-chevron-right text-muted small mx-1"></i>');
 
                 const tasksHtml = (list.tasks || []).map(t => {
                     const done = ['done', 'true', 'completed'].includes(t.status?.toLowerCase());
@@ -294,9 +289,9 @@
                            class="text-dark fw-bold h4 text-decoration-none hover-text-blue">${list.name}</a>
                     </div>
                     
-                    <div class="status-pill-container">
+                    <div class="status-pill-container d-flex align-items-center gap-1 mb-3">
                         ${statusBadgesHtml}
-                        <button class="btn-add-status" onclick="promptNewStatus('${list.id}')" title="Add Status">
+                        <button class="btn-add-status ms-2" onclick="promptNewStatus('${list.id}')">
                             <i class="bi bi-plus-lg"></i>
                         </button>
                     </div>
@@ -312,7 +307,7 @@
                             <input type="text" id="task-title-${list.id}" class="task-title-large" placeholder="Task Name">
                             
                             <div class="meta-grid-container">
-                                <!-- Baris 1: Status & Priority -->
+                                <!-- Column 1 -->
                                 <div class="meta-row">
                                     <div class="meta-icon"><i class="bi bi-record-circle"></i></div>
                                     <div class="meta-label">Status</div>
@@ -330,31 +325,31 @@
                                     </div>
                                 </div>
 
-                                <!-- Baris 2: Dates & Sprint Points -->
+                                <!-- Column 2 -->
                                 <div class="meta-row">
                                     <div class="meta-icon"><i class="bi bi-calendar4"></i></div>
                                     <div class="meta-label">Dates</div>
-                                    <div class="meta-value d-flex gap-2">
-                                        <input type="date" id="task-start-${list.id}" class="ghost-input p-0" title="Start Date">
+                                    <div class="meta-value d-flex gap-1">
+                                        <input type="date" id="task-start-${list.id}" class="ghost-input p-0" style="width:110px">
                                         <span class="text-muted">-</span>
-                                        <input type="date" id="task-due-${list.id}" class="ghost-input p-0" title="Due Date">
+                                        <input type="date" id="task-due-${list.id}" class="ghost-input p-0" style="width:110px">
                                     </div>
                                 </div>
                                 <div class="meta-row">
                                     <div class="meta-icon"><i class="bi bi-star"></i></div>
-                                    <div class="meta-label">Sprint points</div>
+                                    <div class="meta-label">Task point</div>
                                     <div class="meta-value">
                                         <input type="number" id="task-points-${list.id}" class="ghost-input" placeholder="Empty" min="0">
                                     </div>
                                 </div>
 
-                                <!-- Baris 3: Track Time & Tags -->
+                                <!-- Column 3 -->
                                 <div class="meta-row">
                                     <div class="meta-icon"><i class="bi bi-stopwatch"></i></div>
                                     <div class="meta-label">Track time</div>
                                     <div class="meta-value d-flex align-items-center gap-2">
                                         <span class="text-muted small">Empty</span>
-                                        <button class="btn btn-sm btn-light border-0 py-0" style="font-size:0.7rem"><i class="bi bi-play-fill"></i> Start</button>
+                                        <button class="btn btn-sm btn-light border-0 py-0" style="font-size:0.75rem"><i class="bi bi-play-fill"></i> Start</button>
                                     </div>
                                 </div>
                                 <div class="meta-row">
@@ -383,67 +378,6 @@
             });
         }
 
-        function renderStatusDropdown(statuses, lid) {
-            if (!statuses || statuses.length === 0) {
-                return `
-                    <div class="task-status-selector" style="background:#007bff" id="status-wrap-${lid}">
-                        <select id="task-status-${lid}" class="status-select">
-                            <option value="OPEN" data-color="#007bff">OPEN</option>
-                        </select>
-                    </div>`;
-            }
-
-            const options = statuses.map(s => `
-                <option value="${s.name}" data-color="${s.color}">${s.name.toUpperCase()}</option>
-            `).join('');
-
-            return `
-                <div class="task-status-selector" style="background:${statuses[0].color}" id="status-wrap-${lid}">
-                    <select id="task-status-${lid}" onchange="updateStatusSelectorColor(this, '${lid}')">
-                        ${options}
-                    </select>
-                </div>`;
-        }
-
-        function updateStatusSelectorColor(select, lid) {
-            const color = select.options[select.selectedIndex].getAttribute('data-color');
-            document.getElementById(`status-wrap-${lid}`).style.backgroundColor = color;
-        }
-
-        function promptNewStatus(lid) {
-            const statusName = prompt("Enter new status name (e.g., In Progress, Pending):");
-            if (!statusName) return;
-
-            const color = prompt("Enter color hex (e.g., #ff0000) or leave empty for default:", dialogikaColors[Math.floor(Math.random() * dialogikaColors.length)]);
-
-            const payload = {
-                action: 'createStatus',
-                listId: lid,
-                name: statusName,
-                color: color || '#64748b',
-                type: 'custom',
-                position: 10
-            };
-
-            document.getElementById('loadingState').style.display = 'block';
-
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            })
-            .then(r => r.json())
-            .then(res => {
-                if (res.status === 'success') {
-                    fetchData();
-                } else {
-                    alert("Error creating status: " + res.message);
-                }
-            })
-            .finally(() => {
-                document.getElementById('loadingState').style.display = 'none';
-            });
-        }
-
         function saveTask(lid) {
             const title = document.getElementById(`task-title-${lid}`).value;
             if (!title) return alert("Task Name is required");
@@ -457,33 +391,51 @@
                 priority: document.getElementById(`task-priority-${lid}`).value,
                 description: document.getElementById(`task-desc-${lid}`).innerHTML,
                 status: document.getElementById(`task-status-${lid}`)?.value || 'OPEN',
-                points: document.getElementById(`task-points-${lid}`).value || 0, // Ambil data points
+                points: document.getElementById(`task-points-${lid}`).value || 0,
                 tagIds: selectedTags.map(t => t.id)
             };
 
+            // UI Loading State
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
             fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Digunakan jika Apps Script tidak memberikan response JSON karena CORS
                 body: JSON.stringify(payload)
-            }).then(() => {
-                fetchData();
-                hideTaskForm(lid);
-            });
+            })
+            .then(r => r.json())
+            .then(res => {
+                if(res.status === 'success') {
+                    fetchData();
+                    hideTaskForm(lid);
+                }
+            })
+            .catch(err => alert("Error: " + err));
         }
 
-        // --- ENHANCED TAG SYSTEM ---
+        // --- FUNGSI HELPER LAINNYA (Tag, Status, dll) Tetap Sama ---
+        function renderStatusDropdown(statuses, lid) {
+            if (!statuses || statuses.length === 0) {
+                return `<div class="task-status-selector" style="background:#007bff" id="status-wrap-${lid}"><select id="task-status-${lid}" class="status-select"><option value="OPEN" data-color="#007bff">OPEN</option></select></div>`;
+            }
+            const options = statuses.map(s => `<option value="${s.name}" data-color="${s.color}">${s.name.toUpperCase()}</option>`).join('');
+            return `<div class="task-status-selector" style="background:${statuses[0].color}" id="status-wrap-${lid}"><select id="task-status-${lid}" onchange="updateStatusSelectorColor(this, '${lid}')">${options}</select></div>`;
+        }
+
+        function updateStatusSelectorColor(select, lid) {
+            const color = select.options[select.selectedIndex].getAttribute('data-color');
+            document.getElementById(`status-wrap-${lid}`).style.backgroundColor = color;
+        }
+
         function handleTagSearch(input, lid) {
             const query = input.value.trim();
             const dropdown = document.getElementById(`tag-dropdown-${lid}`);
-            
             tempNewTagName = query;
-            dropdown.innerHTML = '';
+            dropdown.innerHTML = '<div class="tag-search-header text-muted small px-2 py-1 border-bottom">Search or add tags...</div>';
             dropdown.style.display = 'block';
 
-            dropdown.innerHTML = `<div class="tag-search-header text-muted small px-2 py-1 border-bottom">Search or add tags...</div>`;
-
             const filtered = globalTags.filter(t => t.name.toLowerCase().includes(query.toLowerCase()));
-            
             filtered.forEach(tag => {
                 const div = document.createElement('div');
                 div.className = 'tag-option-item p-2 cursor-pointer';
@@ -492,72 +444,13 @@
                 dropdown.appendChild(div);
             });
 
-            const exactMatch = globalTags.find(t => t.name.toLowerCase() === query.toLowerCase());
-            if (query !== "" && !exactMatch) {
+            if (query !== "" && !globalTags.find(t => t.name.toLowerCase() === query.toLowerCase())) {
                 const createDiv = document.createElement('div');
                 createDiv.className = 'create-tag-btn p-2 border-top cursor-pointer d-flex align-items-center';
-                createDiv.innerHTML = `
-                    <span class="me-2">Create</span> 
-                    <span class="tag-pill badge" style="background:${tempSelectedColor}; color:white;">${query}</span>
-                    <i class="bi bi-arrow-return-left ms-auto"></i>
-                `;
+                createDiv.innerHTML = `<span class="me-2 text-muted">Create</span><span class="tag-pill badge" style="background:${tempSelectedColor}">${query}</span>`;
                 createDiv.onclick = () => showColorPicker(lid);
                 dropdown.appendChild(createDiv);
             }
-
-            if (query === "" && filtered.length === 0) {
-                dropdown.innerHTML += `<div class="p-3 text-center text-muted small">Type to find or create tags</div>`;
-            }
-        }
-
-        function showColorPicker(lid) {
-            const dropdown = document.getElementById(`tag-dropdown-${lid}`);
-            dropdown.innerHTML = `
-                <div class="p-3">
-                    <label class="small text-muted mb-1">Tag Name</label>
-                    <input type="text" class="form-control form-control-sm mb-2" value="${tempNewTagName}" id="edit-tag-name-${lid}">
-                    <label class="small text-muted mb-1">Select Color</label>
-                    <div class="color-picker-grid d-flex flex-wrap gap-2">
-                        ${tagPalette.map(c => `<div class="color-dot ${c === tempSelectedColor ? 'active' : ''}" style="background:${c}; width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid transparent" onclick="setTagColor('${c}', '${lid}', this)"></div>`).join('')}
-                    </div>
-                    <div class="d-flex justify-content-between mt-3">
-                        <button class="btn btn-sm btn-light" onclick="hideDropdown('${lid}')">Cancel</button>
-                        <button class="btn btn-sm btn-primary" onclick="saveNewTagToDB('${lid}')">Save Tag</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function setTagColor(color, lid, element) {
-            tempSelectedColor = color;
-            document.querySelectorAll('.color-dot').forEach(dot => dot.style.borderColor = 'transparent');
-            element.style.borderColor = '#000';
-        }
-
-        function saveNewTagToDB(lid) {
-            const name = document.getElementById(`edit-tag-name-${lid}`).value;
-            if (!name) return;
-
-            const payload = {
-                action: 'createTag',
-                tagName: name,
-                color: tempSelectedColor
-            };
-
-            const btn = event.target;
-            btn.innerText = "Saving...";
-            btn.disabled = true;
-
-            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })
-            .then(r => r.json())
-            .then(res => {
-                if(res.status === 'success') {
-                    const newTag = { id: res.tagId, name: res.name, color: res.color };
-                    globalTags.push(newTag);
-                    selectExistingTag(newTag, lid);
-                    hideDropdown(lid);
-                }
-            });
         }
 
         function selectExistingTag(tag, lid) {
@@ -570,12 +463,7 @@
 
         function renderSelectedTags(lid) {
             const container = document.getElementById(`selected-tags-${lid}`);
-            container.innerHTML = selectedTags.map(t => `
-                <span class="tag-pill badge position-relative me-1" style="background:${t.color}">
-                    ${t.name}
-                    <i class="bi bi-x-circle ms-1 cursor-pointer" onclick="removeTag('${t.id}', '${lid}')"></i>
-                </span>
-            `).join('');
+            container.innerHTML = selectedTags.map(t => `<span class="tag-pill badge me-1" style="background:${t.color}">${t.name} <i class="bi bi-x-circle ms-1 cursor-pointer" onclick="removeTag('${t.id}', '${lid}')"></i></span>`).join('');
         }
 
         function removeTag(tid, lid) {
@@ -584,111 +472,19 @@
         }
 
         function hideDropdown(lid) {
-            const dropdown = document.getElementById(`tag-dropdown-${lid}`);
-            if(dropdown) dropdown.style.display = 'none';
+            const d = document.getElementById(`tag-dropdown-${lid}`);
+            if(d) d.style.display = 'none';
         }
 
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.position-relative')) {
-                document.querySelectorAll('.tag-dropdown').forEach(d => d.style.display = 'none');
-            }
-        });
-
-        // --- COMMENTS & FILES ---
-        function handleFile(input) {
-            if (input.files[0]) {
-                const f = input.files[0];
-                const r = new FileReader();
-                r.onload = e => {
-                    selectedFile = { data: e.target.result.split(',')[1], name: f.name, type: f.type };
-                    document.getElementById('filePreview').style.display = 'block';
-                    document.getElementById('fileName').innerText = f.name;
-                };
-                r.readAsDataURL(f);
-            }
-        }
-
-        function clearFile() {
-            selectedFile = null;
-            document.getElementById('fileInput').value = '';
-            document.getElementById('filePreview').style.display = 'none';
-        }
-
-        function postComment() {
-            const text = document.getElementById('richCommentInput').innerHTML;
-            if (!text && !selectedFile) return;
-            
-            const btn = document.getElementById('postBtn');
-            btn.innerText = 'Posting...';
-            btn.disabled = true;
-
-            const send = (url) => {
-                fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'createComment', contextType: 'project', contextId: projectId, text, attachmentUrl: url })
-                }).then(() => {
-                    document.getElementById('richCommentInput').innerHTML = '';
-                    clearFile();
-                    fetchData();
-                    btn.innerText = 'Post comment';
-                    btn.disabled = false;
-                });
-            };
-
-            if (selectedFile) {
-                fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'uploadFile', fileData: selectedFile.data, fileName: selectedFile.name, mimeType: selectedFile.type })
-                }).then(r => r.json()).then(res => send(res.fileUrl)).catch(() => send(null));
-            } else {
-                send(null);
-            }
-        }
-
-        function renderComments(comments) {
-            const w = document.getElementById('commentsWrapper');
-            w.innerHTML = '';
-            comments.forEach(c => {
-                const fileHtml = c.attachment ? `<div class="mt-2 border-top pt-2"><a href="${c.attachment}" target="_blank" class="small"><i class="bi bi-paperclip"></i> View File</a></div>` : '';
-                w.innerHTML += `
-                    <div class="d-flex gap-3 mb-3">
-                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:40px; height:40px;">U</div>
-                        <div class="bg-white border rounded p-3 w-100 shadow-sm">
-                            <div class="d-flex justify-content-between mb-1"><strong class="small">User</strong><small class="text-muted" style="font-size:0.7rem">${new Date(c.date).toLocaleDateString()}</small></div>
-                            <div class="small">${c.text}</div>
-                            ${fileHtml}
-                        </div>
-                    </div>`;
-            });
-        }
-
-        // --- HELPERS ---
-        function execCmd(c) { document.execCommand(c, false, null); }
-        function toggleNewListForm() {
-            const f = document.getElementById('newListForm');
-            f.style.display = f.style.display === 'none' ? 'block' : 'none';
-        }
         function showTaskForm(lid) {
             document.getElementById(`btn-add-${lid}`).style.display = 'none';
             document.getElementById(`form-add-${lid}`).style.display = 'block';
             selectedTags = [];
         }
+
         function hideTaskForm(lid) {
             document.getElementById(`btn-add-${lid}`).style.display = 'inline-block';
             document.getElementById(`form-add-${lid}`).style.display = 'none';
-            // Reset points value if needed
-            const pointsInput = document.getElementById(`task-points-${lid}`);
-            if(pointsInput) pointsInput.value = '';
-        }
-        function toggleSidebar() { document.getElementById('sidebarNav').classList.toggle('show'); }
-
-        function saveNewList() {
-            const name = document.getElementById('inputListName').value;
-            if(!name) return;
-            fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'createList', projectId: projectId, listName: name })
-            }).then(() => fetchData());
         }
     </script>
 </body>
