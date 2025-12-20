@@ -355,6 +355,158 @@
                 })
                 .finally(() => document.getElementById('loadingState').style.display = 'none');
         }
+        
+        // --- FUNGSI NEW LIST ---
+           function toggleNewListForm() {
+               const form = document.getElementById('newListForm');
+               form.style.display = form.style.display === 'none' ? 'block' : 'none';
+           }
+
+           function saveNewList() {
+               const name = document.getElementById('inputListName').value;
+               if (!name) return alert("List name cannot be empty");
+
+               fetch(API_URL, {
+                   method: 'POST',
+                   body: JSON.stringify({
+                       action: 'createList',
+                       projectId: projectId,
+                       name: name
+                   })
+               })
+               .then(r => r.json())
+               .then(res => {
+                   if(res.status === 'success') {
+                       document.getElementById('inputListName').value = '';
+                       toggleNewListForm();
+                       fetchData();
+                   }
+               });
+           }
+
+           // --- FUNGSI NEW STATUS ---
+           function promptNewStatus(listId) {
+               const statusName = prompt("Enter new status name (e.g. TESTING, REVIEW):");
+               if (!statusName) return;
+               
+               const color = prompt("Enter hex color (e.g. #ff0000):", "#64748b");
+               
+               fetch(API_URL, {
+                   method: 'POST',
+                   body: JSON.stringify({
+                       action: 'createStatus',
+                       listId: listId,
+                       name: statusName,
+                       color: color || '#64748b',
+                       type: 'custom'
+                   })
+               })
+               .then(r => r.json())
+               .then(res => {
+                   if(res.status === 'success') fetchData();
+               });
+           }
+
+           // --- FUNGSI COMMENTS ---
+           function renderComments(comments) {
+               const wrapper = document.getElementById('commentsWrapper');
+               wrapper.innerHTML = comments.map(c => `
+                   <div class="p-3 border rounded-4 bg-light">
+                       <div class="d-flex justify-content-between mb-1">
+                           <span class="fw-bold small">${c.userId || 'User'}</span>
+                           <span class="text-muted" style="font-size:0.7rem">${c.date}</span>
+                       </div>
+                       <div class="small text-dark">${c.text}</div>
+                       ${c.attachment ? `<div class="mt-2"><a href="${c.attachment}" target="_blank" class="btn btn-sm btn-white border small"><i class="bi bi-paperclip"></i> View Attachment</a></div>` : ''}
+                   </div>
+               `).join('');
+           }
+
+           async function postComment() {
+               const text = document.getElementById('richCommentInput').innerHTML;
+               const btn = document.getElementById('postBtn');
+               if (!text || text === '<br>') return alert("Comment cannot be empty");
+
+               btn.disabled = true;
+               let attachmentUrl = "";
+
+               // Jika ada file, upload dulu
+               if (selectedFile) {
+                   btn.innerText = "Uploading file...";
+                   const fileRes = await uploadFile();
+                   if (fileRes.status === 'success') attachmentUrl = fileRes.fileUrl;
+               }
+
+               btn.innerText = "Posting...";
+               fetch(API_URL, {
+                   method: 'POST',
+                   body: JSON.stringify({
+                       action: 'createComment',
+                       projectId: projectId,
+                       contextId: projectId, // Project level discussion
+                       text: text,
+                       attachmentUrl: attachmentUrl
+                   })
+               })
+               .then(r => r.json())
+               .then(res => {
+                   if (res.status === 'success') {
+                       document.getElementById('richCommentInput').innerHTML = '';
+                       clearFile();
+                       fetchData();
+                   }
+               })
+               .finally(() => {
+                   btn.disabled = false;
+                   btn.innerText = "Post comment";
+               });
+           }
+
+           // --- FUNGSI TEXT EDITOR & FILE ---
+           function execCmd(command) {
+               document.execCommand(command, false, null);
+           }
+
+           function addLink() {
+               const url = prompt("Enter URL:");
+               if (url) document.execCommand('createLink', false, url);
+           }
+
+           function handleFile(input) {
+               if (input.files && input.files[0]) {
+                   selectedFile = input.files[0];
+                   document.getElementById('fileName').innerText = selectedFile.name;
+                   document.getElementById('filePreview').style.display = 'block';
+               }
+           }
+
+           function clearFile() {
+               selectedFile = null;
+               document.getElementById('fileInput').value = '';
+               document.getElementById('filePreview').style.display = 'none';
+           }
+
+           async function uploadFile() {
+               return new Promise((resolve, reject) => {
+                   const reader = new FileReader();
+                   reader.onload = function(e) {
+                       const base64 = e.target.result.split(',')[1];
+                       fetch(API_URL, {
+                           method: 'POST',
+                           body: JSON.stringify({
+                               action: 'uploadFile',
+                               fileName: selectedFile.name,
+                               mimeType: selectedFile.type,
+                               fileData: base64
+                           })
+                       })
+                       .then(r => r.json())
+                       .then(resolve)
+                       .catch(reject);
+                   };
+                   reader.readAsDataURL(selectedFile);
+               });
+           }
 
         function renderLists(lists) {
             const container = document.getElementById('listsContainer');
