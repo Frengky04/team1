@@ -344,8 +344,14 @@ function syncStatuses(data) {
 function createTag(data) {
   const ss = SpreadsheetApp.openById(TAG_SHEET_ID).getSheets()[0];
   const tid = Utilities.getUuid();
+  // Spreadsheet: Column A: tag_id, B: tag_name, C: color
   ss.appendRow([tid, data.tagName, data.color]);
-  return responseJSON({ status: 'success', tagId: tid, name: data.tagName, color: data.color });
+  return responseJSON({
+    status: 'success',
+    tagId: tid,
+    name: data.tagName,
+    color: data.color
+  });
 }
 
 function uploadFileToDrive(data) {

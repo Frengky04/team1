@@ -737,94 +737,135 @@
         let globalTags = [];
         let globalUsers = []; // Simpan data user global
         let lastFetchedLists = []; // Simpan data lists global
-        let selectedTags = [];
-
-        // --- TAG SYSTEM LOGIC ---
+        let selectedTagsByList = {}; // Untuk menampung pilihan tag per form list 
+ 
+        // --- TAG SYSTEM LOGIC (ROBUST) ---
         function handleTagSearch(input, lid) { 
             event.stopPropagation(); 
-            const query = input.value.trim().toLowerCase(); 
+            const query = input.value.trim(); 
             const dropdown = document.getElementById(`tag-dropdown-${lid}`); 
             const resultsContainer = document.getElementById(`tag-list-results-${lid}`); 
             const createSuggestion = document.getElementById(`tag-create-suggestion-${lid}`); 
             
+            // Tampilkan dropdown 
             dropdown.style.display = 'block'; 
             document.getElementById(`tag-search-view-${lid}`).style.display = 'block'; 
             document.getElementById(`tag-edit-view-${lid}`).style.display = 'none'; 
         
-            // 1. Filter existing tags 
-            const filtered = globalTags.filter(t => t.name.toLowerCase().includes(query)); 
-            resultsContainer.innerHTML = filtered.map(t => ` 
-                <div class="tag-option-item"> 
-                    <div class="d-flex align-items-center flex-grow-1" onclick="selectExistingTag(${JSON.stringify(t).replace(/"/g, '&quot;')}, '${lid}')"> 
-                        <span class="tag-pill" style="background:${t.color}">${t.name}</span> 
+            // 1. Filter existing tags dari globalTags 
+            const filtered = globalTags.filter(t => t.name.toLowerCase().includes(query.toLowerCase())); 
+            
+            if (filtered.length > 0) { 
+                resultsContainer.innerHTML = filtered.map(t => ` 
+                    <div class="tag-option-item"> 
+                        <div class="d-flex align-items-center flex-grow-1 cursor-pointer" onclick="selectExistingTag('${lid}', '${t.id}')"> 
+                            <span class="tag-pill" style="background:${t.color}">${t.name}</span> 
+                        </div> 
+                        <i class="bi bi-pencil-square text-muted ms-2 px-1 cursor-pointer" onclick="openEditTagUI('${lid}', '${t.id}')"></i> 
                     </div> 
-                    <i class="bi bi-pencil-square text-muted ms-2 px-1" onclick="openEditTagUI('${lid}', ${JSON.stringify(t).replace(/"/g, '&quot;')})"></i> 
-                </div> 
-            `).join(''); 
-        
-            // 2. Show create suggestion if no exact match 
-            const exactMatch = globalTags.find(t => t.name.toLowerCase() === query); 
-            if (query && !exactMatch) { 
-                // Rekomendasi warna otomatis (acak dari palette) 
-                const randomColor = tagPaletteColors[Math.floor(Math.random() * tagPaletteColors.length)]; 
-                createSuggestion.innerHTML = ` 
-                    <div class="create-tag-prompt" onclick="createNewTagAct('${query}', '${randomColor}', '${lid}')"> 
-                        <span>Create</span> 
-                        <span class="tag-pill" style="background:${randomColor}">${query}</span> 
-                        <i class="bi bi-arrow-return-left ms-auto"></i> 
-                    </div> 
-                `; 
+                `).join(''); 
             } else { 
-                createSuggestion.innerHTML = ''; 
+                resultsContainer.innerHTML = '<div class="p-3 text-center text-muted small">No tags found</div>'; 
+            } 
+        
+            // 2. Logic Tombol Plus (Create Suggestion) 
+            const exactMatch = globalTags.find(t => t.name.toLowerCase() === query.toLowerCase()); 
+            if (query && !exactMatch) { 
+                createSuggestion.style.display = 'block'; 
+                createSuggestion.querySelector('.new-tag-name-preview').innerText = query; 
+            } else { 
+                createSuggestion.style.display = 'none'; 
             } 
         } 
         
-        // FUNGSI CREATE TAG BARU 
-        function createNewTagAct(name, color, lid) { 
+        // FUNGSI CREATE TAG BARU (SINKRON KE DATABASE) 
+        function createNewTagAct(lid) { 
+            const input = document.getElementById(`tag-input-${lid}`); 
+            const name = input.value.trim(); 
+            if(!name) return; 
+        
+            // Rekomendasi warna otomatis 
+            const randomColor = tagPaletteColors[Math.floor(Math.random() * tagPaletteColors.length)]; 
+            
+            const btn = event.currentTarget; 
+            const originalContent = btn.innerHTML; 
+            btn.disabled = true; 
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creating...'; 
+        
             fetch(API_URL, { 
                 method: 'POST', 
-                body: JSON.stringify({ action: 'createTag', projectId: projectId, tagName: name, color: color }) 
+                body: JSON.stringify({ 
+                    action: 'createTag', 
+                    projectId: projectId, 
+                    tagName: name, 
+                    color: randomColor 
+                }) 
             }) 
             .then(r => r.json()) 
             .then(res => { 
                 if(res.status === 'success') { 
                     const newTag = { id: res.tagId, name: res.name, color: res.color }; 
-                    globalTags.push(newTag); // Update cache 
-                    selectExistingTag(newTag, lid); 
-                    document.querySelector(`#form-add-${lid} input[placeholder*="tags"]`).value = ''; 
-                    // Refresh search view to show new tag
-                    handleTagSearch(document.querySelector(`#form-add-${lid} input[placeholder*="tags"]`), lid);
+                    globalTags.push(newTag); // Tambah ke memori lokal browser 
+                    
+                    // Masukkan ke seleksi task 
+                    if(!selectedTagsByList[lid]) selectedTagsByList[lid] = []; 
+                    selectedTagsByList[lid].push(newTag); 
+                    
+                    // UI Update 
+                    renderSelectedTagsUI(lid); 
+                    input.value = ''; 
+                    document.getElementById(`tag-dropdown-${lid}`).style.display = 'none'; 
                 } 
+            }) 
+            .finally(() => { 
+                btn.disabled = false; 
+                btn.innerHTML = originalContent; 
             }); 
         } 
         
-        // FUNGSI SELECT TAG (Add to selection)
-        function selectExistingTag(tag, lid) {
-            // Cek apakah sudah dipilih
-            if (selectedTags.find(t => t.id === tag.id)) return;
-            selectedTags.push(tag);
-            renderSelectedTags(lid);
-            document.getElementById(`tag-dropdown-${lid}`).style.display = 'none';
-        }
-
-        function renderSelectedTags(lid) {
-            const container = document.getElementById(`selected-tags-${lid}`);
-            if (!container) return;
-            container.innerHTML = selectedTags.map(t => `
-                <span class="tag-pill d-flex align-items-center gap-1" style="background:${t.color}; font-size: 0.8rem;">
-                    ${t.name} <i class="bi bi-x cursor-pointer" onclick="removeSelectedTag('${t.id}', '${lid}')"></i>
-                </span>
-            `).join('');
-        }
-
-        function removeSelectedTag(tid, lid) {
-            selectedTags = selectedTags.filter(t => t.id !== tid);
-            renderSelectedTags(lid);
+        function selectExistingTag(lid, tid) { 
+            const tag = globalTags.find(t => String(t.id) === String(tid)); 
+            if (!tag) return; 
+        
+            if(!selectedTagsByList[lid]) selectedTagsByList[lid] = []; 
+            
+            // Cek apakah sudah ada 
+            if (selectedTagsByList[lid].find(t => String(t.id) === String(tid))) { 
+                document.getElementById(`tag-dropdown-${lid}`).style.display = 'none'; 
+                return; 
+            } 
+        
+            selectedTagsByList[lid].push(tag); 
+            renderSelectedTagsUI(lid); 
+            
+            // Tutup & Bersihkan input 
+            document.getElementById(`tag-dropdown-${lid}`).style.display = 'none'; 
+            document.getElementById(`tag-input-${lid}`).value = ''; 
+        } 
+        
+        function renderSelectedTagsUI(lid) { 
+            const container = document.getElementById(`selected-tags-${lid}`); 
+            const selected = selectedTagsByList[lid] || []; 
+            
+            container.innerHTML = selected.map(t => ` 
+                <span class="tag-pill d-flex align-items-center gap-1 shadow-sm" style="background:${t.color}; font-size: 0.75rem; padding: 4px 10px;"> 
+                    ${t.name} 
+                    <i class="bi bi-x-lg ms-1 cursor-pointer" style="font-size:0.6rem" onclick="removeSelectedTag('${lid}', '${t.id}')"></i> 
+                </span> 
+            `).join(''); 
+        } 
+        
+        function removeSelectedTag(lid, tid) { 
+            selectedTagsByList[lid] = (selectedTagsByList[lid] || []).filter(t => String(t.id) !== String(tid)); 
+            renderSelectedTagsUI(lid); 
         }
 
         // FUNGSI EDIT TAG UI 
-        function openEditTagUI(lid, tag) { 
+        function openEditTagUI(lid, tid) { 
             event.stopPropagation();
+            const tag = globalTags.find(t => String(t.id) === String(tid));
+            if (!tag) return;
+
             document.getElementById(`tag-search-view-${lid}`).style.display = 'none'; 
             const editView = document.getElementById(`tag-edit-view-${lid}`); 
             editView.style.display = 'block'; 
@@ -846,7 +887,7 @@
             nameInput.onkeypress = (e) => { 
                 if(e.key === 'Enter') updateTagName(lid, tag.id, nameInput.value); 
             } 
-        } 
+        }  
         
         function backToTagSearch(lid) { 
             document.getElementById(`tag-edit-view-${lid}`).style.display = 'none'; 
@@ -856,11 +897,18 @@
         // FUNGSI UPDATE/DELETE DI DATABASE (backend) 
         function updateTagColor(lid, tid, newColor) { 
             // Optimistic Update
-            const tag = globalTags.find(t => t.id === tid);
+            const tag = globalTags.find(t => String(t.id) === String(tid));
             if(tag) tag.color = newColor;
             
             // Re-render UI
-            openEditTagUI(lid, tag); 
+            openEditTagUI(lid, tid); 
+            
+            // Update selected tags UI if this tag is selected
+            if(selectedTagsByList[lid]) {
+                const selTag = selectedTagsByList[lid].find(t => String(t.id) === String(tid));
+                if(selTag) selTag.color = newColor;
+                renderSelectedTagsUI(lid);
+            }
 
             fetch(API_URL, {
                 method: 'POST',
@@ -869,13 +917,20 @@
         } 
 
         function updateTagName(lid, tid, newName) {
-            const tag = globalTags.find(t => t.id === tid);
+            const tag = globalTags.find(t => String(t.id) === String(tid));
             if(tag) tag.name = newName;
+            
+            // Update selected tags UI if this tag is selected
+            if(selectedTagsByList[lid]) {
+                const selTag = selectedTagsByList[lid].find(t => String(t.id) === String(tid));
+                if(selTag) selTag.name = newName;
+                renderSelectedTagsUI(lid);
+            }
             
             backToTagSearch(lid);
             // Re-trigger search to update list
-            const input = document.querySelector(`#form-add-${lid} input[placeholder*="tags"]`);
-            handleTagSearch(input, lid);
+            const input = document.getElementById(`tag-input-${lid}`);
+            if(input) handleTagSearch(input, lid);
 
             fetch(API_URL, {
                 method: 'POST',
@@ -887,14 +942,18 @@
             if(!confirm("Delete this tag globally?")) return; 
             
             // Optimistic remove
-            globalTags = globalTags.filter(t => t.id !== tid); 
-            selectedTags = selectedTags.filter(t => t.id !== tid); // Remove from selection too
-            renderSelectedTags(lid);
+            globalTags = globalTags.filter(t => String(t.id) !== String(tid)); 
+            
+            // Remove from selection too
+            if(selectedTagsByList[lid]) {
+                selectedTagsByList[lid] = selectedTagsByList[lid].filter(t => String(t.id) !== String(tid)); 
+                renderSelectedTagsUI(lid);
+            }
             
             backToTagSearch(lid); 
             // Re-trigger search
-            const input = document.querySelector(`#form-add-${lid} input[placeholder*="tags"]`);
-            handleTagSearch(input, lid);
+            const input = document.getElementById(`tag-input-${lid}`);
+            if(input) handleTagSearch(input, lid);
 
             fetch(API_URL, {
                 method: 'POST',
@@ -1106,20 +1165,33 @@
                                 <div class="meta-icon"><i class="bi bi-tags"></i></div> 
                                 <div class="meta-label">Tags</div> 
                                 <div class="meta-value position-relative"> 
-                                    <div id="selected-tags-${list.id}" class="d-flex flex-wrap gap-1 mb-1"></div> 
-                                    <input type="text" class="ghost-input w-100" placeholder="Search or add tags..." 
-                                           onfocus="handleTagSearch(this, '${list.id}')" 
-                                           oninput="handleTagSearch(this, '${list.id}')"> 
+                                    <!-- Container untuk tag yang sudah dipilih --> 
+                                    <div id="selected-tags-${list.id}" class="d-flex flex-wrap gap-1 mb-2"></div> 
+                                    
+                                    <div class="input-group input-group-sm"> 
+                                        <input type="text" class="form-control border-0 bg-light rounded-pill px-3" 
+                                               id="tag-input-${list.id}" 
+                                               placeholder="Search or add tags..." 
+                                               onfocus="handleTagSearch(this, '${list.id}')" 
+                                               oninput="handleTagSearch(this, '${list.id}')"> 
+                                    </div> 
                                     
                                     <!-- TAG DROPDOWN --> 
-                                    <div id="tag-dropdown-${list.id}" class="tag-dropdown" onclick="event.stopPropagation()"> 
-                                        <!-- Search State --> 
+                                    <div id="tag-dropdown-${list.id}" class="tag-dropdown shadow-lg" onclick="event.stopPropagation()"> 
+                                        <!-- Search View --> 
                                         <div id="tag-search-view-${list.id}"> 
                                             <div class="tag-list-scroll" id="tag-list-results-${list.id}"></div> 
-                                            <div id="tag-create-suggestion-${list.id}"></div> 
+                                            
+                                            <!-- Area Suggestion / Tombol Plus --> 
+                                            <div id="tag-create-suggestion-${list.id}" class="p-2 border-top bg-light" style="display:none"> 
+                                                <button class="btn btn-sm btn-outline-primary w-100 rounded-pill d-flex align-items-center justify-content-center gap-2" 
+                                                        onclick="createNewTagAct('${list.id}')"> 
+                                                    <i class="bi bi-plus-circle-fill"></i> Create Tag "<span class="new-tag-name-preview"></span>" 
+                                                </button> 
+                                            </div> 
                                         </div> 
                                         
-                                        <!-- Edit State --> 
+                                        <!-- Edit View (Tetap sama) --> 
                                         <div id="tag-edit-view-${list.id}" class="tag-edit-container"> 
                                             <div class="d-flex align-items-center gap-2 mb-3"> 
                                                 <i class="bi bi-chevron-left cursor-pointer" onclick="backToTagSearch('${list.id}')"></i> 
@@ -1128,7 +1200,7 @@
                                             <div class="color-mini-grid" id="edit-tag-colors-${list.id}"></div> 
                                             <hr class="my-2 opacity-50"> 
                                             <button class="btn-delete-tag" id="btn-delete-tag-act-${list.id}"> 
-                                                <i class="bi bi-trash"></i> Delete 
+                                                <i class="bi bi-trash"></i> Delete Globally 
                                             </button> 
                                         </div> 
                                     </div> 
@@ -1849,6 +1921,9 @@
             const title = document.getElementById(`task-title-${lid}`).value;
             if (!title) return alert("Task Name is required");
 
+            // Ambil tag yang sudah dipilih khusus untuk list ini
+            const tagsForThisTask = selectedTagsByList[lid] || [];
+
             const payload = {
                 action: 'createTask',
                 listId: lid,
@@ -1861,7 +1936,7 @@
                 points: document.getElementById(`task-points-${lid}`).value || 0,
                 assignTo: document.getElementById(`task-assign-${lid}`).value,
                 notifyTo: document.getElementById(`task-notify-${lid}`).value,
-                tagIds: selectedTags.map(t => t.id)
+                tagIds: tagsForThisTask.map(t => t.id)
             };
 
             const btn = event.target;
@@ -1875,6 +1950,7 @@
             .then(r => r.json())
             .then(res => {
                 if(res.status === 'success') {
+                    selectedTagsByList[lid] = []; // Reset pilihan tag untuk list ini
                     fetchData();
                     hideTaskForm(lid);
                 }
@@ -1900,45 +1976,13 @@
             document.getElementById(`status-wrap-${lid}`).style.backgroundColor = color;
         }
 
-        function handleTagSearch(input, lid) {
-            event.stopPropagation();
-            const query = input.value.trim();
-            const dropdown = document.getElementById(`tag-dropdown-${lid}`);
-            dropdown.innerHTML = '<div class="tag-search-header text-muted small px-2 py-1 border-bottom">Search or add tags...</div>';
-            dropdown.style.display = 'block';
 
-            const filtered = globalTags.filter(t => t.name.toLowerCase().includes(query.toLowerCase()));
-            filtered.forEach(tag => {
-                const div = document.createElement('div');
-                div.className = 'tag-option-item p-2 cursor-pointer';
-                div.innerHTML = `<span class="tag-pill badge" style="background:${tag.color}">${tag.name}</span>`;
-                div.onclick = () => selectExistingTag(tag, lid);
-                dropdown.appendChild(div);
-            });
-        }
-
-        function selectExistingTag(tag, lid) {
-            if (!selectedTags.find(st => st.id === tag.id)) {
-                selectedTags.push(tag);
-                renderSelectedTags(lid);
-            }
-            document.getElementById(`tag-dropdown-${lid}`).style.display = 'none';
-        }
-
-        function renderSelectedTags(lid) {
-            const container = document.getElementById(`selected-tags-${lid}`);
-            container.innerHTML = selectedTags.map(t => `<span class="tag-pill badge me-1" style="background:${t.color}">${t.name} <i class="bi bi-x-circle ms-1 cursor-pointer" onclick="removeTag('${t.id}', '${lid}')"></i></span>`).join('');
-        }
-
-        function removeTag(tid, lid) {
-            selectedTags = selectedTags.filter(t => t.id !== tid);
-            renderSelectedTags(lid);
-        }
 
         function showTaskForm(lid) {
             document.getElementById(`btn-add-${lid}`).style.display = 'none';
             document.getElementById(`form-add-${lid}`).style.display = 'block';
-            selectedTags = [];
+            selectedTagsByList[lid] = [];
+            renderSelectedTagsUI(lid);
         }
 
         function hideTaskForm(lid) {
