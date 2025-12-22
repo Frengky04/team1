@@ -177,10 +177,16 @@ function getProjectCompleteData(targetId) {
     const cSheet = SpreadsheetApp.openById(COMMENT_SHEET_ID).getSheets()[0];
     const cData = cSheet.getDataRange().getDisplayValues();
     for(let i=1; i<cData.length; i++) {
+      // Filter berdasarkan context_id (projectId)
       if(allRelevantIds.includes(String(cData[i][2]).trim())) {
         comments.push({
-          id: cData[i][0], contextId: cData[i][2], userId: cData[i][4],
-          text: cData[i][5], date: cData[i][6], attachment: cData[i][7] || ""
+          id: cData[i][0], 
+          contextType: cData[i][1], 
+          contextId: cData[i][2], 
+          userId: cData[i][3], // Indeks diperbaiki ke 3 (user_id) 
+          text: cData[i][4],   // Indeks diperbaiki ke 4 (comment_text) 
+          date: cData[i][5],   // Indeks diperbaiki ke 5 (created_at) 
+          attachment: cData[i][6] || "" // Indeks diperbaiki ke 6 (attachment) 
         });
       }
     }
@@ -391,16 +397,16 @@ function createComment(data) {
    const ss = SpreadsheetApp.openById(COMMENT_SHEET_ID).getSheets()[0]; 
    const cid = Utilities.getUuid(); 
    
-   // Kolom: 1:comment_id, 2:project_id, 3:context_id, 4:task_id, 5:user_id, 6:text, 7:timestamp, 8:attachment 
+   // Urutan Kolom Sesuai Prompt Anda (7 Kolom): 
+   // 1:comment_id, 2:context_type, 3:context_id, 4:user_id, 5:comment_text, 6:created_at, 7:attachment_url 
    ss.appendRow([ 
-     cid,              // comment_id 
-     data.projectId,   // project_id 
-     data.contextId || "", // context_id 
-     data.taskId || "",    // task_id 
-     data.userId,      // user_id (DARI FRONTEND) 
-     data.text,         // text 
-     new Date(),       // timestamp 
-     data.attachmentUrl || "" // attachment 
+     cid,                       // comment_id 
+     data.contextType || "project", // context_type (misal: project atau task) 
+     data.contextId,            // context_id 
+     data.userId,               // user_id (PENTING: ID login Anda) 
+     data.text,                 // comment_text 
+     new Date(),                // created_at 
+     data.attachmentUrl || ""   // attachment_url 
    ]); 
    
    return responseJSON({ status: 'success' }); 

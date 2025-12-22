@@ -800,16 +800,21 @@
             const imgEl = document.getElementById('currentUserCommentPhoto'); 
             const initialEl = document.getElementById('currentUserCommentInitial'); 
             
-            // Update Navbar 
+            // Update Navbar & Welcome Msg 
             if(document.getElementById('user-name-display')) document.getElementById('user-name-display').innerText = userData.name; 
             if(document.getElementById('user-photo-display')) document.getElementById('user-photo-display').src = formatDriveUrl(userData.photo); 
             
-            // FIX LINGKARAN BIRU: Pastikan initial disembunyikan jika ada foto 
+            const welcomeMsg = document.querySelector('h4.fw-bold'); 
+            if(welcomeMsg && userData.name) welcomeMsg.innerText = `Good Morning, ${userData.name.split(' ')[0]}!`; 
+
+            // FIX LINGKARAN BIRU: 
+            // Jika ada foto, tampilkan foto dan SEMBUNYIKAN initial sama sekali. 
             if (userData.photo && userData.photo !== "" && userData.photo !== "undefined") { 
                 imgEl.src = formatDriveUrl(userData.photo); 
                 imgEl.style.display = 'block'; 
                 if(initialEl) initialEl.style.display = 'none'; 
             } else { 
+                // Jika tidak ada foto, tampilkan initial dan SEMBUNYIKAN elemen foto. 
                 if(initialEl) { 
                     initialEl.innerText = userData.name ? userData.name.substring(0, 2).toUpperCase() : 'US'; 
                     initialEl.style.display = 'flex'; 
@@ -1561,8 +1566,8 @@
             if(!wrapper) return; 
         
             wrapper.innerHTML = comments.map(c => { 
-                // PERBAIKAN: Gunakan == (bukan ===) untuk menghindari error String vs Number 
-                const sender = globalUsers.find(u => u.id == c.userId) || { name: 'System User', photo: '' }; 
+                // Cari user pengirim berdasarkan userId dari spreadsheet 
+                const sender = globalUsers.find(u => String(u.id).trim() == String(c.userId).trim()) || { name: 'Unknown User', photo: '' }; 
                 const senderPhoto = sender.photo ? formatDriveUrl(sender.photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(sender.name)}`; 
         
                 return ` 
@@ -1574,7 +1579,7 @@
                                 <span class="text-muted" style="font-size:0.7rem">${c.date}</span> 
                             </div> 
                             <div class="small text-dark">${c.text}</div> 
-                            ${c.attachment ? `<div class="mt-2"><a href="${c.attachment}" target="_blank" class="btn btn-sm btn-white border small py-0"><i class="bi bi-paperclip"></i> View File</a></div>` : ''}
+                            ${c.attachment ? `<div class="mt-2"><a href="${c.attachment}" target="_blank" class="btn btn-sm btn-white border small py-0"><i class="bi bi-paperclip"></i> View File</a></div>` : ''} 
                         </div> 
                     </div> 
                 `; 
@@ -1660,52 +1665,54 @@
                 });
             }
 
-           async function postComment() {
-               const text = document.getElementById('richCommentInput').innerHTML;
-               const btn = document.getElementById('postBtn');
-               if (!text || text === '<br>') return alert("Comment cannot be empty");
-
-               // Ambil data user terbaru dari localStorage
-               const userLocal = JSON.parse(localStorage.getItem('userData')) || {};
-               const activeUserId = userLocal.id || CURRENT_USER_ID;
-
-               if (!activeUserId) {
-                   alert("User ID tidak ditemukan, silakan login ulang.");
-                   return;
-               }
+           async function postComment() { 
+               const text = document.getElementById('richCommentInput').innerHTML; 
+               const btn = document.getElementById('postBtn'); 
+               
+               if (!text || text === '<br>' || text.trim() === "") return alert("Comment cannot be empty"); 
            
-               btn.disabled = true;
-               btn.innerText = "Posting...";
+               // Ambil ulang data user dari localStorage untuk memastikan ID terbaru 
+               const userLocal = JSON.parse(localStorage.getItem('userData')) || {}; 
+               const activeUserId = userLocal.id; 
            
-               let attachmentUrl = "";
-               if (selectedFile) {
-                   const fileRes = await uploadFile();
-                   if (fileRes.status === 'success') attachmentUrl = fileRes.fileUrl;
-               }
+               if (!activeUserId) { 
+                   alert("Session expired. Please login again."); 
+                   return; 
+               } 
            
-               fetch(API_URL, {
-                   method: 'POST',
-                   body: JSON.stringify({
-                       action: 'createComment',
-                       projectId: projectId,
-                       contextId: projectId,
-                       userId: activeUserId, // Pastikan ini terisi ID asli
-                       text: text,
-                       attachmentUrl: attachmentUrl
-                   })
-               })
-               .then(r => r.json())
-               .then(res => {
-                   if (res.status === 'success') {
-                       document.getElementById('richCommentInput').innerHTML = '';
-                       clearFile();
-                       fetchData(); // Refresh list comment
-                   }
-               })
-               .finally(() => {
-                   btn.disabled = false;
-                   btn.innerText = "Post comment";
-               });
+               btn.disabled = true; 
+               btn.innerText = "Posting..."; 
+           
+               let attachmentUrl = ""; 
+               if (selectedFile) { 
+                   const fileRes = await uploadFile(); 
+                   if (fileRes.status === 'success') attachmentUrl = fileRes.fileUrl; 
+               } 
+           
+               fetch(API_URL, { 
+                   method: 'POST', 
+                   body: JSON.stringify({ 
+                       action: 'createComment', 
+                       projectId: projectId, 
+                       contextId: projectId,  // Karena diskusi di level project 
+                       contextType: 'project', // Sesuai skema kolom 2 
+                       userId: activeUserId,   // Sesuai skema kolom 4 
+                       text: text,            // Sesuai skema kolom 5 
+                       attachmentUrl: attachmentUrl 
+                   }) 
+               }) 
+               .then(r => r.json()) 
+               .then(res => { 
+                   if (res.status === 'success') { 
+                       document.getElementById('richCommentInput').innerHTML = ''; 
+                       clearFile(); 
+                       fetchData(); // Refresh list diskusi 
+                   } 
+               }) 
+               .finally(() => { 
+                   btn.disabled = false; 
+                   btn.innerText = "Post comment"; 
+               }); 
            }
 
            // --- FUNGSI TEXT EDITOR & FILE ---
