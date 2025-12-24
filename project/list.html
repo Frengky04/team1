@@ -10,6 +10,48 @@
     <link href="../assets/css/style.css" rel="stylesheet" />
 
     <style>
+        /* Styling Baris Task */ 
+        .todo-row { 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            padding: 8px 12px; 
+            border-bottom: 1px solid #f1f5f9 !important; 
+            transition: background-color 0.2s; 
+        } 
+        
+        .todo-row:hover { 
+            background-color: #f8fafc; 
+        } 
+        
+        /* Styling Teks "Open in New Tab" yang muncul saat hover */ 
+        .new-tab-hint { 
+            opacity: 0; /* Sembunyi secara default */ 
+            font-size: 0.85rem; 
+            color: #8d6e63; /* Warna cokelat sesuai gambar Anda */ 
+            margin-left: 10px; 
+            cursor: pointer; 
+            transition: opacity 0.2s; 
+            white-space: nowrap; 
+        } 
+        
+        .todo-row:hover .new-tab-hint { 
+            opacity: 1; /* Muncul saat row di-hover */ 
+        } 
+        
+        .new-tab-hint:hover { 
+            text-decoration: underline; 
+            color: #0B2B6A; /* Berubah warna saat teks diklik */ 
+        } 
+        
+        /* Icon drag handle (=) seperti di gambar */ 
+        .drag-handle-task { 
+            color: #cbd5e1; 
+            margin-right: 8px; 
+            font-size: 1.1rem; 
+            cursor: grab; 
+        }
+
         /* --- BASE LAYOUT --- */
         body { background-color: #f1f7fd; font-family: 'Poppins', sans-serif; }
         .main-content { margin-left: 290px; width: calc(100% - 290px); padding: 40px; min-height: 100vh; }
@@ -1178,30 +1220,35 @@ function renderLists(lists) {
         const tasksHtml = (list.tasks || []).map(t => { 
             const isDone = ['done', 'true', 'completed'].includes(t.status?.toLowerCase()); 
             
-            // Logika Ikon Dinamis 
-            const hasDesc = (t.description && t.description.trim() !== "" && t.description !== "<br>"); 
-            const hasAttach = (t.attachment && t.attachment !== ""); 
-            
-            let taskIcon = ""; 
-            if (hasDesc && hasAttach) taskIcon = '<i class="bi bi-box2-fill text-primary ms-2" title="Notes & Attachment"></i>'; 
-            else if (hasDesc) taskIcon = '<i class="bi bi-filter-left text-muted ms-2" style="font-size:1.1rem" title="Has Notes"></i>'; 
-            else if (hasAttach) taskIcon = '<i class="bi bi-paperclip text-muted ms-2" title="Has Attachment"></i>'; 
+            // LOGIKA: Cek apakah deskripsi ada dan tidak kosong 
+            const hasDescription = (t.description && t.description.trim() !== "" && t.description !== "<br>"); 
 
             return ` 
-                <div class="todo-row p-2 border-bottom d-flex align-items-center cursor-pointer ${isDone ? 'task-row-done' : ''}" 
-                     onclick="window.open('item-details.html?taskId=${t.id}&projectId=${projectId}', '_blank')"> 
+                <div class="todo-row cursor-pointer ${isDone ? 'task-row-done' : ''}" 
+                     onclick="window.location.href='item-details.html?taskId=${t.id}&projectId=${projectId}'"> 
                     
-                    <input type="checkbox" class="form-check-input task-checkbox me-3" 
-                           ${isDone ? 'checked' : ''} 
+                    <!-- Icon Handle seperti di gambar Anda --> 
+                    <i class="bi bi-list drag-handle-task"></i> 
+
+                    <!-- Checkbox Bulat --> 
+                    <input type="checkbox" class="task-checkbox me-2" ${isDone ? 'checked' : ''} 
                            onclick="event.stopPropagation(); updateTaskQuickStatus('${t.id}', this.checked)"> 
                     
                     <div class="flex-grow-1 d-flex align-items-center"> 
-                        <span class="task-text-content fw-medium">${t.title}</span> 
-                        ${taskIcon} 
-                        <span class="new-tab-hint"><i class="bi bi-box-arrow-up-right me-1"></i> Open in New Tab</span> 
+                        <span class="task-text-content fw-medium ${isDone ? 'text-decoration-line-through text-muted' : ''}">${t.title}</span> 
+                        
+                        <!-- Icon Filter Left jika ada deskripsi --> 
+                        ${hasDescription ? '<i class="bi bi-filter-left text-muted ms-2" title="Has description" style="font-size: 1.1rem;"></i>' : ''} 
+
+                        <!-- Teks yang muncul saat Hover --> 
+                        <span class="new-tab-hint" 
+                              onclick="event.stopPropagation(); window.open('item-details.html?taskId=${t.id}&projectId=${projectId}', '_blank')"> 
+                            Open in New Tab... 
+                        </span> 
                     </div> 
 
-                    <span class="badge bg-light text-dark border ms-2 small" style="font-size:0.65rem; text-transform:uppercase;"> 
+                    <!-- Label Status di kanan --> 
+                    <span class="badge bg-light text-dark border ms-2 small" style="font-size:0.65rem; text-transform: uppercase;"> 
                         ${t.status || 'OPEN'} 
                     </span> 
                 </div>`; 
