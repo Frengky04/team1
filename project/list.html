@@ -1749,13 +1749,28 @@
          return; 
      } 
  
-     // PERBAIKAN: Ambil ID dengan sangat teliti (cek besar/kecil huruf) 
-     // Sesuai PDF, Id diambil dari kolom "Id" spreadsheet user 
-     const activeUserId = userData.Id || userData.id || userData.ID; 
+     // PERBAIKAN UTAMA: Ambil ulang userData langsung dari LocalStorage untuk memastikan data terbaru 
+     const freshUserDataStr = localStorage.getItem('userData');
+     console.log("Raw LocalStorage userData:", freshUserDataStr); // Debugging 
+     
+     if (!freshUserDataStr) { 
+         alert("Session data is missing. Please login again."); 
+         // window.location.href = "../index.html"; // Opsional: redirect otomatis 
+         return; 
+     }
+ 
+     let activeUserId = null; 
+     try { 
+         const freshUserData = JSON.parse(freshUserDataStr); 
+         // Cek semua kemungkinan variasi penulisan ID 
+         activeUserId = freshUserData.Id || freshUserData.id || freshUserData.ID || freshUserData.uuid || freshUserData._id; 
+     } catch (e) { 
+         console.error("Error parsing userData:", e); 
+     } 
  
      if (!activeUserId) { 
-         alert("User session error. Please re-login."); 
-         console.error("Active User ID is missing from userData", userData); 
+         alert("User ID not found in session. Please re-login."); 
+         console.error("Active User ID is missing. UserData content:", freshUserDataStr); 
          return; 
      } 
  
