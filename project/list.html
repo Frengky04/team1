@@ -1739,7 +1739,8 @@
                 });
             }
 
- // 2. POST COMMENT (Memperbaiki User ID yang tidak masuk ke spreadsheet) 
+ // --- UPDATE PADA LIST.HTML --- 
+ 
  async function postComment() { 
      const text = document.getElementById('richCommentInput').innerHTML; 
      const btn = document.getElementById('postBtn'); 
@@ -1749,60 +1750,34 @@
          return; 
      } 
  
-     // PERBAIKAN UTAMA: Ambil ulang userData langsung dari LocalStorage untuk memastikan data terbaru 
-     const freshUserDataStr = localStorage.getItem('userData');
-     
+     const freshUserDataStr = localStorage.getItem('userData'); 
      if (!freshUserDataStr) { 
-         alert("Session data is missing. Please login again."); 
+         alert("Session expired. Please login again."); 
          return; 
-     }
- 
-     let activeUserId = null; 
-     let userEmail = null;
-     let freshUserData = {};
-     
-     try { 
-         freshUserData = JSON.parse(freshUserDataStr); 
-         // Cek semua kemungkinan variasi penulisan ID 
-         activeUserId = freshUserData.Id || freshUserData.id || freshUserData.ID || freshUserData.uuid || freshUserData._id; 
-         userEmail = freshUserData.Email || freshUserData.email || freshUserData.EMAIL;
-     } catch (e) { 
-         console.error("Error parsing userData:", e); 
      } 
  
-     // FALLBACK: Jika ID tidak ditemukan di localStorage, cari di globalUsers berdasarkan Email
-     if (!activeUserId && userEmail && globalUsers.length > 0) {
-         console.warn("User ID missing in localStorage. Attempting lookup by email:", userEmail);
-         const foundUser = globalUsers.find(u => u.email.toLowerCase().trim() === userEmail.toLowerCase().trim());
-         if (foundUser) {
-             activeUserId = foundUser.id;
-             console.log("User ID found via globalUsers lookup:", activeUserId);
-             
-             // Opsional: Update localStorage agar next time tidak perlu lookup lagi
-             freshUserData.id = activeUserId; // Simpan dengan key huruf kecil standar
-             localStorage.setItem('userData', JSON.stringify(freshUserData));
-         }
-     }
- 
+     const freshUserData = JSON.parse(freshUserDataStr); 
+     
+     // PERBAIKAN: Deteksi key 'id' atau 'Id' 
+     const activeUserId = freshUserData.id || freshUserData.Id || freshUserData.ID; 
+  
      if (!activeUserId) { 
-         // Tampilkan detail keys yang ada untuk debugging user
-         const availableKeys = Object.keys(freshUserData).join(", ");
-         alert(`User ID not found in session. Keys available: ${availableKeys}. Please re-login.`); 
-         console.error("Active User ID is missing. UserData content:", freshUserDataStr); 
+         // Pesan debug jika ID masih tidak ketemu 
+         const keys = Object.keys(freshUserData).join(", "); 
+         alert("User ID tidak ditemukan dalam session. Data yang tersedia: " + keys + ". Silakan Login Ulang."); 
+         console.error("UserData detail:", freshUserData); 
          return; 
      } 
  
      btn.disabled = true; 
      btn.innerText = "Posting..."; 
  
+     // ... proses upload file jika ada ... 
      let attachmentUrl = ""; 
      if (selectedFile) { 
          const fileRes = await uploadFile(); 
          if (fileRes.status === 'success') attachmentUrl = fileRes.fileUrl; 
      } 
- 
-     // Log untuk memastikan data benar sebelum dikirim 
-     console.log("Sending comment with UserID:", activeUserId); 
  
      fetch(API_URL, { 
          method: 'POST', 
@@ -1811,7 +1786,7 @@
              projectId: projectId, 
              contextId: projectId,  
              contextType: 'project', 
-             userId: activeUserId, // Mengirimkan ID yang sudah dipastikan ada 
+             userId: activeUserId, // ID SEKARANG SUDAH AMAN 
              text: text,            
              attachmentUrl: attachmentUrl 
          }) 
@@ -1821,12 +1796,9 @@
          if (res.status === 'success') { 
              document.getElementById('richCommentInput').innerHTML = ''; 
              clearFile(); 
-             fetchData(); // Refresh list komentar 
-         } else { 
-             alert("Error: " + res.message); 
+             fetchData(); 
          } 
      }) 
-     .catch(err => console.error("Fetch error:", err)) 
      .finally(() => { 
          btn.disabled = false; 
          btn.innerText = "Post comment"; 
