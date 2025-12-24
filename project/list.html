@@ -901,32 +901,26 @@
         }); 
 
         function formatDriveUrl(url) { 
-            if (!url || url === "" || url === "undefined") { 
+            if (!url || url === "" || url === "undefined" || url === "null") { 
                 return "https://ui-avatars.com/api/?background=random&color=fff&name=User"; 
             } 
 
-            try { 
-                if (url.indexOf("drive.google.com") > -1) { 
-                    let fileId = ""; 
-                    if (url.indexOf("id=") > -1) { 
-                        fileId = url.split("id=")[1].split("&")[0]; 
-                    } else if (url.indexOf("/d/") > -1) { 
-                        fileId = url.split("/d/")[1].split("/")[0]; 
-                    } 
-                    if (fileId) { 
-                        return "https://drive.google.com/uc?export=view&id=" + fileId; 
-                    } 
-                } 
-
-                if (url.indexOf("lh3.googleusercontent.com") > -1) { 
-                    const match = url.match(/\/d\/([^/?]+)/); 
-                    if (match && match[1]) { 
-                        return "https://drive.google.com/uc?export=view&id=" + match[1]; 
-                    } 
-                    return url; 
-                } 
-
+            if (url.includes("drive.google.com/uc") || url.includes("lh3.googleusercontent.com")) { 
                 return url; 
+            } 
+
+            try { 
+                let fileId = ""; 
+                if (url.includes("id=")) { 
+                    fileId = url.split("id=")[1].split("&")[0]; 
+                } else { 
+                    let parts = url.split("/"); 
+                    let dIndex = parts.indexOf("d"); 
+                    if (dIndex > -1 && parts[dIndex + 1]) { 
+                        fileId = parts[dIndex + 1]; 
+                    } 
+                } 
+                return fileId ? "https://drive.google.com/uc?export=view&id=" + fileId : url; 
             } catch (e) { 
                 return url; 
             } 
@@ -934,7 +928,7 @@
 
  function setupUserUI() { 
     if (!userData) { 
-        console.error("User data not found in localStorage"); 
+        window.location.href = "../index.html"; 
         return; 
     } 
 

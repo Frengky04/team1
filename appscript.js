@@ -319,34 +319,32 @@ function getProjectCompleteData(targetId) {
 /**
  * FUNGSI PEMBANTU: Konversi URL Google Drive ke Link Foto Langsung
  */
-function formatDriveUrl(url) { 
-  if (!url || url === "" || url.indexOf("http") === -1) { 
-    return "https://ui-avatars.com/api/?background=random&color=fff&name=User"; 
-  } 
-  
-  // Jika sudah link thumbnail lh3, langsung kembalikan 
-  if (url.indexOf("lh3.googleusercontent.com") > -1) return url; 
+function formatDriveUrl(url) {
+  if (!url || url === "" || url === "undefined") {
+    return "https://ui-avatars.com/api/?background=random&color=fff&name=User";
+  }
 
-  try { 
-    let fileId = ""; 
-    if (url.indexOf("id=") > -1) { 
-      fileId = url.split("id=")[1].split("&")[0]; 
-    } else { 
-      let parts = url.split("/"); 
-      let dIndex = parts.indexOf("d"); 
-      if (dIndex > -1 && parts[dIndex + 1]) { 
-        fileId = parts[dIndex + 1]; 
-      } 
-    } 
-    
-    if (fileId !== "") { 
-      // Menggunakan server lh3 jauh lebih cepat dan menghindari limit traffik 
-      return "https://lh3.googleusercontent.com/d/" + fileId; 
-    } 
-    return url; 
-  } catch (e) { 
-    return url; 
-  } 
+  if (url.indexOf("drive.google.com/uc") > -1) return url;
+
+  try {
+    let fileId = "";
+    if (url.indexOf("id=") > -1) {
+      fileId = url.split("id=")[1].split("&")[0];
+    } else {
+      let parts = url.split("/");
+      let dIndex = parts.indexOf("d");
+      if (dIndex > -1 && parts[dIndex + 1]) {
+        fileId = parts[dIndex + 1];
+      }
+    }
+
+    if (fileId !== "") {
+      return "https://drive.google.com/uc?export=view&id=" + fileId;
+    }
+    return url;
+  } catch (e) {
+    return url;
+  }
 }
 
 function createList(data) {
