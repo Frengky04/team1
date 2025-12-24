@@ -1235,7 +1235,7 @@ function renderLists(lists) {
                            onclick="event.stopPropagation(); updateTaskQuickStatus('${t.id}', this.checked)"> 
                     
                     <div class="flex-grow-1 d-flex align-items-center"> 
-                        <span class="task-text-content fw-medium ${isDone ? 'text-decoration-line-through text-muted' : ''}">${t.title}</span> 
+                        <span id="task-text-${t.id}" class="task-text-content fw-medium ${isDone ? 'text-decoration-line-through text-muted' : ''}">${t.title}</span> 
                         
                         <!-- Icon Filter Left jika ada deskripsi --> 
                         ${hasDescription ? '<i class="bi bi-filter-left text-muted ms-2" title="Has description" style="font-size: 1.1rem;"></i>' : ''} 
@@ -1243,7 +1243,7 @@ function renderLists(lists) {
                         <!-- Teks yang muncul saat Hover --> 
                         <span class="new-tab-hint" 
                               onclick="event.stopPropagation(); window.open('item-details.html?taskId=${t.id}&projectId=${projectId}', '_blank')"> 
-                            Open in New Tab... 
+                            Open in New Tab 
                         </span> 
                     </div> 
 
@@ -2371,8 +2371,15 @@ function renderLists(lists) {
         async function updateTaskQuickStatus(tid, isChecked) { 
             const statusLabel = isChecked ? "DONE" : "OPEN"; 
             
-            // Optimistic UI Update 
-            fetchData(); // Refresh data untuk update coretan (atau manipulasi DOM langsung) 
+            // Optimistic UI Update (Langsung Coret)
+            const textEl = document.getElementById(`task-text-${tid}`);
+            if(textEl) {
+                if(isChecked) {
+                    textEl.classList.add('text-decoration-line-through', 'text-muted');
+                } else {
+                    textEl.classList.remove('text-decoration-line-through', 'text-muted');
+                }
+            }
         
             fetch(API_URL, { 
                 method: 'POST', 
