@@ -794,50 +794,43 @@
             return url;
         }
 
- // 1. SETUP UI USER (Memperbaiki Role yang tidak muncul) 
  function setupUserUI() { 
-     if (!userData) { 
-         console.error("User data not found in localStorage"); 
-         // window.location.href = "../index.html"; // Redirect jika tidak login 
-         return; 
-     } 
- 
-     const nameDisplay = document.getElementById('user-name-display'); 
-     const photoDisplay = document.getElementById('user-photo-display'); 
-     const roleDisplay = document.getElementById('user-role-display'); 
- 
-     // Cek kemungkinan variasi nama key (Id vs id, Role vs role) 
-     const name = userData.Name || userData.name || "User"; 
-     const role = userData.Role || userData.role || "Member"; // Menangani case-sensitive 
-     const photo = userData.Photo || userData.photo || ""; 
- 
-     if (nameDisplay) nameDisplay.innerText = name; 
-     if (photoDisplay) photoDisplay.src = formatDriveUrl(photo); 
-     
-     // PERBAIKAN: Pastikan role terisi ke elemen <small id="user-role-display"> 
-     if (roleDisplay) { 
-         roleDisplay.innerText = role; 
-         console.log("Role loaded:", role); 
-     }
+    if (!userData) { 
+        console.error("User data not found in localStorage"); 
+        return; 
+    } 
 
-     // --- Tambahan untuk menjaga UI yang ada ---
-     const welcomeMsg = document.querySelector('h4.fw-bold'); 
-     if(welcomeMsg) welcomeMsg.innerText = `Good Morning, ${name.split(' ')[0]}!`; 
- 
-     const imgEl = document.getElementById('currentUserCommentPhoto'); 
-     const initialEl = document.getElementById('currentUserCommentInitial'); 
- 
-     if (photo && photo !== "" && photo !== "undefined") { 
-         if(imgEl) { imgEl.src = formatDriveUrl(photo); imgEl.style.display = 'block'; } 
-         if(initialEl) initialEl.style.display = 'none'; 
-     } else { 
-         if(initialEl) { 
-             initialEl.innerText = name.substring(0, 2).toUpperCase(); 
-             initialEl.style.display = 'flex'; 
-         } 
-         if(imgEl) imgEl.style.display = 'none'; 
-     } 
- } 
+    const nameDisplay = document.getElementById('user-name-display'); 
+    const photoDisplay = document.getElementById('user-photo-display'); 
+    const roleDisplay = document.getElementById('user-role-display'); 
+
+    const name = userData.Name || userData.name || "User"; 
+    const photo = userData.Photo || userData.photo || ""; 
+    // Ambil role dari localStorage jika sudah ada, jika tidak biarkan "Fetching..." 
+    const role = userData.role || userData.Role || "Fetching..."; 
+
+    if (nameDisplay) nameDisplay.innerText = name; 
+    if (photoDisplay) photoDisplay.src = formatDriveUrl(photo); 
+    if (roleDisplay) roleDisplay.innerText = role; 
+
+    // --- Tambahan untuk menjaga UI yang ada ---
+    const welcomeMsg = document.querySelector('h4.fw-bold'); 
+    if(welcomeMsg) welcomeMsg.innerText = `Good Morning, ${name.split(' ')[0]}!`; 
+
+    const imgEl = document.getElementById('currentUserCommentPhoto'); 
+    const initialEl = document.getElementById('currentUserCommentInitial'); 
+
+    if (photo && photo !== "" && photo !== "undefined") { 
+        if(imgEl) { imgEl.src = formatDriveUrl(photo); imgEl.style.display = 'block'; } 
+        if(initialEl) initialEl.style.display = 'none'; 
+    } else { 
+        if(initialEl) { 
+            initialEl.innerText = name.substring(0, 2).toUpperCase(); 
+            initialEl.style.display = 'flex'; 
+        } 
+        if(imgEl) imgEl.style.display = 'none'; 
+    } 
+} 
  
         // --- TAG SYSTEM LOGIC (ROBUST) ---
         function handleTagSearch(input, lid) { 
@@ -1062,6 +1055,22 @@
                         globalTags = data.tags || [];
                         globalUsers = data.users || []; 
                         lastFetchedLists = data.lists || [];
+
+                        // --- TAMBAHKAN LOGIKA INI DI SINI --- 
+                        // Cari data role user saat ini dari globalUsers 
+                        if (CURRENT_USER_ID && globalUsers.length > 0) { 
+                            const currentUser = globalUsers.find(u => String(u.id).trim() === String(CURRENT_USER_ID).trim()); 
+                            if (currentUser) { 
+                                const roleDisplay = document.getElementById('user-role-display'); 
+                                if (roleDisplay) { 
+                                    roleDisplay.innerText = currentUser.role || "Member"; 
+                                } 
+                                // Update localStorage agar data role tersimpan untuk navigasi berikutnya 
+                                userData.role = currentUser.role; 
+                                localStorage.setItem('userData', JSON.stringify(userData)); 
+                            } 
+                        } 
+                        // --- SELESAI TAMBAHAN --- 
 
                         renderLists(lastFetchedLists);
                         renderComments(data.comments || []);
