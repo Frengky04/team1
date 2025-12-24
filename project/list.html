@@ -900,18 +900,36 @@
             fetchData(); 
         }); 
 
-        function formatDriveUrl(url) {
-            if (!url) return "https://i.pravatar.cc/300";
-            if (url.includes('drive.google.com')) {
-                let id = "";
-                if (url.includes('id=')) {
-                    id = url.split('id=')[1].split('&')[0];
-                } else {
-                    id = url.split('/d/')[1].split('/')[0];
-                }
-                return `https://drive.google.com/uc?export=view&id=${id}`;
-            }
-            return url;
+        function formatDriveUrl(url) { 
+            if (!url || url === "" || url === "undefined") { 
+                return "https://ui-avatars.com/api/?background=random&color=fff&name=User"; 
+            } 
+
+            try { 
+                if (url.indexOf("drive.google.com") > -1) { 
+                    let fileId = ""; 
+                    if (url.indexOf("id=") > -1) { 
+                        fileId = url.split("id=")[1].split("&")[0]; 
+                    } else if (url.indexOf("/d/") > -1) { 
+                        fileId = url.split("/d/")[1].split("/")[0]; 
+                    } 
+                    if (fileId) { 
+                        return "https://drive.google.com/uc?export=view&id=" + fileId; 
+                    } 
+                } 
+
+                if (url.indexOf("lh3.googleusercontent.com") > -1) { 
+                    const match = url.match(/\/d\/([^/?]+)/); 
+                    if (match && match[1]) { 
+                        return "https://drive.google.com/uc?export=view&id=" + match[1]; 
+                    } 
+                    return url; 
+                } 
+
+                return url; 
+            } catch (e) { 
+                return url; 
+            } 
         }
 
  function setupUserUI() { 
@@ -1331,7 +1349,7 @@ function renderLists(lists) {
                     <i class="bi bi-plus"></i> Add a to-do 
                 </button> 
                 <div id="form-add-${list.id}" class="task-create-panel" style="display:none; border-top: 2px solid #eee; padding-top: 20px;"> 
-                    <input type="text" id="task-title-${list.id}" class="task-title-large" placeholder="Task Name" style="font-size: 2rem; color: #b0b8c1;"> 
+                    <input type="text" id="task-title-${list.id}" class="task-title-large" placeholder="Task Name" style="font-size: 2rem;"> 
                     
                     <div class="meta-grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 40px; margin-top: 20px;"> 
                         <div class="meta-row"> 
