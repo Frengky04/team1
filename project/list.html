@@ -497,26 +497,32 @@
         opacity: 1; 
     } 
     
-    /* Deskripsi List: Truncate & More */ 
-    .list-card-desc { 
-        font-size: 0.9rem; 
-        color: #64748b; 
-        line-height: 1.5; 
-        overflow: hidden; 
+    /* --- LOADING NOTIFICATION --- */ 
+    #processToast { 
+        position: fixed; 
+        top: 20px; 
+        right: 20px; 
+        z-index: 9999; 
+        min-width: 250px; 
+        display: none; 
+    } 
+    .toast-body-custom { 
+        background: white; 
+        padding: 15px; 
+        border-radius: 12px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+        border: 1px solid #e2e8f0; 
+    } 
+
+    /* --- DESCRIPTION TRUNCATE (8 kata + more) --- */ 
+    .list-desc-truncate { 
         display: -webkit-box; 
+        -webkit-line-clamp: 1; 
         -webkit-box-orient: vertical; 
-        -webkit-line-clamp: 2; /* Batas 2 baris */ 
-    } 
-    .list-card-desc.expanded { 
-        display: block; 
-        -webkit-line-clamp: unset; 
-    } 
-    .btn-more-desc { 
-        font-size: 0.8rem; 
-        font-weight: 600; 
-        color: #0B2B6A; 
-        text-decoration: none; 
-        cursor: pointer; 
+        overflow: hidden; 
+        font-size: 0.85rem; 
+        color: #64748b; 
+        margin-top: 4px; 
     } 
     
     /* Dropdown Triple Dot */ 
@@ -536,6 +542,36 @@
 
 </head>
 <body>
+
+    <div id="processToast">
+        <div class="toast-body-custom">
+            <div class="fw-bold small mb-1">Data sedang di proses...</div>
+            <div class="progress" style="height: 10px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="fullLoadingModal" data-bs-backdrop="static" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 bg-transparent text-center">
+                <div class="spinner-border text-white mb-3" style="width: 3rem; height: 3rem;"></div>
+                <h5 class="text-white fw-bold">Sedang membuat list baru...</h5>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="moreDescModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold">Description</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 pt-2" id="moreDescBody"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- 1. TOP BAR FIXED -->
     <nav class="top-bar">
@@ -1211,65 +1247,50 @@ function renderLists(lists) {
     document.getElementById('emptyState').style.display = 'none'; 
 
     lists.forEach(list => { 
-        // --- LOGIKA STATUS HEADER --- 
         const statusBadgesHtml = (list.statuses || []).sort((a,b) => a.position - b.position).map(s => ` 
             <div class="status-badge-main" style="background:${s.color || '#64748b'}">${s.name}</div> 
         `).join('<i class="bi bi-chevron-right text-muted small mx-1"></i>'); 
 
-        // --- LOGIKA TASK ITEM --- 
         const tasksHtml = (list.tasks || []).map(t => { 
             const isDone = ['done', 'true', 'completed'].includes(t.status?.toLowerCase()); 
-            
-            // LOGIKA: Cek apakah deskripsi ada dan tidak kosong 
             const hasDescription = (t.description && t.description.trim() !== "" && t.description !== "<br>"); 
 
             return ` 
                 <div class="todo-row cursor-pointer ${isDone ? 'task-row-done' : ''}" 
                      onclick="window.location.href='item-details.html?taskId=${t.id}&projectId=${projectId}'"> 
-                    
-                    <!-- Icon Handle seperti di gambar Anda --> 
                     <i class="bi bi-list drag-handle-task"></i> 
-
-                    <!-- Checkbox Bulat --> 
                     <input type="checkbox" class="task-checkbox me-2" ${isDone ? 'checked' : ''} 
                            onclick="event.stopPropagation(); updateTaskQuickStatus('${t.id}', this.checked)"> 
-                    
                     <div class="flex-grow-1 d-flex align-items-center"> 
                         <span id="task-text-${t.id}" class="task-text-content fw-medium ${isDone ? 'text-decoration-line-through text-muted' : ''}">${t.title}</span> 
-                        
-                        <!-- Icon Filter Left jika ada deskripsi --> 
                         ${hasDescription ? '<i class="bi bi-filter-left text-muted ms-2" title="Has description" style="font-size: 1.1rem;"></i>' : ''} 
-
-                        <!-- Teks yang muncul saat Hover --> 
                         <span class="new-tab-hint" 
                               onclick="event.stopPropagation(); window.open('item-details.html?taskId=${t.id}&projectId=${projectId}', '_blank')"> 
                             Open in New Tab 
                         </span> 
                     </div> 
-
-                    <!-- Label Status di kanan --> 
                     <span class="badge bg-light text-dark border ms-2 small" style="font-size:0.65rem; text-transform: uppercase;"> 
                         ${t.status || 'OPEN'} 
                     </span> 
                 </div>`; 
         }).join(''); 
 
-        // --- RENDER CARD LIST --- 
+        const allDone = list.tasks && list.tasks.length > 0 && list.tasks.every(t => 
+            ['done', 'true', 'completed'].includes(t.status?.toLowerCase()) 
+        ); 
+
         const html = ` 
         <div class="mb-5 bg-white p-4 rounded-4 border shadow-sm" id="card-list-${list.id}"> 
             <div class="d-flex justify-content-between align-items-start mb-1"> 
                 <div class="flex-grow-1"> 
-                    <h2 class="h4 fw-bold mb-1">${list.name}</h2> 
-                    
-                    <!-- Deskripsi List dengan Logic More --> 
+                    <div class="d-flex align-items-center gap-3 mb-1"> 
+                        <h2 class="h4 fw-bold mb-0">${list.name}</h2> 
+                        ${allDone ? '<span class="badge text-bg-success">All Task Done</span>' : ''} 
+                    </div> 
                     <div id="desc-container-${list.id}"> 
-                        <div class="list-card-desc" id="desc-text-${list.id}">${list.description || ''}</div> 
-                        ${(list.description && list.description.length > 100) ? 
-                            `<a class="btn-more-desc" onclick="toggleListDesc('${list.id}')" id="btn-more-${list.id}">More</a>` : ''} 
+                        ${truncateDescription(list.description, list.id)} 
                     </div> 
                 </div> 
-
-                <!-- Menu Triple Dot --> 
                 <div class="dropdown list-menu-dropdown"> 
                     <button class="btn list-menu-btn" data-bs-toggle="dropdown"> 
                         <i class="bi bi-three-dots-vertical"></i> 
@@ -1295,7 +1316,6 @@ function renderLists(lists) {
                 <button id="btn-add-${list.id}" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" onclick="showTaskForm('${list.id}')"> 
                     <i class="bi bi-plus"></i> Add a to-do 
                 </button> 
-                <!-- Task form (form-add-lid) tetap di sini --> 
                 <div id="form-add-${list.id}" class="task-create-panel" style="display:none; border-top: 2px solid #eee; padding-top: 20px;"> 
                     <input type="text" id="task-title-${list.id}" class="task-title-large" placeholder="Task Name" style="font-size: 2rem; color: #b0b8c1;"> 
                     
@@ -1384,16 +1404,16 @@ function renderLists(lists) {
 }
 
 
-        // Simpan List Baru
         async function saveNewList() {
             const name = document.getElementById('inputListName').value;
             const desc = document.getElementById('inputListDesc').innerHTML;
             const btn = document.getElementById('btnSaveList');
             
-            if (!name) return alert("List name is required");
+            if (!name) return alert("Nama list wajib diisi");
 
             btn.disabled = true;
             btn.innerText = "Saving...";
+            showFullLoading(true);
 
             let attachmentUrl = "";
             if (listFile) {
@@ -1421,6 +1441,7 @@ function renderLists(lists) {
                 }
             })
             .finally(() => {
+                showFullLoading(false);
                 btn.disabled = false;
                 btn.innerText = "Add this list";
             });
@@ -2089,6 +2110,50 @@ function renderLists(lists) {
         document.addEventListener('click', () => { 
             document.querySelectorAll('.tag-dropdown, .user-menu-dark, .priority-menu').forEach(m => m.style.display = 'none'); 
         });
+
+        function showSmallLoading(show) { 
+            const el = document.getElementById('processToast'); 
+            if (!el) return; 
+            el.style.display = show ? 'block' : 'none'; 
+        } 
+
+        function showFullLoading(show) { 
+            const modalEl = document.getElementById('fullLoadingModal'); 
+            if (!modalEl) return; 
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl); 
+            if (show) modal.show(); else modal.hide(); 
+        } 
+
+        function truncateDescription(text, lid) { 
+            if (!text) return ""; 
+            const words = text.split(" "); 
+            if (words.length <= 8) return `<div class="list-desc-truncate">${text}</div>`; 
+            
+            const truncated = words.slice(0, 8).join(" "); 
+            return ` 
+                <div class="list-desc-truncate"> 
+                    ${truncated}... 
+                    <a href="javascript:void(0)" class="btn-more-desc" onclick="openMoreDesc('${encodeURIComponent(text)}')">more</a> 
+                </div>`; 
+        } 
+
+        function openMoreDesc(encodedText) { 
+            const body = document.getElementById('moreDescBody'); 
+            if (!body) return; 
+            body.innerHTML = decodeURIComponent(encodedText); 
+            new bootstrap.Modal(document.getElementById('moreDescModal')).show(); 
+        } 
+
+        async function deleteCommentAct(cid) { 
+            if (!confirm("Hapus komentar ini?")) return; 
+            showSmallLoading(true); 
+            await fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'deleteComment', commentId: cid, userId: CURRENT_USER_ID }) 
+            }); 
+            fetchData(); 
+            showSmallLoading(false); 
+        } 
 
         // --- TASK SAVE LOGIC --- 
         function saveTask(lid) { 

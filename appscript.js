@@ -11,6 +11,8 @@ const TAG_SHEET_ID     = '14cZxGmm32hLvxL7Kd5Liy0tyoivvy2ehNFBGGrjhNE8';
 const TASK_TAG_SHEET_ID= '1na1KfC3OdH7ghi8HsCcwjKWW71DS6TJBn5xQTMFSKTo';
 const STATUS_SHEET_ID  = '1HVbobV81z_uKvtfHIBbCuZGp7C9CUkPeF6gIZwA_uJI';
 const USER_SHEET_ID    = '1sFG5WY5UWD27d_77S1kCFDXeHB9vA2ZzasFHaDUu5Ns'; 
+const LOG_SHEET_ID     = '1sKpP7h1HqLBJeWYm__B2DjHhRG3nx8HeVBfgWXom7ao';
+const TRASH_SHEET_ID   = '1UI_66VMjmTyMvyBO9WlandLYYjChfUqjM6gsjyZxDi8';
 const DRIVE_FOLDER_ID  = '1UBAZEr-n3evqA3Npvj7Kl7qvnt-gWLgE'; 
 
 /**
@@ -34,30 +36,54 @@ function doPost(e) {
   lock.tryLock(10000); 
   try {
     const data = JSON.parse(e.postData.contents);
-    
-    if (data.action === 'createProject')      return createProject(data);
-    if (data.action === 'createList')         return createList(data);
-    if (data.action === 'createTask')         return createTask(data);
-    if (data.action === 'createComment')      return createComment(data);
-    if (data.action === 'uploadFile')         return uploadFileToDrive(data); 
-    if (data.action === 'updateTaskStatus')   return updateTaskStatus(data);
-    if (data.action === 'createTag')          return createTag(data);
-    if (data.action === 'updateTag')          return updateTag(data);
-    if (data.action === 'deleteTag')          return deleteTag(data);
-    if (data.action === 'createStatus')       return createStatus(data);
-    if (data.action === 'toggleSubscriber')   return toggleSubscriber(data);
-    if (data.action === 'syncStatuses')       return syncStatuses(data);
-    if (data.action === 'updateList')         return updateList(data);
-    if (data.action === 'deleteList')         return deleteList(data);
+    let response;
 
+    if (data.action === 'createProject')           response = createProject(data);
+    else if (data.action === 'createList')         response = createList(data);
+    else if (data.action === 'updateList')         response = updateList(data);
+    else if (data.action === 'deleteList')         response = deleteList(data);
+    else if (data.action === 'createTask')         response = createTask(data);
+    else if (data.action === 'updateTaskStatus')   response = updateTaskStatus(data);
+    else if (data.action === 'createComment')      response = createComment(data);
+    else if (data.action === 'updateComment')      response = updateComment(data);
+    else if (data.action === 'deleteComment')      response = deleteComment(data);
+    else if (data.action === 'syncStatuses')       response = syncStatuses(data);
+    else if (data.action === 'createTag')          response = createTag(data);
+    else if (data.action === 'updateTag')          response = updateTag(data);
+    else if (data.action === 'deleteTag')          response = deleteTag(data);
+    else if (data.action === 'createStatus')       response = createStatus(data);
+    else if (data.action === 'uploadFile')         response = uploadFileToDrive(data);
+    else if (data.action === 'toggleSubscriber')   response = toggleSubscriber(data);
+    else return responseJSON({ status: 'error', message: 'Action Unknown' });
 
-    
-    return responseJSON({ status: 'error', message: 'Action Unknown' });
+    if (data.action !== 'uploadFile') {
+      try {
+        logAction(
+          data.userId,
+          data.action,
+          data.contextId || data.listId || data.projectId || data.taskId || "",
+          "",
+          JSON.stringify(data)
+        );
+      } catch (e) {}
+    }
+
+    return response;
   } catch (err) { 
     return responseJSON({ status: 'error', message: err.toString() }); 
   } finally { 
     lock.releaseLock(); 
   }
+}
+
+function logAction(userId, action, contextId, oldValue, newValue) {
+  const ss = SpreadsheetApp.openById(LOG_SHEET_ID).getSheets()[0];
+  ss.appendRow([Utilities.getUuid(), contextId, userId, action, oldValue, newValue, new Date()]);
+}
+
+function moveToTrash(type, id, name, parentId, userId, originalData) {
+  const ss = SpreadsheetApp.openById(TRASH_SHEET_ID).getSheets()[0];
+  ss.appendRow([Utilities.getUuid(), type, id, name, parentId, userId, new Date(), JSON.stringify(originalData)]);
 }
 
 /** 
@@ -295,6 +321,9 @@ function createList(data) {
     ];
     
     ss.appendRow(row);
+    const stSS = SpreadsheetApp.openById(STATUS_SHEET_ID).getSheets()[0];
+    stSS.appendRow([Utilities.getUuid(), lid, "", "START", "not_started", "#64748b", 0]);
+    stSS.appendRow([Utilities.getUuid(), lid, "", "COMPLETE", "done", "#10b981", 1]);
     return responseJSON({ status: 'success', listId: lid });
     
   } catch (err) {
@@ -436,6 +465,30 @@ function createComment(data) {
    return responseJSON({ status: 'success' }); 
 }
 
+function updateComment(data) {
+  const ss = SpreadsheetApp.openById(COMMENT_SHEET_ID).getSheets()[0];
+  const rows = ss.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(data.commentId)) {
+      ss.getRange(i + 1, 5).setValue(data.text);
+      return responseJSON({ status: 'success' });
+    }
+  }
+  return responseJSON({ status: 'error', message: 'Comment not found' });
+}
+
+function deleteComment(data) {
+  const ss = SpreadsheetApp.openById(COMMENT_SHEET_ID).getSheets()[0];
+  const rows = ss.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(data.commentId)) {
+      ss.deleteRow(i + 1);
+      return responseJSON({ status: 'success' });
+    }
+  }
+  return responseJSON({ status: 'error', message: 'Comment not found' });
+}
+
 function updateTaskStatus(data) {
   const ss = SpreadsheetApp.openById(TASK_SHEET_ID).getSheets()[0];
   const vals = ss.getDataRange().getValues();
@@ -499,9 +552,11 @@ function updateList(data) {
     if (String(vals[i][0]) === String(data.listId)) { 
       ss.getRange(i + 1, 3).setValue(data.name);         // list_name 
       ss.getRange(i + 1, 4).setValue(data.description);  // description 
+      if (data.position !== undefined) ss.getRange(i + 1, 7).setValue(data.position); // position
       return responseJSON({ status: 'success' }); 
     } 
   } 
+  return responseJSON({ status: 'error', message: 'List not found' }); 
 } 
 
 function deleteList(data) { 
@@ -509,11 +564,13 @@ function deleteList(data) {
   const vals = ss.getDataRange().getValues(); 
   for (let i = 1; i < vals.length; i++) { 
     if (String(vals[i][0]) === String(data.listId)) { 
+      moveToTrash('list', data.listId, vals[i][2], vals[i][1], data.userId, vals[i]);
       ss.deleteRow(i + 1); 
       // Opsional: Hapus juga task yang terkait dengan list_id ini di TASK_SHEET_ID 
       return responseJSON({ status: 'success' }); 
     } 
   } 
+  return responseJSON({ status: 'error', message: 'List not found' }); 
 }
 
 function responseJSON(obj) { 
