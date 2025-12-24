@@ -44,6 +44,7 @@ function doPost(e) {
     else if (data.action === 'deleteList')         response = deleteList(data);
     else if (data.action === 'createTask')         response = createTask(data);
     else if (data.action === 'updateTaskStatus')   response = updateTaskStatus(data);
+    else if (data.action === 'deleteTask')         response = deleteTask(data);
     else if (data.action === 'createComment')      response = createComment(data);
     else if (data.action === 'updateComment')      response = updateComment(data);
     else if (data.action === 'deleteComment')      response = deleteComment(data);
@@ -59,7 +60,7 @@ function doPost(e) {
     if (data.action !== 'uploadFile') {
       try {
         logAction(
-          data.userId,
+          data.actorId || data.userId,
           data.action,
           data.contextId || data.listId || data.projectId || data.taskId || "",
           "",
@@ -96,6 +97,48 @@ function createTag(data) {
   ss.appendRow([tid, data.tagName, data.color]); 
   return responseJSON({ status: 'success', tagId: tid, name: data.tagName, color: data.color }); 
 } 
+
+function updateTag(data) {
+  try {
+    const ss = SpreadsheetApp.openById(TAG_SHEET_ID).getSheets()[0];
+    const vals = ss.getDataRange().getValues();
+    for (let i = 1; i < vals.length; i++) {
+      if (String(vals[i][0]) === String(data.tagId)) {
+        if (data.tagName !== undefined) ss.getRange(i + 1, 2).setValue(data.tagName);
+        if (data.color !== undefined) ss.getRange(i + 1, 3).setValue(data.color);
+        return responseJSON({ status: 'success' });
+      }
+    }
+    return responseJSON({ status: 'error', message: 'Tag not found' });
+  } catch (e) {
+    return responseJSON({ status: 'error', message: e.toString() });
+  }
+}
+
+function deleteTag(data) {
+  try {
+    const ss = SpreadsheetApp.openById(TAG_SHEET_ID).getSheets()[0];
+    const vals = ss.getDataRange().getValues();
+    for (let i = 1; i < vals.length; i++) {
+      if (String(vals[i][0]) === String(data.tagId)) {
+        ss.deleteRow(i + 1);
+        break;
+      }
+    }
+    try {
+      const ttSheet = SpreadsheetApp.openById(TASK_TAG_SHEET_ID).getSheets()[0];
+      const ttVals = ttSheet.getDataRange().getValues();
+      for (let j = ttVals.length - 1; j >= 1; j--) {
+        if (String(ttVals[j][1]) === String(data.tagId)) {
+          ttSheet.deleteRow(j + 1);
+        }
+      }
+    } catch (e) {}
+    return responseJSON({ status: 'success' });
+  } catch (e) {
+    return responseJSON({ status: 'error', message: e.toString() });
+  }
+}
 
 /** 
  * FUNGSI: MENGAMBIL SEMUA DATA (PROJECT, LIST, STATUS, TAG, USERS) 
@@ -166,11 +209,12 @@ function getProjectCompleteData(targetId) {
   for(let i=1; i<lData.length; i++) {
     if(String(lData[i][1]).trim() === targetIdStr) {
       const lid = String(lData[i][0]).trim();
-      lists.push({ id: lid, name: lData[i][2], desc: lData[i][3], tasks: [], statuses: [] });
+      lists.push({ id: lid, name: lData[i][2], desc: lData[i][3], description: lData[i][3], position: parseInt(lData[i][6]) || 0, tasks: [], statuses: [] });
       listIds.push(lid);
       allRelevantIds.push(lid);
     }
   }
+  lists.sort((a, b) => (parseInt(a.position) || 0) - (parseInt(b.position) || 0));
 
   // 6. MAPPING STATUSES TO LISTS
   // allStatuses sudah diambil di atas (step 3)
@@ -376,6 +420,32 @@ function createTask(data) {
   } 
 } 
 
+function deleteTask(data) {
+  try {
+    const ss = SpreadsheetApp.openById(TASK_SHEET_ID).getSheets()[0];
+    const vals = ss.getDataRange().getValues();
+    for (let i = 1; i < vals.length; i++) {
+      if (String(vals[i][0]) === String(data.taskId)) {
+        moveToTrash('task', vals[i][0], vals[i][3], vals[i][1], data.userId, vals[i]);
+        ss.deleteRow(i + 1);
+        try {
+          const ttSheet = SpreadsheetApp.openById(TASK_TAG_SHEET_ID).getSheets()[0];
+          const ttVals = ttSheet.getDataRange().getValues();
+          for (let j = ttVals.length - 1; j >= 1; j--) {
+            if (String(ttVals[j][0]) === String(data.taskId)) {
+              ttSheet.deleteRow(j + 1);
+            }
+          }
+        } catch (e) {}
+        return responseJSON({ status: 'success' });
+      }
+    }
+    return responseJSON({ status: 'error', message: 'Task not found' });
+  } catch (e) {
+    return responseJSON({ status: 'error', message: e.toString() });
+  }
+}
+ 
 /** 
  * FUNGSI: MEMBUAT STATUS BARU 
  */ 

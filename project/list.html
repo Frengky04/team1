@@ -524,6 +524,14 @@
         color: #64748b; 
         margin-top: 4px; 
     } 
+    .btn-more-desc { 
+        font-size: 0.8rem; 
+        font-weight: 600; 
+        color: #0B2B6A; 
+        text-decoration: none; 
+        cursor: pointer; 
+        margin-left: 6px; 
+    } 
     
     /* Dropdown Triple Dot */ 
     .list-menu-dropdown .dropdown-toggle::after { display: none; } 
@@ -538,6 +546,7 @@
     .todo-row:hover { 
         background-color: #f8fafc; 
     }
+    .list-drag-handle { cursor: grab; }
     </style>
 
 </head>
@@ -546,8 +555,8 @@
     <div id="processToast">
         <div class="toast-body-custom">
             <div class="fw-bold small mb-1">Data sedang di proses...</div>
-            <div class="progress" style="height: 10px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 100%"></div>
+            <div class="progress" role="progressbar" aria-label="Animated striped example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="height: 10px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 75%"></div>
             </div>
         </div>
     </div>
@@ -635,7 +644,10 @@
                 <div class="list-header-container">
                     <div style="flex: 1;"></div>
                     <div class="text-center" style="flex: 2;">
-                        <h1 class="fw-bold display-5 mb-1" style="color:#111;">All List</h1>
+                        <div class="d-flex justify-content-center align-items-center gap-2 mb-1">
+                            <h1 class="fw-bold display-5 mb-0" style="color:#111;">All List</h1>
+                            <span class="badge text-bg-success" id="allListDoneBadge" style="display:none">All Task Done</span>
+                        </div>
                         <p class="text-muted mb-0">Manage your tasks efficiently.</p>
                     </div>
                     <div style="flex: 1; text-align: right;">
@@ -843,12 +855,6 @@
                         <div id="group-done" class="status-drag-container"></div>
                         <div id="input-wrap-done" style="display:none"></div>
                     </div>
-
-                    <!-- Kelompok: CLOSED -->
-                    <div class="mb-4">
-                        <div class="status-group-label">Closed <i class="bi bi-info-circle"></i></div>
-                        <div id="group-closed" class="status-drag-container"></div>
-                    </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0 justify-content-between">
                     &nbsp;
@@ -903,7 +909,7 @@
                 } else {
                     id = url.split('/d/')[1].split('/')[0];
                 }
-                return `https://lh3.googleusercontent.com/u/0/d/${id}`;
+                return `https://drive.google.com/uc?export=view&id=${id}`;
             }
             return url;
         }
@@ -996,14 +1002,16 @@
             const randomColor = tagPaletteColors[Math.floor(Math.random() * tagPaletteColors.length)]; 
         
             // Kirim ke database (Master Tag Sheet) 
+            showSmallLoading(true); 
             const res = await fetch(API_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ 
                     action: 'createTag', 
                     tagName: tagName, 
-                    color: randomColor 
+                    color: randomColor, 
+                    userId: CURRENT_USER_ID 
                 }) 
-            }).then(r => r.json()); 
+            }).then(r => r.json()).finally(() => showSmallLoading(false)); 
         
             if (res.status === 'success') { 
                 const newTag = { id: res.tagId, name: res.name, color: res.color }; 
@@ -1099,7 +1107,7 @@
 
             fetch(API_URL, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'updateTag', tagId: tid, color: newColor })
+                body: JSON.stringify({ action: 'updateTag', tagId: tid, color: newColor, userId: CURRENT_USER_ID })
             });
         } 
 
@@ -1121,7 +1129,7 @@
 
             fetch(API_URL, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'updateTag', tagId: tid, tagName: newName })
+                body: JSON.stringify({ action: 'updateTag', tagId: tid, tagName: newName, userId: CURRENT_USER_ID })
             });
         }
         
@@ -1144,7 +1152,7 @@
 
             fetch(API_URL, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'deleteTag', tagId: tid })
+                body: JSON.stringify({ action: 'deleteTag', tagId: tid, userId: CURRENT_USER_ID })
             });
         }
 
@@ -1169,6 +1177,11 @@
                         globalTags = data.tags || [];
                         globalUsers = data.users || []; 
                         lastFetchedLists = data.lists || [];
+
+                        const allTasks = lastFetchedLists.flatMap(l => (l.tasks || []));
+                        const allTasksDone = allTasks.length > 0 && allTasks.every(t => ['done', 'true', 'completed'].includes(String(t.status || '').toLowerCase()));
+                        const badge = document.getElementById('allListDoneBadge');
+                        if (badge) badge.style.display = allTasksDone ? 'inline-block' : 'none';
 
                         // --- TAMBAHKAN LOGIKA INI DI SINI --- 
                         // Cari data role user saat ini dari globalUsers 
@@ -1283,12 +1296,13 @@ function renderLists(lists) {
         <div class="mb-5 bg-white p-4 rounded-4 border shadow-sm" id="card-list-${list.id}"> 
             <div class="d-flex justify-content-between align-items-start mb-1"> 
                 <div class="flex-grow-1"> 
-                    <div class="d-flex align-items-center gap-3 mb-1"> 
+                    <div class="d-flex align-items-center gap-2 mb-1"> 
+                        <i class="bi bi-grip-vertical list-drag-handle text-muted"></i>
                         <h2 class="h4 fw-bold mb-0">${list.name}</h2> 
                         ${allDone ? '<span class="badge text-bg-success">All Task Done</span>' : ''} 
                     </div> 
                     <div id="desc-container-${list.id}"> 
-                        ${truncateDescription(list.description, list.id)} 
+                        ${truncateDescription(list.desc, list.id)} 
                     </div> 
                 </div> 
                 <div class="dropdown list-menu-dropdown"> 
@@ -1296,7 +1310,7 @@ function renderLists(lists) {
                         <i class="bi bi-three-dots-vertical"></i> 
                     </button> 
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3"> 
-                        <li><a class="dropdown-item py-2" onclick="openEditListModal('${list.id}', '${encodeURIComponent(list.name)}', '${encodeURIComponent(list.description || '')}')"><i class="bi bi-pencil me-2"></i> Edit List</a></li> 
+                        <li><a class="dropdown-item py-2" onclick="openEditListModal('${list.id}', '${encodeURIComponent(list.name)}', '${encodeURIComponent(list.desc || '')}')"><i class="bi bi-pencil me-2"></i> Edit List</a></li> 
                         <li><hr class="dropdown-divider"></li> 
                         <li><a class="dropdown-item py-2 text-danger" onclick="deleteListAct('${list.id}')"><i class="bi bi-trash me-2"></i> Delete List</a></li> 
                     </ul> 
@@ -1401,7 +1415,49 @@ function renderLists(lists) {
         </div>`; 
         container.insertAdjacentHTML('beforeend', html); 
     }); 
+    initListSortable();
 }
+
+        let listSortableInstance = null;
+        function initListSortable() {
+            const container = document.getElementById('listsContainer');
+            if (!container) return;
+
+            if (listSortableInstance) {
+                listSortableInstance.destroy();
+                listSortableInstance = null;
+            }
+
+            listSortableInstance = new Sortable(container, {
+                animation: 150,
+                handle: '.list-drag-handle',
+                ghostClass: 'bg-light',
+                onEnd: async function () {
+                    const cards = Array.from(container.querySelectorAll('[id^="card-list-"]'));
+                    if (cards.length === 0) return;
+
+                    showSmallLoading(true);
+                    const updates = cards.map((card, index) => {
+                        const listId = card.id.replace('card-list-', '');
+                        return fetch(API_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                action: 'updateList',
+                                listId: listId,
+                                position: index,
+                                userId: CURRENT_USER_ID
+                            })
+                        });
+                    });
+
+                    try {
+                        await Promise.all(updates);
+                    } finally {
+                        showSmallLoading(false);
+                    }
+                }
+            });
+        }
 
 
         async function saveNewList() {
@@ -1427,7 +1483,9 @@ function renderLists(lists) {
                     action: 'createList',
                     projectId: projectId,
                     name: name,
-                    description: desc + (attachmentUrl ? `<br><a href="${attachmentUrl}">Attached File</a>` : "")
+                    description: desc + (attachmentUrl ? `<br><a href="${attachmentUrl}">Attached File</a>` : ""),
+                    userId: CURRENT_USER_ID,
+                    contextId: projectId
                 })
             })
             .then(r => r.json())
@@ -1469,7 +1527,7 @@ function renderLists(lists) {
 
            // --- STATUS MANAGER LOGIC (FIXED) --- 
            let localStatuses = []; 
-           const statusCategories = ['not_started', 'active', 'done', 'closed']; 
+           const statusCategories = ['not_started', 'active', 'done']; 
            const customPalette = ['#6b46e5', '#3f51b5', '#2196f3', '#009688', '#10b981', '#4caf50', '#ffc107', '#f44336', '#e91e63', '#9c27b0', '#795548', '#607d8b', '#9e9e9e', '#000000']; 
            
            function promptNewStatus(listId) { 
@@ -1526,7 +1584,14 @@ function renderLists(lists) {
                            <div class="drag-handle"><i class="bi bi-grid-3x2-vertical"></i></div> 
                            <div class="status-dot-btn" style="background-color: ${s.color || '#64748b'}" onclick="openColorPicker(event, '${s.id}')"></div> 
                            <input type="text" class="status-input-inline" value="${s.name}" onchange="updateLocalStatusName('${s.id}', this.value)"> 
-                           <i class="bi bi-three-dots text-muted cursor-pointer"></i> 
+                           <div class="dropdown ms-auto"> 
+                               <button class="btn btn-sm p-1 text-muted" data-bs-toggle="dropdown" onclick="event.stopPropagation()"> 
+                                   <i class="bi bi-three-dots"></i> 
+                               </button> 
+                               <ul class="dropdown-menu dropdown-menu-end"> 
+                                   <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteLocalStatus('${s.id}')"><i class="bi bi-trash me-2"></i>Delete</a></li> 
+                               </ul> 
+                           </div> 
                        </div> 
                    `).join(''); 
                }); 
@@ -1535,6 +1600,11 @@ function renderLists(lists) {
            function updateLocalStatusName(id, newName) { 
                const status = localStatuses.find(s => String(s.id) === String(id)); 
                if (status) status.name = newName; 
+           } 
+
+           function deleteLocalStatus(id) { 
+               localStatuses = localStatuses.filter(s => String(s.id) !== String(id)); 
+               renderStatusManagerUI(); 
            } 
            
            function showInlineInput(cat) { 
@@ -1633,13 +1703,16 @@ function renderLists(lists) {
                const btn = event.target; 
                btn.disabled = true; 
                btn.innerText = "Syncing..."; 
+               showSmallLoading(true);
            
                fetch(API_URL, { 
                    method: 'POST', 
                    body: JSON.stringify({ 
                        action: 'syncStatuses', 
                        listId: listId, 
-                       statuses: localStatuses 
+                       statuses: localStatuses,
+                       userId: CURRENT_USER_ID,
+                       contextId: listId
                    }) 
                }) 
                .then(r => r.json()) 
@@ -1656,6 +1729,7 @@ function renderLists(lists) {
                .finally(() => { 
                    btn.disabled = false; 
                    btn.innerText = "Apply changes"; 
+                   showSmallLoading(false);
                }); 
            } 
            
@@ -1677,6 +1751,7 @@ function renderLists(lists) {
          // Gunakan pembanding == (loose equality) dan pastikan ID user ditemukan 
          const sender = globalUsers.find(u => String(u.id).trim() == String(c.userId).trim()) || { name: 'Unknown User', photo: '' }; 
          const senderPhoto = sender.photo ? formatDriveUrl(sender.photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(sender.name)}`; 
+         const isMine = CURRENT_USER_ID && String(c.userId).trim() == String(CURRENT_USER_ID).trim();
  
          return ` 
              <div class="d-flex gap-3 p-3 border rounded-4 bg-light shadow-sm mb-3"> 
@@ -1684,7 +1759,20 @@ function renderLists(lists) {
                  <div class="flex-grow-1"> 
                      <div class="d-flex justify-content-between mb-1"> 
                          <span class="fw-bold small text-dark">${sender.name}</span> 
-                         <span class="text-muted" style="font-size:0.7rem">${c.date}</span> 
+                         <div class="d-flex align-items-center gap-2"> 
+                             <span class="text-muted" style="font-size:0.7rem">${c.date}</span> 
+                             ${isMine ? ` 
+                                 <div class="dropdown"> 
+                                     <button class="btn btn-sm p-1 text-muted" data-bs-toggle="dropdown" onclick="event.stopPropagation()"> 
+                                         <i class="bi bi-three-dots"></i> 
+                                     </button> 
+                                     <ul class="dropdown-menu dropdown-menu-end"> 
+                                         <li><a class="dropdown-item" href="javascript:void(0)" onclick="editCommentAct('${c.id}', '${encodeURIComponent(c.text || '')}')"><i class="bi bi-pencil me-2"></i>Edit</a></li> 
+                                         <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteCommentAct('${c.id}')"><i class="bi bi-trash me-2"></i>Delete</a></li> 
+                                     </ul> 
+                                 </div> 
+                             ` : ''} 
+                         </div> 
                      </div> 
                      <div class="small text-dark">${c.text}</div> 
                      ${c.attachment ? `<div class="mt-2"><a href="${c.attachment}" target="_blank" class="btn btn-sm btn-white border small py-0"><i class="bi bi-paperclip"></i> View File</a></div>` : ''} 
@@ -1764,21 +1852,23 @@ function renderLists(lists) {
     renderManageSubscriberList(val);
  }
 
- async function toggleOtherUserSub(targetUserId) { 
-     // Fungsi ini memanggil toggleSubscriber di backend tapi untuk userId tertentu 
-     fetch(API_URL, { 
-         method: 'POST', 
-         body: JSON.stringify({ 
-             action: 'toggleSubscriber', 
-             contextId: projectId, 
-             userId: targetUserId 
-         }) 
-     }).then(() => { 
-         fetchData(); // Refresh data utama 
-         // Beri jeda sedikit agar fetchData selesai baru re-render modal 
-         setTimeout(() => renderManageSubscriberList(), 1000); 
-     }); 
- }
+async function toggleOtherUserSub(targetUserId) { 
+    // Fungsi ini memanggil toggleSubscriber di backend tapi untuk userId tertentu 
+    showSmallLoading(true);
+    fetch(API_URL, { 
+        method: 'POST', 
+        body: JSON.stringify({ 
+            action: 'toggleSubscriber', 
+            contextId: projectId, 
+            userId: targetUserId,
+            actorId: CURRENT_USER_ID 
+        }) 
+    }).then(() => { 
+        fetchData(); // Refresh data utama 
+        // Beri jeda sedikit agar fetchData selesai baru re-render modal 
+        setTimeout(() => renderManageSubscriberList(), 1000); 
+    }).finally(() => showSmallLoading(false)); 
+}
 
  // --- 1. RENDER FOTO SUBSCRIBER DI HALAMAN UTAMA --- 
  function renderSubscribers(subs) { 
@@ -1858,24 +1948,26 @@ function renderLists(lists) {
  } 
  
  // --- 3. FUNGSI TOGBOL ADD/REMOVE DI MODAL --- 
- async function toggleOtherUserSub(targetUserId, btnElement) { 
-     // UI Feedback langsung 
-     const originalText = btnElement.innerText; 
-     btnElement.disabled = true; 
-     btnElement.innerText = "..."; 
+async function toggleOtherUserSub(targetUserId, btnElement) { 
+    // UI Feedback langsung 
+    const originalText = btnElement.innerText; 
+    btnElement.disabled = true; 
+    btnElement.innerText = "..."; 
+    showSmallLoading(true); 
  
-     try { 
-         const response = await fetch(API_URL, { 
-             method: 'POST', 
-             body: JSON.stringify({ 
-                 action: 'toggleSubscriber', 
-                 contextId: projectId, // ID Proyek saat ini 
-                 userId: targetUserId  // ID User yang diklik 
-             }) 
-         }); 
-         const res = await response.json(); 
+    try { 
+        const response = await fetch(API_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: 'toggleSubscriber', 
+                contextId: projectId, // ID Proyek saat ini 
+                userId: targetUserId,  // ID User yang diklik 
+                actorId: CURRENT_USER_ID 
+            }) 
+        }); 
+        const res = await response.json(); 
  
-         if (res.status === 'success') { 
+        if (res.status === 'success') { 
              // Kita Fetch ulang data proyek untuk mendapatkan list subscriber terbaru dari server 
              // Ini akan otomatis memicu renderSubscribers() dan update window.currentSubscribers 
              await fetchData(); 
@@ -1887,13 +1979,15 @@ function renderLists(lists) {
              btnElement.disabled = false; 
              btnElement.innerText = originalText; 
          } 
-     } catch (err) { 
-         console.error("Subscriber Error:", err); 
-         alert("Failed to update subscriber. Check connection."); 
-         btnElement.disabled = false; 
-         btnElement.innerText = originalText; 
-     } 
- }
+    } catch (err) { 
+        console.error("Subscriber Error:", err); 
+        alert("Failed to update subscriber. Check connection."); 
+        btnElement.disabled = false; 
+        btnElement.innerText = originalText; 
+    } finally {
+        showSmallLoading(false);
+    } 
+}
             
             // Tambahkan di dalam script yang sudah ada
             function updateModalLinks(id) {
@@ -1906,9 +2000,9 @@ function renderLists(lists) {
 
  // --- UPDATE PADA LIST.HTML --- 
  
- async function postComment() { 
-     const text = document.getElementById('richCommentInput').innerHTML; 
-     const btn = document.getElementById('postBtn'); 
+async function postComment() { 
+    const text = document.getElementById('richCommentInput').innerHTML; 
+    const btn = document.getElementById('postBtn'); 
      
      if (!text || text === '<br>' || text.trim() === "") { 
          alert("Comment cannot be empty"); 
@@ -1934,13 +2028,14 @@ function renderLists(lists) {
          return; 
      } 
  
-     btn.disabled = true; 
-     btn.innerText = "Posting..."; 
+    btn.disabled = true; 
+    btn.innerText = "Posting..."; 
+    showSmallLoading(true); 
  
-     // ... proses upload file jika ada ... 
-     let attachmentUrl = ""; 
-     if (selectedFile) { 
-         const fileRes = await uploadFile(); 
+    // ... proses upload file jika ada ... 
+    let attachmentUrl = ""; 
+    if (selectedFile) { 
+        const fileRes = await uploadFile(); 
          if (fileRes.status === 'success') attachmentUrl = fileRes.fileUrl; 
      } 
  
@@ -1964,11 +2059,12 @@ function renderLists(lists) {
              fetchData(); 
          } 
      }) 
-     .finally(() => { 
-         btn.disabled = false; 
-         btn.innerText = "Post comment"; 
-     }); 
- }
+    .finally(() => { 
+        btn.disabled = false; 
+        btn.innerText = "Post comment"; 
+        showSmallLoading(false); 
+    }); 
+}
 
            // --- FUNGSI TEXT EDITOR & FILE ---
            function execCmd(command) {
@@ -2052,7 +2148,7 @@ function renderLists(lists) {
             if(users.length === 0) return '<div class="p-2 text-muted small">No users found</div>';
             return users.map(u => `
                 <div class="user-item" onclick="selectUser('${lid}', '${type}', '${u.id}', '${u.name}', '${u.photo}')">
-                    <img src="${u.photo}" class="user-avatar" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}'">
+                    <img src="${formatDriveUrl(u.photo)}" class="user-avatar" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}'">
                     <span class="user-name">${u.name}</span>
                     ${u.role === 'Admin' ? '<i class="bi bi-patch-check-fill verified-badge" style="color:#007bff; font-size:0.7rem"></i>' : ''}
                 </div>
@@ -2080,7 +2176,7 @@ function renderLists(lists) {
             
             // Update Display Trigger
             document.getElementById(`display-${type}-${lid}`).innerHTML = `
-                <img src="${userPhoto}" style="width:20px; height:20px; border-radius:50%" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}'">
+                <img src="${formatDriveUrl(userPhoto)}" style="width:20px; height:20px; border-radius:50%" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}'">
                 <span class="fw-medium" style="font-size:0.85rem">${userName}</span>
             `;
             
@@ -2133,7 +2229,7 @@ function renderLists(lists) {
             return ` 
                 <div class="list-desc-truncate"> 
                     ${truncated}... 
-                    <a href="javascript:void(0)" class="btn-more-desc" onclick="openMoreDesc('${encodeURIComponent(text)}')">more</a> 
+                    <a href="javascript:void(0)" class="btn-more-desc" onclick="openMoreDesc('${encodeURIComponent(text)}')">more...</a> 
                 </div>`; 
         } 
 
@@ -2150,6 +2246,23 @@ function renderLists(lists) {
             await fetch(API_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ action: 'deleteComment', commentId: cid, userId: CURRENT_USER_ID }) 
+            }); 
+            fetchData(); 
+            showSmallLoading(false); 
+        } 
+
+        function editCommentAct(cid, encodedText) { 
+            const current = decodeURIComponent(encodedText || ''); 
+            const next = prompt("Edit komentar:", current); 
+            if (next === null) return; 
+            updateCommentAct(cid, next); 
+        } 
+
+        async function updateCommentAct(cid, text) { 
+            showSmallLoading(true); 
+            await fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'updateComment', commentId: cid, text: text, userId: CURRENT_USER_ID }) 
             }); 
             fetchData(); 
             showSmallLoading(false); 
@@ -2182,6 +2295,7 @@ function renderLists(lists) {
                 tagIds: (selectedTagsByList[lid] || []).map(t => t.id) 
             }; 
         
+            showSmallLoading(true); 
             fetch(API_URL, { 
                 method: 'POST', 
                 body: JSON.stringify(payload) 
@@ -2199,6 +2313,7 @@ function renderLists(lists) {
             .finally(() => { 
                 btn.disabled = false; 
                 btn.innerText = "Add to-do"; 
+                showSmallLoading(false); 
             }); 
         }
 
@@ -2256,48 +2371,77 @@ function renderLists(lists) {
                     taskRow.classList.remove('task-row-done'); 
                 } 
             } 
+            showSmallLoading(true); 
             fetch(API_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ 
                     action: 'updateTaskStatus', 
                     taskId: tid, 
-                    status: statusLabel 
+                    status: statusLabel, 
+                    userId: CURRENT_USER_ID 
                 }) 
-            }); 
+            }).finally(() => showSmallLoading(false)); 
         } 
 
-        // --- 3. EDIT & DELETE LIST --- 
         function openEditListModal(lid) { 
             const list = lastFetchedLists.find(l => String(l.id) === String(lid)); 
-            if(!list) return; 
-        
-            const newName = prompt("Edit List Name:", list.name); 
-            if (newName === null) return; 
-        
-            const newDesc = prompt("Edit List Description:", list.description); 
-            
-            // Kirim update ke backend 
+            if (!list) return; 
+
+            const idEl = document.getElementById('editListId'); 
+            const titleEl = document.getElementById('editListTitle'); 
+            const descEl = document.getElementById('editListDesc'); 
+            const posEl = document.getElementById('editListPos'); 
+
+            if (idEl) idEl.value = list.id; 
+            if (titleEl) titleEl.value = list.name || ''; 
+            if (descEl) descEl.value = list.desc || ''; 
+            if (posEl) posEl.value = (list.position !== undefined && list.position !== null) ? list.position : ''; 
+
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('editListModal')).show(); 
+        } 
+
+        function saveListChanges() { 
+            const lid = document.getElementById('editListId').value; 
+            const name = document.getElementById('editListTitle').value; 
+            const description = document.getElementById('editListDesc').value; 
+            const positionRaw = document.getElementById('editListPos').value; 
+            const position = positionRaw === '' ? undefined : Number(positionRaw); 
+
+            showSmallLoading(true); 
             fetch(API_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ 
                     action: 'updateList', 
                     listId: lid, 
-                    name: newName, 
-                    description: newDesc 
+                    name: name, 
+                    description: description, 
+                    position: position, 
+                    userId: CURRENT_USER_ID 
                 }) 
-            }).then(() => fetchData()); 
+            }) 
+            .then(r => r.json()) 
+            .then(res => { 
+                if (res.status === 'success') { 
+                    bootstrap.Modal.getInstance(document.getElementById('editListModal')).hide(); 
+                    fetchData(); 
+                } else { 
+                    alert("Error: " + res.message); 
+                } 
+            }) 
+            .finally(() => showSmallLoading(false)); 
         } 
         
         async function deleteListAct(lid) { 
             if (!confirm("Are you sure you want to delete this list and all its tasks?")) return; 
-        
+            showSmallLoading(true); 
             fetch(API_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ 
                     action: 'deleteList', 
-                    listId: lid 
+                    listId: lid, 
+                    userId: CURRENT_USER_ID 
                 }) 
-            }).then(() => fetchData()); 
+            }).then(() => fetchData()).finally(() => showSmallLoading(false)); 
         }
     </script>
     <script>
@@ -2325,8 +2469,12 @@ function renderLists(lists) {
                     <label class="form-label small fw-bold text-muted">DESCRIPTION</label>
                     <textarea class="form-control" id="editListDesc" rows="3" placeholder="Optional description..."></textarea>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">POSITION</label>
+                    <input type="number" class="form-control" id="editListPos" placeholder="e.g. 0">
+                </div>
                 <div class="d-flex justify-content-between align-items-center mt-4">
-                    <button type="button" class="btn btn-outline-danger border-0" onclick="deleteListAct()">
+                    <button type="button" class="btn btn-outline-danger border-0" onclick="deleteListAct(document.getElementById('editListId').value)">
                         <i class="bi bi-trash me-2"></i>Delete List
                     </button>
                     <button type="button" class="btn btn-dlg-blue px-4 rounded-pill" onclick="saveListChanges()">Save Changes</button>
