@@ -88,6 +88,65 @@
         }
         .ghost-input:hover { background: #f1f5f9; }
 
+        .priority-dropdown {
+            position: relative;
+            width: 100%;
+        }
+        .priority-trigger {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            padding: 6px 10px;
+            background: #f9fafb;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .priority-trigger:hover {
+            background: #eef2ff;
+        }
+        .priority-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(15,23,42,0.15);
+            padding: 6px 0;
+            min-width: 180px;
+            z-index: 1050;
+            display: none;
+        }
+        .priority-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .priority-item:hover {
+            background: #f1f5f9;
+        }
+        .priority-flag {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.75rem;
+        }
+        .priority-flag-urgent { background: #ef4444; }
+        .priority-flag-high { background: #f59e0b; }
+        .priority-flag-normal { background: #3b82f6; }
+        .priority-flag-low { background: #6b7280; }
+
         .comment-bubble {
             background: #f8fafc;
             border-radius: 12px;
@@ -351,13 +410,33 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="text-muted small">Priority</span>
                                     </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-flag text-muted"></i>
-                                        <select id="priority-${list.id}" class="ghost-input">
-                                            <option value="normal">Normal</option>
-                                            <option value="high">High</option>
-                                            <option value="urgent">Urgent</option>
-                                        </select>
+                                    <div class="priority-dropdown" id="priority-wrap-${list.id}">
+                                        <button type="button" class="priority-trigger" onclick="togglePriorityMenu('${list.id}')">
+                                            <span class="priority-flag priority-flag-normal">
+                                                <i class="bi bi-flag-fill"></i>
+                                            </span>
+                                            <span id="priority-label-${list.id}">Normal</span>
+                                            <i class="bi bi-chevron-down ms-auto text-muted small"></i>
+                                        </button>
+                                        <div class="priority-menu" id="priority-menu-${list.id}">
+                                            <div class="priority-item" data-value="urgent" onclick="selectPriority('${list.id}','urgent')">
+                                                <span class="priority-flag priority-flag-urgent"><i class="bi bi-flag-fill"></i></span>
+                                                <span>Urgent</span>
+                                            </div>
+                                            <div class="priority-item" data-value="high" onclick="selectPriority('${list.id}','high')">
+                                                <span class="priority-flag priority-flag-high"><i class="bi bi-flag-fill"></i></span>
+                                                <span>High</span>
+                                            </div>
+                                            <div class="priority-item" data-value="normal" onclick="selectPriority('${list.id}','normal')">
+                                                <span class="priority-flag priority-flag-normal"><i class="bi bi-flag-fill"></i></span>
+                                                <span>Normal</span>
+                                            </div>
+                                            <div class="priority-item" data-value="low" onclick="selectPriority('${list.id}','low')">
+                                                <span class="priority-flag priority-flag-low"><i class="bi bi-flag-fill"></i></span>
+                                                <span>Low</span>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" id="priority-${list.id}" value="normal">
                                     </div>
                                 </div>
 
@@ -507,23 +586,31 @@
                 ? tagsValue.split(",").map(t => t.trim()).filter(Boolean)
                 : [];
 
-            await addDoc(collection(db, "tasks"), {
+            const payload = {
                 project_id: projectId,
                 list_id: listId,
                 title: title,
-                description: document.getElementById(`desc-${listId}`).innerHTML,
-                status: statusEl ? statusEl.value : "Initiate",
-                priority: priorityEl ? priorityEl.value : "normal",
-                start_date: startEl ? startEl.value : "",
-                due_date: dueEl ? dueEl.value : "",
+                description: document.getElementById(`desc-${listId}`).innerHTML || "",
+                status: statusEl ? (statusEl.value || "Initiate") : "Initiate",
+                priority: priorityEl ? (priorityEl.value || "normal") : "normal",
+                start_date: startEl ? (startEl.value || "") : "",
+                due_date: dueEl ? (dueEl.value || "") : "",
                 points: pointsEl && pointsEl.value ? Number(pointsEl.value) || 0 : 0,
-                assign_to: assignEl ? assignEl.value : "",
-                notify_to: notifyEl ? notifyEl.value : "",
+                assign_to: assignEl ? (assignEl.value || "") : "",
+                notify_to: notifyEl ? (notifyEl.value || "") : "",
                 tags: tagList,
                 position: existingForList.length,
                 created_at: serverTimestamp(),
-                created_by: currentUser.uid
-            });
+                created_by: currentUser ? currentUser.uid : ""
+            };
+
+            try {
+                await addDoc(collection(db, "tasks"), payload);
+            } catch (e) {
+                console.error("Failed to add task", e, payload);
+                alert("Gagal menyimpan task ke Firebase: " + e.message);
+                return;
+            }
 
             titleEl.value = "";
             document.getElementById(`desc-${listId}`).innerHTML = "";
@@ -534,6 +621,42 @@
             if (notifyEl) notifyEl.value = "";
             if (tagsEl) tagsEl.value = "";
             hideTaskForm(listId);
+        };
+
+        window.togglePriorityMenu = (lid) => {
+            const menu = document.getElementById(`priority-menu-${lid}`);
+            if (!menu) return;
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        };
+
+        window.selectPriority = (lid, value) => {
+            const hidden = document.getElementById(`priority-${lid}`);
+            const label = document.getElementById(`priority-label-${lid}`);
+            const flag = document.querySelector(`#priority-wrap-${lid} .priority-flag`);
+            if (!hidden || !label || !flag) return;
+
+            hidden.value = value;
+
+            let text = "Normal";
+            let className = "priority-flag-normal";
+            if (value === "urgent") {
+                text = "Urgent";
+                className = "priority-flag-urgent";
+            } else if (value === "high") {
+                text = "High";
+                className = "priority-flag-high";
+            } else if (value === "low") {
+                text = "Low";
+                className = "priority-flag-low";
+            }
+
+            label.innerText = text;
+
+            flag.classList.remove("priority-flag-urgent", "priority-flag-high", "priority-flag-normal", "priority-flag-low");
+            flag.classList.add(className);
+
+            const menu = document.getElementById(`priority-menu-${lid}`);
+            if (menu) menu.style.display = "none";
         };
 
         window.toggleDone = async (id, isChecked) => {
