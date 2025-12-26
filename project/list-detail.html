@@ -16,7 +16,7 @@
     <style>
         /* CSS KHUSUS HALAMAN LIST (STACKED CARD EFFECT) */
         
-        body { background-color: #e5e7eb; }
+        body { }
         
         /* FIX: Main Content Margin */
         .main-content {
@@ -104,6 +104,416 @@
             border: 1px solid #d1d5db;
         }
 
+        .task-create-panel {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 15px;
+            display: none;
+        }
+        .task-title-large {
+            font-size: 1.5rem;
+            font-weight: 700;
+            border: none;
+            outline: none;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .status-badge-main {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: white;
+        }
+        .status-drag-container {
+            min-height: 50px;
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .meta-grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 30px;
+        }
+        .meta-field-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .meta-label-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .meta-label-text {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+        .meta-value {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 6px;
+            flex: 1;
+        }
+        .ghost-input {
+            border: 1px solid transparent;
+            background: transparent;
+            padding: 5px;
+            width: 100%;
+            border-radius: 4px;
+        }
+        .ghost-input:hover { background: #f1f5f9; }
+
+        .priority-dropdown {
+            position: relative;
+            width: 100%;
+        }
+        .priority-trigger {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            padding: 6px 10px;
+            background: #f9fafb;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .priority-trigger:hover {
+            background: #eef2ff;
+        }
+        .priority-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(15,23,42,0.15);
+            padding: 6px 0;
+            min-width: 180px;
+            z-index: 1050;
+            display: none;
+        }
+        .priority-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .priority-item:hover {
+            background: #f1f5f9;
+        }
+        .priority-flag {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.75rem;
+        }
+        .priority-flag-urgent { background: #ef4444; }
+        .priority-flag-high { background: #f59e0b; }
+        .priority-flag-normal { background: #3b82f6; }
+        .priority-flag-low { background: #6b7280; }
+
+        .tag-selector {
+            position: relative;
+            width: 100%;
+        }
+        .tag-selector-control {
+            display: flex;
+            align-items: center;
+            min-height: 34px;
+            border-radius: 4px;
+            padding: 4px 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            cursor: text;
+            width: 100%;
+        }
+        .tag-selector-control:hover {
+            background: #f1f5f9;
+        }
+        .tag-selected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            flex: 1;
+        }
+        .tag-placeholder {
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            background: #e5e7eb;
+            color: #111827;
+        }
+        .tag-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 4px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.15);
+            padding: 6px 0 4px 0;
+            z-index: 40;
+            display: none;
+        }
+        .tag-search-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            padding: 6px 12px 8px 12px;
+            font-size: 0.85rem;
+        }
+        .tag-options {
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 0 4px 4px 4px;
+        }
+        .tag-option {
+            display: flex;
+            align-items: center;
+            padding: 4px 8px;
+            cursor: pointer;
+            gap: 6px;
+        }
+        .tag-option:hover {
+            background: #f3f4f6;
+        }
+        .tag-option-selected .tag-pill {
+            background: #4338ca;
+            color: #eef2ff;
+        }
+        .tag-create {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px 8px 12px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        .tag-create:hover {
+            background: #f3f4f6;
+        }
+        .tag-create-label {
+            margin-left: 4px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+        .tag-remove {
+            margin-left: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+        .tag-remove:hover {
+            color: #111827;
+        }
+
+        .user-select {
+            position: relative;
+            width: 100%;
+        }
+        .user-select-control {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            min-height: 34px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            padding: 6px 10px;
+            background: #f9fafb;
+            cursor: pointer;
+            gap: 8px;
+        }
+        .user-select-control:hover {
+            background: #f3f4ff;
+        }
+        .user-select-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e5e7eb;
+            flex-shrink: 0;
+        }
+        .user-select-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-select-placeholder {
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+        .user-select-name {
+            font-size: 0.85rem;
+            color: #111827;
+        }
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 6px;
+            background: #0f172a;
+            color: white;
+            border-radius: 18px;
+            padding: 10px 10px 8px 10px;
+            box-shadow: 0 18px 45px rgba(15,23,42,0.45);
+            width: 280px;
+            z-index: 60;
+            display: none;
+        }
+        .user-search-wrapper {
+            display: flex;
+            align-items: center;
+            background: #020617;
+            border-radius: 999px;
+            padding: 4px 10px;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .user-search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: #e5e7eb;
+            font-size: 0.85rem;
+        }
+        .user-search-input::placeholder {
+            color: #6b7280;
+        }
+        .user-list-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #9ca3af;
+            margin: 4px 2px 4px 2px;
+        }
+        .user-list {
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .user-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 4px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .user-option:hover {
+            background: #111827;
+        }
+        .user-option-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #1f2937;
+        }
+        .user-option-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-option-name {
+            font-size: 0.85rem;
+        }
+
+        .tag-edit-btn {
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin-left: auto;
+            color: #9ca3af;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .tag-edit-btn:hover {
+            color: #4b5563;
+        }
+        .tag-editor-popover {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+            padding: 10px 12px 8px 12px;
+            z-index: 1000;
+            width: 260px;
+            display: none;
+        }
+        .tag-editor-input {
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+        .tag-color-grid {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        .tag-color-swatch {
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+        .tag-color-swatch-selected {
+            border-color: #111827;
+        }
+        .tag-editor-delete {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #ef4444;
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding-top: 4px;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 4px;
+        }
+
         /* Description Expand/Collapse */
         .desc-more-link {
             color: var(--dlg-blue);
@@ -114,6 +524,43 @@
             margin-left: 5px;
         }
         .desc-more-link:hover { text-decoration: underline; }
+
+        .rich-editor {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f9fafb;
+        }
+        .rich-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .rich-btn {
+            border: none;
+            background: transparent;
+            padding: 4px 6px;
+            border-radius: 6px;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        .rich-btn:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+        .rich-editor-body {
+            min-height: 90px;
+            padding: 10px 12px;
+            background: #ffffff;
+            outline: none;
+        }
+        .rich-editor-body[contenteditable="true"]:empty:before {
+            content: attr(data-placeholder);
+            color: #9ca3af;
+        }
 
         /* Todo Styling */
         .todo-group-label {
@@ -135,6 +582,16 @@
         }
         .todo-text { color: #374151; font-weight: 500; }
         .todo-row.completed .todo-text { text-decoration: line-through; color: #9ca3af; }
+        .drag-handle-task { color: #cbd5e1; margin-left: 8px; cursor: grab; }
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            background: #e5e7eb;
+            color: #111827;
+        }
 
         @media (max-width: 768px) {
             .ph-badge { display: none; }
@@ -144,7 +601,7 @@
         
     </style>
 </head>
-<body>
+<body style="background-color: #f1f7fd;">
 
     <!-- 1. TOP BAR FIXED -->
     <nav class="top-bar">
@@ -210,7 +667,7 @@
 
                     <i class="bi bi-chevron-right ph-sep"></i>
 
-                    <!-- 3. All Lists (To-dos) -->
+                    <!-- 3. All Lists -->
                     <a href="#" id="breadAllListLink" class="ph-crumb-link">Lists</a>
                 </div>
 
@@ -225,6 +682,7 @@
                 
                 <!-- Header Area -->
                 <div class="mb-5 text-center">
+                    <span class="badge text-bg-success mb-2" id="listAllDoneBadge" style="display:none">All Done!</span>
                     <!-- H1 untuk Judul List -->
                     <h1 class="fw-bold display-5 mb-3" id="listTitleDisplay" style="color:#111;">Loading List...</h1>
                     
@@ -236,39 +694,211 @@
                     </div>
                 </div>
 
-                <!-- TASK LIST WRAPPER -->
                 <div class="todo-list-wrapper">
                     <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
                 </div>
 
-                <!-- ADD TASK BUTTON & FORM -->
                 <div class="mt-4 ps-3 border-top pt-4">
                     <button id="btn-add-detail" class="btn btn-outline-secondary rounded-pill px-4 btn-sm fw-bold" onclick="showDetailForm()">
                         <i class="bi bi-plus-lg me-1"></i> Add a to-do
                     </button>
                     
-                    <div id="form-add-detail" class="mt-3" style="display:none; max-width: 600px;">
-                        <input type="text" id="input-task-detail" class="form-control form-control-lg mb-2" placeholder="Describe this to-do...">
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-success rounded-pill px-4" onclick="saveTaskDetail()">Add this to-do</button>
-                            <button class="btn btn-light border rounded-pill px-4" onclick="hideDetailForm()">Cancel</button>
+                    <div id="form-add-detail" class="task-create-panel">
+                        <input type="text" id="title-detail" class="task-title-large" placeholder="Task Name">
+
+                        <div class="meta-grid-container mb-3">
+                            <div class="meta-field-row">
+                                <div class="meta-label-group">
+                                    <i class="bi bi-record-circle text-muted"></i>
+                                    <span class="meta-label-text">Status</span>
+                                </div>
+                                <div class="meta-value">
+                                    <select id="status-detail" class="ghost-input"></select>
+                                </div>
+                            </div>
+
+                            <div class="meta-field-row">
+                                <div class="meta-label-group">
+                                    <i class="bi bi-flag text-muted"></i>
+                                    <span class="meta-label-text">Priority</span>
+                                </div>
+                                <div class="meta-value">
+                                    <div class="priority-dropdown w-100" id="priority-wrap-detail">
+                                        <button type="button" class="priority-trigger" onclick="togglePriorityMenu('detail')">
+                                            <span class="priority-flag priority-flag-normal">
+                                                <i class="bi bi-flag-fill"></i>
+                                            </span>
+                                            <span id="priority-label-detail">Normal</span>
+                                            <i class="bi bi-chevron-down ms-auto text-muted small"></i>
+                                        </button>
+                                        <div class="priority-menu" id="priority-menu-detail">
+                                            <div class="priority-item" data-value="urgent" onclick="selectPriority('detail','urgent')">
+                                                <span class="priority-flag priority-flag-urgent"><i class="bi bi-flag-fill"></i></span>
+                                                <span>Urgent</span>
+                                            </div>
+                                            <div class="priority-item" data-value="high" onclick="selectPriority('detail','high')">
+                                                <span class="priority-flag priority-flag-high"><i class="bi bi-flag-fill"></i></span>
+                                                <span>High</span>
+                                            </div>
+                                            <div class="priority-item" data-value="normal" onclick="selectPriority('detail','normal')">
+                                                <span class="priority-flag priority-flag-normal"><i class="bi bi-flag-fill"></i></span>
+                                                <span>Normal</span>
+                                            </div>
+                                            <div class="priority-item" data-value="low" onclick="selectPriority('detail','low')">
+                                                <span class="priority-flag priority-flag-low"><i class="bi bi-flag-fill"></i></span>
+                                                <span>Low</span>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" id="priority-detail" value="normal">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="meta-field-row">
+                                <div class="meta-label-group">
+                                    <i class="bi bi-person-plus text-muted"></i>
+                                    <span class="meta-label-text">Assign to</span>
+                                </div>
+                                <div class="meta-value">
+                                    <div class="user-select" id="assign-select-detail">
+                                        <div class="user-select-control" onclick="toggleUserDropdown('detail', 'assign')">
+                                            <div class="user-select-avatar" id="assign-avatar-detail">
+                                                <i class="bi bi-person text-muted"></i>
+                                            </div>
+                                            <span id="assign-label-detail" class="user-select-placeholder">Select user...</span>
+                                            <i class="bi bi-chevron-down ms-auto text-muted small"></i>
+                                        </div>
+                                        <div class="user-dropdown" id="assign-dropdown-detail">
+                                            <div class="user-search-wrapper">
+                                                <i class="bi bi-search text-muted"></i>
+                                                <input type="text" id="assign-search-detail" class="user-search-input" placeholder="Search..." oninput="filterUserOptions('detail', 'assign')">
+                                            </div>
+                                            <div class="user-list-label">People</div>
+                                            <div class="user-list" id="assign-options-detail"></div>
+                                        </div>
+                                        <input type="hidden" id="assign-detail" value="">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="meta-field-row">
+                                <div class="meta-label-group">
+                                    <i class="bi bi-bell text-muted"></i>
+                                    <span class="meta-label-text">Notify to</span>
+                                </div>
+                                <div class="meta-value">
+                                    <div class="user-select" id="notify-select-detail">
+                                        <div class="user-select-control" onclick="toggleUserDropdown('detail', 'notify')">
+                                            <div class="user-select-avatar" id="notify-avatar-detail">
+                                                <i class="bi bi-person text-muted"></i>
+                                            </div>
+                                            <span id="notify-label-detail" class="user-select-placeholder">Select user...</span>
+                                            <i class="bi bi-chevron-down ms-auto text-muted small"></i>
+                                        </div>
+                                        <div class="user-dropdown" id="notify-dropdown-detail">
+                                            <div class="user-search-wrapper">
+                                                <i class="bi bi-search text-muted"></i>
+                                                <input type="text" id="notify-search-detail" class="user-search-input" placeholder="Search..." oninput="filterUserOptions('detail', 'notify')">
+                                            </div>
+                                            <div class="user-list-label">People</div>
+                                            <div class="user-list" id="notify-options-detail"></div>
+                                        </div>
+                                        <input type="hidden" id="notify-detail" value="">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="meta-field-row">
+                                <div class="meta-label-group">
+                                    <i class="bi bi-calendar text-muted"></i>
+                                    <span class="meta-label-text">Dates</span>
+                                </div>
+                                <div class="meta-value">
+                                    <input type="date" id="start-detail" class="ghost-input">
+                                    <span class="text-muted small">-</span>
+                                    <input type="date" id="due-detail" class="ghost-input">
+                                </div>
+                            </div>
+
+                            <div class="meta-field-row">
+                                <div class="meta-label-group">
+                                    <i class="bi bi-star text-muted"></i>
+                                    <span class="meta-label-text">Task point</span>
+                                </div>
+                                <div class="meta-value">
+                                    <input type="number" id="points-detail" class="ghost-input" min="0" placeholder="">
+                                </div>
+                            </div>
+
+                            <div class="meta-field-row">
+                                <div class="meta-label-group">
+                                    <i class="bi bi-stopwatch text-muted"></i>
+                                    <span class="meta-label-text">Track time</span>
+                                </div>
+                                <div class="meta-value">
+                                    <span class="text-muted small" id="track-label-detail"></span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" disabled>Start</button>
+                                </div>
+                            </div>
+
+                            <div class="meta-field-row">
+                                <div class="meta-label-group">
+                                    <i class="bi bi-tag text-muted"></i>
+                                    <span class="meta-label-text">Tags</span>
+                                </div>
+                                <div class="meta-value">
+                                    <div class="tag-selector w-100" id="tag-selector-detail">
+                                        <div class="tag-selector-control" onclick="toggleTagDropdown('detail')">
+                                            <div class="tag-selected-list" id="tag-selected-detail">
+                                                <span class="tag-placeholder">Search or add tags...</span>
+                                            </div>
+                                            <i class="bi bi-chevron-down ms-auto text-muted small"></i>
+                                        </div>
+                                        <div class="tag-dropdown" id="tag-dropdown-detail">
+                                            <input type="text" id="tag-input-detail" class="tag-search-input" placeholder="Search or add tags..." oninput="filterTagOptions('detail')">
+                                            <div class="tag-options" id="tag-options-detail"></div>
+                                            <div class="tag-create" id="tag-create-detail" style="display:none;" onclick="createTagFromInput('detail')">
+                                                <span>Create</span>
+                                                <span class="tag-create-label" id="tag-create-label-detail"></span>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" id="tags-detail" value="">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="rich-editor">
+                                <div class="rich-toolbar">
+                                    <button type="button" class="rich-btn" onclick="applyFormat('desc-detail','bold')"><i class="bi bi-type-bold"></i></button>
+                                    <button type="button" class="rich-btn" onclick="applyFormat('desc-detail','italic')"><i class="bi bi-type-italic"></i></button>
+                                    <button type="button" class="rich-btn" onclick="applyFormat('desc-detail','underline')"><i class="bi bi-type-underline"></i></button>
+                                    <button type="button" class="rich-btn" onclick="applyFormat('desc-detail','insertUnorderedList')"><i class="bi bi-list-ul"></i></button>
+                                    <button type="button" class="rich-btn" onclick="applyFormat('desc-detail','insertOrderedList')"><i class="bi bi-list-ol"></i></button>
+                                    <button type="button" class="rich-btn ms-auto" onclick="triggerDescFileInput('task-detail')"><i class="bi bi-paperclip"></i></button>
+                                </div>
+                                <div class="rich-editor-body" id="desc-detail" contenteditable="true" data-placeholder="Task description or notes..."></div>
+                                <input type="file" id="task-desc-file-input-detail" multiple style="display:none" onchange="handleDescFiles('task-detail','desc-detail',this)">
+                            </div>
+                        </div>
+                        <div class="mt-3 d-flex gap-2 justify-content-end">
+                            <button class="btn btn-dlg-blue rounded-pill px-4" onclick="saveTaskDetail()">Add to-do</button>
+                            <button class="btn btn-light rounded-pill px-4" onclick="hideDetailForm()">Cancel</button>
                         </div>
                     </div>
                 </div>
                 
                 <!-- --- COMMENT SECTION (NEW) --- -->
                 <div class="mt-5 pt-5 border-top">
-                     <!-- COMMENTS CONTAINER -->
-                    <div id="commentsContainer" class="mb-4 d-flex flex-column gap-3">
-                        <!-- Komentar akan muncul disini -->
-                    </div>
-
-                    <!-- FORM KOMENTAR -->
+                    <div id="commentsContainer" class="mb-4 d-flex flex-column gap-3"></div>
                     <div class="d-flex gap-3">
-                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:40px; height:40px;">RA</div>
+                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center fw-bold flex-shrink-0 overflow-hidden" style="width:40px; height:40px;">
+                            <img id="commentAvatar" src="https://i.pravatar.cc/150" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">
+                        </div>
                         <div class="w-100">
                             <div id="commentInput" class="form-control bg-light text-muted p-3 mb-2" contenteditable="true" style="min-height: 80px; border-radius: 12px;">Add a comment here...</div>
-                            <button class="btn btn-success rounded-pill px-4 btn-sm fw-bold" onclick="postComment('list')">Post comment</button>
+                            <button class="btn btn-dlg-yellow rounded-pill px-4 btn-sm fw-bold" style="margin-top: 7px;" onclick="postComment('list')">Post comment</button>
                         </div>
                     </div>
                 </div>
@@ -284,12 +914,82 @@
                         <button id="subscriptionToggleButton" class="btn btn-sm btn-link text-muted text-decoration-none p-0" style="font-size:0.8rem;" onclick="toggleSubscription()">Unsubscribe me</button>
                     </div>
                 </div>
-                
             </div>
         </main>
     </div>
 
+    <div class="modal fade" id="manageSubscribersModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="fw-bold">Manage Subscribers</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="input-group mb-3 bg-light rounded-pill px-2">
+                        <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control bg-transparent border-0 shadow-none" placeholder="Search people..." oninput="renderManageSubscriberList(this.value)">
+                    </div>
+                    <div id="subscriberListScroll" style="max-height: 400px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="commentEditModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="fw-bold">Edit Comment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <textarea id="commentEditText" class="form-control" rows="4" placeholder="Update your comment..."></textarea>
+                    <input type="hidden" id="commentEditId">
+                </div>
+                <div class="modal-footer border-0 p-3 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-dlg-blue rounded-pill px-3" onclick="confirmEditComment()">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="commentDeleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="fw-bold text-danger">Delete Comment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="mb-2">Are you sure you want to delete this comment?</p>
+                    <p id="commentDeletePreview" class="small text-muted mb-0"></p>
+                    <input type="hidden" id="commentDeleteId">
+                </div>
+                <div class="modal-footer border-0 p-3 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger rounded-pill px-3" onclick="confirmDeleteComment()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="commentInfoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-body p-4 text-center">
+                    <p id="commentInfoMessage" class="mb-0"></p>
+                </div>
+                <div class="modal-footer border-0 p-3 pt-0 justify-content-center">
+                    <button type="button" class="btn btn-dlg-blue rounded-pill px-4" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -322,6 +1022,11 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        const DEFAULT_LIST_STATUSES = [
+            { name: "Initiate", color: "#0B2B6A", type: "not_started", position: 0 },
+            { name: "Complete", color: "#006a4e", type: "done", position: 1 }
+        ];
+
         const urlParams = new URLSearchParams(window.location.search);
         const listId = urlParams.get('listId');
         const projectId = urlParams.get('projectId');
@@ -335,10 +1040,30 @@
         const breadAllListLink = document.getElementById('breadAllListLink');
         const subscriptionStatusText = document.getElementById('subscriptionStatusText');
         const subscriptionToggleButton = document.getElementById('subscriptionToggleButton');
+        const commentAvatar = document.getElementById('commentAvatar');
+        const manageSubsScroll = document.getElementById('subscriberListScroll');
 
         let currentUser = null;
         let listTasks = [];
+        let currentListData = null;
         let currentSubscribers = [];
+        let projectMembers = [];
+        let manageSubscriberSearchQuery = "";
+        let currentComments = [];
+
+        function getDirectPhotoUrl(url, uid) {
+            if (!url) return `https://i.pravatar.cc/150?u=${uid || "user"}`;
+            if (url.includes('drive.google.com')) {
+                let id = "";
+                if (url.includes('id=')) {
+                    id = url.split('id=')[1].split('&')[0];
+                } else if (url.includes('/d/')) {
+                    id = url.split('/d/')[1].split('/')[0];
+                }
+                if (id) return `https://lh3.googleusercontent.com/u/0/d/${id}`;
+            }
+            return url;
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             if (!listId || !projectId) {
@@ -347,7 +1072,14 @@
             }
 
             breadProjectLink.href = `../project/project.html?id=${projectId}`;
-            breadAllListLink.href = `list.html?id=${projectId}`;
+            breadAllListLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (document.referrer) {
+                    window.history.back();
+                } else {
+                    window.location.href = `list.html?id=${projectId}`;
+                }
+            });
 
             const commentInput = document.getElementById('commentInput');
             if (commentInput) {
@@ -358,6 +1090,14 @@
                     if (this.innerText.trim() === '') this.innerText = 'Add a comment here...';
                 });
             }
+
+            try {
+                const storedUser = JSON.parse(localStorage.getItem('userData') || 'null');
+                if (storedUser && commentAvatar) {
+                    const photoUrl = getDirectPhotoUrl(storedUser.photo || storedUser.Photo || "", storedUser.uid || storedUser.Uid || "");
+                    commentAvatar.src = photoUrl;
+                }
+            } catch (e) {}
 
             loadProjectHeader();
             loadListDetail();
@@ -377,9 +1117,42 @@
                 const data = snap.data();
                 if (breadProjectLink) breadProjectLink.innerText = data.name || "Untitled Project";
                 if (badgeEl) badgeEl.innerText = data.department || "Project";
+                await loadProjectMembers(data.members || []);
+                renderManageSubscriberList(manageSubscriberSearchQuery);
             } catch (e) {
                 console.error("Failed to load project header", e);
             }
+        }
+
+        async function loadProjectMembers(memberUids) {
+            projectMembers = [];
+            try {
+                if (Array.isArray(memberUids) && memberUids.length > 0) {
+                    const promises = memberUids.map(async (uid) => {
+                        try {
+                            const snap = await getDoc(doc(db, "users", uid));
+                            if (snap.exists()) {
+                                const u = snap.data();
+                                return {
+                                    uid,
+                                    name: u.name || u.email || uid,
+                                    email: u.email || "",
+                                    photo: getDirectPhotoUrl(u.photo || "", uid)
+                                };
+                            }
+                        } catch (e) {
+                            console.error("Failed to load member", uid, e);
+                        }
+                        return null;
+                    });
+                    const results = await Promise.all(promises);
+                    projectMembers = results.filter(Boolean);
+                }
+            } catch (e) {
+                console.error("Failed to load project members", e);
+                projectMembers = [];
+            }
+            populateDetailUserOptions();
         }
 
         async function loadListDetail() {
@@ -394,12 +1167,78 @@
                     return;
                 }
                 const listData = { id: snap.id, ...snap.data() };
+                currentListData = listData;
                 renderListHeader(listData);
                 await loadTasks();
             } catch (e) {
                 console.error("Failed to load list detail", e);
                 tasksWrapper.innerHTML = '<div class="alert alert-danger text-center">Gagal mengambil data list.</div>';
             }
+        }
+
+        const TAG_COLORS = [
+            "#bfdbfe", "#e0f2fe", "#a5f3fc", "#bbf7d0", "#dcfce7", "#fef9c3", "#fee2e2", "#fecaca",
+            "#ddd6fe", "#e9d5ff", "#f5d0fe", "#fce7f3", "#fee2e2", "#ffedd5", "#d1fae5", "#bae6fd",
+            "#e5e7eb", "#d1d5db", "#f9a8d4", "#fda4af", "#fdba74", "#bef264", "#a7f3d0", "#67e8f9"
+        ];
+
+        function getDefaultTagColor(name) {
+            if (!name) return "#e5e7eb";
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = ((hash << 5) - hash) + name.charCodeAt(i);
+                hash |= 0;
+            }
+            const index = Math.abs(hash) % TAG_COLORS.length;
+            return TAG_COLORS[index];
+        }
+
+        function getTagColorOverrides() {
+            const key = `tagColors:${projectId}`;
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) return {};
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === "object") return parsed;
+                return {};
+            } catch {
+                return {};
+            }
+        }
+
+        function getTagColor(name) {
+            const overrides = getTagColorOverrides();
+            if (overrides && overrides[name]) return overrides[name];
+            return getDefaultTagColor(name);
+        }
+
+        function updateAllDoneBadge() {
+            const allDoneBadge = document.getElementById('listAllDoneBadge');
+            if (!allDoneBadge) return;
+            const tasks = listTasks || [];
+            const hasTasks = tasks.length > 0;
+            const allComplete = hasTasks && tasks.every(t => String(t.status || '').toLowerCase() === 'complete');
+            allDoneBadge.style.display = allComplete ? 'inline-block' : 'none';
+        }
+
+        function initTaskSortableDetail() {
+            if (!tasksWrapper || !window.Sortable) return;
+            new Sortable(tasksWrapper, {
+                handle: '.drag-handle-task',
+                animation: 150,
+                onEnd: async function () {
+                    const rows = tasksWrapper.querySelectorAll('.todo-row');
+                    rows.forEach(async (row, index) => {
+                        const taskId = row.id.replace('task-', '');
+                        if (!taskId) return;
+                        try {
+                            await updateDoc(doc(db, "tasks", taskId), { position: index });
+                        } catch (e) {
+                            console.error("Failed to update task position", e);
+                        }
+                    });
+                }
+            });
         }
 
         async function loadTasks() {
@@ -410,8 +1249,14 @@
                 );
                 const snap = await getDocs(q);
                 const tasks = [];
+                const tagSet = new Set();
                 snap.forEach(docSnap => {
                     const data = docSnap.data();
+                    if (Array.isArray(data.tags)) {
+                        data.tags.forEach(tag => {
+                            if (tag && typeof tag === "string") tagSet.add(tag);
+                        });
+                    }
                     if (data.list_id === listId) {
                         tasks.push({ id: docSnap.id, ...data });
                     }
@@ -423,12 +1268,40 @@
                 });
                 listTasks = tasks;
                 renderTasks(listTasks);
+                updateAllDoneBadge();
+                populateDetailTagOptionsFromTasks(Array.from(tagSet));
+                updateSelectedTagUIDetail();
+                initTaskSortableDetail();
             } catch (e) {
                 console.error("Failed to load tasks", e);
                 if (tasksWrapper) {
                     tasksWrapper.innerHTML = '<div class="alert alert-danger text-center">Gagal mengambil data tasks.</div>';
                 }
             }
+        }
+
+        function ensureDetailStatusOptions(list) {
+            const select = document.getElementById('status-detail');
+            if (!select) return;
+            select.innerHTML = '';
+            let statuses = [];
+            if (list && Array.isArray(list.statuses) && list.statuses.length > 0) {
+                statuses = list.statuses.slice().sort((a, b) => {
+                    const pa = typeof a.position === "number" ? a.position : 0;
+                    const pb = typeof b.position === "number" ? b.position : 0;
+                    return pa - pb;
+                });
+            } else {
+                statuses = DEFAULT_LIST_STATUSES.slice();
+            }
+            statuses.forEach(s => {
+                const name = s.name || "";
+                if (!name) return;
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.innerText = name;
+                select.appendChild(opt);
+            });
         }
 
         function renderListHeader(list) {
@@ -451,6 +1324,8 @@
                 fullSpan.style.display = 'none';
                 btn.style.display = 'none';
             }
+
+            ensureDetailStatusOptions(list);
         }
 
         window.toggleDesc = function () {
@@ -473,19 +1348,43 @@
 
             tasks.forEach(task => {
                 const isDone = ['done', 'completed', 'complete', 'true'].includes(String(task.status).toLowerCase());
+                const statusText = task.status || '';
+                const tags = Array.isArray(task.tags) ? task.tags.filter(t => !!t) : [];
+                let statusColor = '#0B2B6A';
+                if (currentListData) {
+                    const rawStatuses = Array.isArray(currentListData.statuses) && currentListData.statuses.length > 0
+                        ? currentListData.statuses
+                        : DEFAULT_LIST_STATUSES;
+                    const currentStatusName = String(task.status || '').toLowerCase();
+                    const found = rawStatuses.find(s => String(s.name || '').toLowerCase() === currentStatusName);
+                    if (found && found.color) statusColor = found.color;
+                }
+                const tagsHtml = tags.map(tag => {
+                    const color = getTagColor(tag);
+                    return `<span class="tag-pill me-1" style="background:${color}">${tag}</span>`;
+                }).join('');
                 
                 const itemHtml = `
                     <div class="todo-row ${isDone ? 'completed' : ''} d-flex align-items-start" 
-                         onclick="goToTaskDetail('${task.id}')">
+                         id="task-${task.id}"
+                         onclick="handleTaskRowClickDetail(event, '${task.id}')">
                         
                         <input type="checkbox" class="todo-check" ${isDone ? 'checked' : ''} 
                                onclick="event.stopPropagation()" 
                                onchange="handleStatusChange('${task.id}', this)">
                         
                         <div class="w-100">
-                            <div class="todo-text">${task.title}</div>
+                            <div class="todo-text">
+                                ${task.title}
+                                ${task.description ? `<i class="bi bi-filter-left ms-2 text-muted"></i>` : ''}
+                            </div>
                             <small class="text-muted" style="font-size:0.75rem">Click to see details</small>
+                            <div class="mt-1" style="font-size:0.7rem">
+                                ${statusText ? `<span class="badge border small me-2" style="background:${statusColor}; color:#ffffff;">${statusText}</span>` : ''}
+                                ${tagsHtml}
+                            </div>
                         </div>
+                        <i class="bi bi-list drag-handle-task"></i>
                     </div>
                 `;
                 tasksWrapper.insertAdjacentHTML('beforeend', itemHtml);
@@ -498,6 +1397,22 @@
             if (value instanceof Date) return value;
             const d = new Date(value);
             return isNaN(d.getTime()) ? null : d;
+        }
+
+        function getCurrentUserUid() {
+            try {
+                if (currentUser && currentUser.uid) return currentUser.uid;
+                const localData = JSON.parse(localStorage.getItem('userData') || 'null');
+                if (localData && localData.uid) return localData.uid;
+            } catch (e) {}
+            return "";
+        }
+
+        function canEditComment(c) {
+            const uid = getCurrentUserUid();
+            if (!uid) return false;
+            const owner = c.user_id || c.userId || "";
+            return uid === owner;
         }
 
         function renderComments(comments) {
@@ -516,18 +1431,34 @@
                 const initials = initialsSource
                     ? initialsSource.trim().split(' ').map(part => part[0]).join('').substring(0, 2).toUpperCase()
                     : '??';
-
+                const photo = c.user_photo || "";
+                const avatar = photo
+                    ? `<div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 overflow-hidden" style="width:40px; height:40px;">
+                           <img src="${photo}" alt="${userName}" style="width:100%; height:100%; object-fit:cover;">
+                       </div>`
+                    : `<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:40px; height:40px;">
+                           ${initials}
+                       </div>`;
+                const canEdit = canEditComment(c);
+                const actionsHtml = canEdit
+                    ? `
+                        <div class="mt-1 d-flex gap-2">
+                            <button class="btn btn-link btn-sm p-0 small" onclick="editComment('${c.id}')">Edit</button>
+                            <span class="text-muted">·</span>
+                            <button class="btn btn-link btn-sm p-0 small text-danger" onclick="deleteComment('${c.id}')">Delete</button>
+                        </div>
+                      `
+                    : '';
                 const html = `
                     <div class="d-flex gap-3 mb-3">
-                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:40px; height:40px;">
-                            ${initials}
-                        </div>
+                        ${avatar}
                         <div class="bg-white border rounded p-3 w-100 shadow-sm">
                             <div class="d-flex justify-content-between mb-1">
                                 <strong class="small text-dark">${userName}</strong>
                                 <small class="text-muted" style="font-size:0.7rem">${dateStr}</small>
                             </div>
-                            <div class="text-dark small">${c.text}</div>
+                            <div class="text-dark small" id="comment-text-${c.id}">${c.text}</div>
+                            ${actionsHtml}
                         </div>
                     </div>
                 `;
@@ -538,7 +1469,7 @@
         function renderSubscribers(subs) {
             subsContainer.innerHTML = '';
             if (!subs || subs.length === 0) {
-                const btnAddHtml = `<button class="btn btn-light border rounded-pill px-3 py-1 btn-sm text-muted small" type="button">Add/remove people...</button>`;
+                const btnAddHtml = `<button class="btn btn-light border rounded-pill px-3 py-1 btn-sm text-muted small" type="button" data-bs-toggle="modal" data-bs-target="#manageSubscribersModal">Add/remove people...</button>`;
                 subsContainer.insertAdjacentHTML('beforeend', btnAddHtml);
                 return;
             }
@@ -550,12 +1481,18 @@
                 const initials = initialsSource
                     ? initialsSource.trim().split(' ').map(part => part[0]).join('').substring(0, 2).toUpperCase()
                     : 'U';
-                const html = `<div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" 
-                              style="width:30px; height:30px; font-size:0.7rem;" title="${userName}">${initials}</div>`;
+                const photo = s.user_photo || "";
+                const avatar = photo
+                    ? `<div class="rounded-circle d-flex align-items-center justify-content-center fw-bold overflow-hidden" style="width:30px; height:30px; font-size:0.7rem;" title="${userName}">
+                           <img src="${photo}" alt="${userName}" style="width:100%; height:100%; object-fit:cover;">
+                       </div>`
+                    : `<div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" 
+                         style="width:30px; height:30px; font-size:0.7rem;" title="${userName}">${initials}</div>`;
+                const html = avatar;
                 subsContainer.insertAdjacentHTML('beforeend', html);
             });
             
-            const btnAddHtml = `<button class="btn btn-light border rounded-pill px-3 py-1 btn-sm text-muted small" type="button">Add/remove people...</button>`;
+            const btnAddHtml = `<button class="btn btn-light border rounded-pill px-3 py-1 btn-sm text-muted small" type="button" data-bs-toggle="modal" data-bs-target="#manageSubscribersModal">Add/remove people...</button>`;
             subsContainer.insertAdjacentHTML('beforeend', btnAddHtml);
         }
 
@@ -566,6 +1503,7 @@
                 onSnapshot(q, (snapshot) => {
                     const comments = [];
                     snapshot.forEach(docSnap => comments.push({ id: docSnap.id, ...docSnap.data() }));
+                    currentComments = comments;
                     renderComments(comments);
                 }, (error) => {
                     console.error("Failed to listen comments", error);
@@ -625,6 +1563,8 @@
                 const localData = JSON.parse(localStorage.getItem('userData') || 'null');
                 const userName = localData && localData.name ? localData.name : (currentUser ? currentUser.email : 'User');
                 const uid = currentUser ? currentUser.uid : (localData && localData.uid ? localData.uid : '');
+                const rawPhoto = localData && localData.photo ? localData.photo : (currentUser && currentUser.photoURL ? currentUser.photoURL : "");
+                const photoUrl = getDirectPhotoUrl(rawPhoto || "", uid || "");
                 const initialsSource = userName || uid || '';
                 const initials = initialsSource
                     ? initialsSource.trim().split(' ').map(part => part[0]).join('').substring(0, 2).toUpperCase()
@@ -635,6 +1575,7 @@
                     user_id: uid,
                     user_name: userName,
                     user_initials: initials,
+                    user_photo: photoUrl,
                     created_at: serverTimestamp()
                 });
 
@@ -648,6 +1589,444 @@
                     btn.disabled = false;
                 }
             }
+        };
+
+        function showCommentInfo(message) {
+            const msgEl = document.getElementById('commentInfoMessage');
+            const modalEl = document.getElementById('commentInfoModal');
+            if (!msgEl || !modalEl) return;
+            msgEl.innerText = message || '';
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+
+        window.editComment = function (commentId) {
+            const comment = currentComments.find(c => c.id === commentId);
+            if (!comment) return;
+            if (!canEditComment(comment)) {
+                showCommentInfo("Anda tidak dapat mengedit komentar ini.");
+                return;
+            }
+            const input = document.getElementById('commentEditText');
+            const idInput = document.getElementById('commentEditId');
+            const modalEl = document.getElementById('commentEditModal');
+            if (!input || !idInput || !modalEl) return;
+            input.value = comment.text || "";
+            idInput.value = commentId;
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        };
+
+        window.confirmEditComment = async function () {
+            const idInput = document.getElementById('commentEditId');
+            const input = document.getElementById('commentEditText');
+            const modalEl = document.getElementById('commentEditModal');
+            if (!idInput || !input || !modalEl) return;
+            const commentId = idInput.value;
+            const newText = input.value || "";
+            const trimmed = newText.trim();
+            if (!trimmed) {
+                showCommentInfo("Komentar tidak boleh kosong.");
+                return;
+            }
+            const comment = currentComments.find(c => c.id === commentId);
+            if (!comment || !canEditComment(comment)) {
+                showCommentInfo("Anda tidak dapat mengedit komentar ini.");
+                return;
+            }
+            try {
+                await updateDoc(doc(db, "projects", projectId, "lists", listId, "comments", commentId), {
+                    text: trimmed,
+                    updated_at: serverTimestamp()
+                });
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            } catch (e) {
+                console.error("Failed to edit comment", e);
+                showCommentInfo("Gagal mengedit komentar: " + e.message);
+            }
+        };
+
+        window.deleteComment = function (commentId) {
+            const comment = currentComments.find(c => c.id === commentId);
+            if (!comment) return;
+            if (!canEditComment(comment)) {
+                showCommentInfo("Anda tidak dapat menghapus komentar ini.");
+                return;
+            }
+            const previewEl = document.getElementById('commentDeletePreview');
+            const idInput = document.getElementById('commentDeleteId');
+            const modalEl = document.getElementById('commentDeleteModal');
+            if (!previewEl || !idInput || !modalEl) return;
+            previewEl.innerText = comment.text || "";
+            idInput.value = commentId;
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        };
+
+        window.confirmDeleteComment = async function () {
+            const idInput = document.getElementById('commentDeleteId');
+            const modalEl = document.getElementById('commentDeleteModal');
+            if (!idInput || !modalEl) return;
+            const commentId = idInput.value;
+            const comment = currentComments.find(c => c.id === commentId);
+            if (!comment || !canEditComment(comment)) {
+                showCommentInfo("Anda tidak dapat menghapus komentar ini.");
+                return;
+            }
+            try {
+                await deleteDoc(doc(db, "projects", projectId, "lists", listId, "comments", commentId));
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            } catch (e) {
+                console.error("Failed to delete comment", e);
+                showCommentInfo("Gagal menghapus komentar: " + e.message);
+            }
+        };
+
+        window.togglePriorityMenu = (lid) => {
+            const menu = document.getElementById(`priority-menu-${lid}`);
+            if (!menu) return;
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        };
+
+        window.selectPriority = (lid, value) => {
+            const hidden = document.getElementById(`priority-${lid}`);
+            const label = document.getElementById(`priority-label-${lid}`);
+            const flag = document.querySelector(`#priority-wrap-${lid} .priority-flag`);
+            if (!hidden || !label || !flag) return;
+
+            hidden.value = value;
+
+            let text = "Normal";
+            let className = "priority-flag-normal";
+            if (value === "urgent") {
+                text = "Urgent";
+                className = "priority-flag-urgent";
+            } else if (value === "high") {
+                text = "High";
+                className = "priority-flag-high";
+            } else if (value === "low") {
+                text = "Low";
+                className = "priority-flag-low";
+            }
+
+            label.innerText = text;
+
+            flag.classList.remove("priority-flag-urgent", "priority-flag-high", "priority-flag-normal", "priority-flag-low");
+            flag.classList.add(className);
+
+            const menu = document.getElementById(`priority-menu-${lid}`);
+            if (menu) menu.style.display = "none";
+        };
+
+        function getTagsValueDetail() {
+            const hidden = document.getElementById('tags-detail');
+            if (!hidden || !hidden.value) return [];
+            return hidden.value.split(",").map(t => t.trim()).filter(Boolean);
+        }
+
+        function setTagsValueDetail(tags) {
+            const hidden = document.getElementById('tags-detail');
+            if (!hidden) return;
+            const clean = Array.from(new Set(tags.map(t => t.trim()).filter(Boolean)));
+            hidden.value = clean.join(",");
+            updateSelectedTagUIDetail();
+            const optionsContainer = document.getElementById('tag-options-detail');
+            if (!optionsContainer) return;
+            Array.from(optionsContainer.children).forEach(opt => {
+                const tag = opt.dataset.tag;
+                if (!tag) return;
+                if (clean.includes(tag)) {
+                    opt.classList.add("tag-option-selected");
+                } else {
+                    opt.classList.remove("tag-option-selected");
+                }
+            });
+        }
+
+        function updateSelectedTagUIDetail() {
+            const selectedContainer = document.getElementById('tag-selected-detail');
+            if (!selectedContainer) return;
+            const tags = getTagsValueDetail();
+            selectedContainer.innerHTML = "";
+            if (tags.length === 0) {
+                const span = document.createElement("span");
+                span.className = "tag-placeholder";
+                span.innerText = "Search or add tags...";
+                selectedContainer.appendChild(span);
+                return;
+            }
+            tags.forEach(tag => {
+                const pill = document.createElement("span");
+                pill.className = "tag-pill";
+                pill.innerText = tag;
+                const remove = document.createElement("span");
+                remove.className = "tag-remove";
+                remove.innerText = "×";
+                remove.onclick = function (event) {
+                    event.stopPropagation();
+                    removeTagFromSelectionDetail(tag);
+                };
+                pill.appendChild(remove);
+                selectedContainer.appendChild(pill);
+            });
+        }
+
+        window.toggleTagDropdown = (lid) => {
+            if (lid !== 'detail') return;
+            const dropdown = document.getElementById('tag-dropdown-detail');
+            if (!dropdown) return;
+            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+            const input = document.getElementById('tag-input-detail');
+            if (dropdown.style.display === "block" && input) {
+                input.focus();
+                input.select();
+                filterTagOptions('detail');
+            }
+        };
+
+        window.filterTagOptions = (lid) => {
+            if (lid !== 'detail') return;
+            const input = document.getElementById('tag-input-detail');
+            const optionsContainer = document.getElementById('tag-options-detail');
+            const createRow = document.getElementById('tag-create-detail');
+            const createLabel = document.getElementById('tag-create-label-detail');
+            if (!input || !optionsContainer || !createRow || !createLabel) return;
+
+            const query = input.value.trim().toLowerCase();
+            let hasVisible = false;
+            let hasExact = false;
+
+            Array.from(optionsContainer.children).forEach(opt => {
+                const tag = (opt.dataset.tag || "").toLowerCase();
+                const visible = !query || tag.indexOf(query) !== -1;
+                opt.style.display = visible ? "flex" : "none";
+                if (visible) {
+                    hasVisible = true;
+                    if (tag === query) hasExact = true;
+                }
+            });
+
+            if (query && (!hasVisible || !hasExact)) {
+                createRow.style.display = "flex";
+                createLabel.innerText = query;
+            } else {
+                createRow.style.display = "none";
+                createLabel.innerText = "";
+            }
+        };
+
+        window.toggleTagFromOption = (lid, tag) => {
+            if (lid !== 'detail') return;
+            const current = getTagsValueDetail();
+            const index = current.indexOf(tag);
+            if (index >= 0) {
+                current.splice(index, 1);
+            } else {
+                current.push(tag);
+            }
+            setTagsValueDetail(current);
+        };
+
+        window.createTagFromInput = (lid) => {
+            if (lid !== 'detail') return;
+            const input = document.getElementById('tag-input-detail');
+            if (!input) return;
+            const value = input.value.trim();
+            if (!value) return;
+            const current = getTagsValueDetail();
+            if (!current.includes(value)) {
+                current.push(value);
+            }
+            const optionsContainer = document.getElementById('tag-options-detail');
+            if (optionsContainer && !Array.from(optionsContainer.children).some(opt => opt.dataset.tag === value)) {
+                const opt = document.createElement("div");
+                opt.className = "tag-option";
+                opt.dataset.tag = value;
+                opt.onclick = function () {
+                    window.toggleTagFromOption('detail', value);
+                };
+                const pill = document.createElement("span");
+                pill.className = "tag-pill";
+                pill.innerText = value;
+                opt.appendChild(pill);
+                optionsContainer.insertBefore(opt, optionsContainer.firstChild || null);
+            }
+            setTagsValueDetail(current);
+            input.value = "";
+            filterTagOptions('detail');
+        };
+
+        function removeTagFromSelectionDetail(tag) {
+            const current = getTagsValueDetail();
+            const index = current.indexOf(tag);
+            if (index >= 0) {
+                current.splice(index, 1);
+                setTagsValueDetail(current);
+            }
+        }
+
+        window.toggleUserDropdown = (lid, field) => {
+            if (lid !== 'detail') return;
+            const dropdown = document.getElementById(`${field}-dropdown-detail`);
+            if (!dropdown) return;
+            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+            const search = document.getElementById(`${field}-search-detail`);
+            if (dropdown.style.display === "block" && search) {
+                search.focus();
+                search.select();
+                filterUserOptions('detail', field);
+            }
+        };
+
+        window.filterUserOptions = (lid, field) => {
+            if (lid !== 'detail') return;
+            const search = document.getElementById(`${field}-search-detail`);
+            const list = document.getElementById(`${field}-options-detail`);
+            if (!search || !list) return;
+            const q = search.value.trim().toLowerCase();
+            Array.from(list.children).forEach(opt => {
+                const nameEl = opt.querySelector(".user-option-name");
+                const text = nameEl ? nameEl.innerText.toLowerCase() : "";
+                const visible = !q || text.indexOf(q) !== -1;
+                opt.style.display = visible ? "flex" : "none";
+            });
+        };
+
+        window.selectUser = (lid, field, uid) => {
+            if (lid !== 'detail') return;
+            const hidden = document.getElementById(`${field}-detail`);
+            const label = document.getElementById(`${field}-label-detail`);
+            const avatarWrap = document.getElementById(`${field}-avatar-detail`);
+            if (!hidden || !label || !avatarWrap) return;
+
+            const user = projectMembers.find(m => m.uid === uid);
+            if (!user) return;
+
+            hidden.value = uid;
+            label.className = "user-select-name";
+            label.innerText = user.name || "User";
+
+            avatarWrap.innerHTML = "";
+            const img = document.createElement("img");
+            img.src = user.photo;
+            img.alt = user.name || "User";
+            avatarWrap.appendChild(img);
+
+            const dropdown = document.getElementById(`${field}-dropdown-detail`);
+            if (dropdown) dropdown.style.display = "none";
+        };
+
+        function populateDetailUserOptions() {
+            const assignList = document.getElementById('assign-options-detail');
+            const notifyList = document.getElementById('notify-options-detail');
+            if (assignList) assignList.innerHTML = '';
+            if (notifyList) notifyList.innerHTML = '';
+            if (!projectMembers || projectMembers.length === 0) return;
+
+            const buildRow = (m, field, targetList) => {
+                if (!targetList) return;
+                const row = document.createElement("div");
+                row.className = "user-option";
+                row.dataset.userUid = m.uid;
+                row.onclick = function () {
+                    window.selectUser('detail', field, m.uid);
+                };
+                const avatar = document.createElement("div");
+                avatar.className = "user-option-avatar";
+                const img = document.createElement("img");
+                img.src = m.photo;
+                img.alt = m.name;
+                avatar.appendChild(img);
+                const nameDiv = document.createElement("div");
+                nameDiv.className = "user-option-name";
+                nameDiv.innerText = m.name;
+                row.appendChild(avatar);
+                row.appendChild(nameDiv);
+                targetList.appendChild(row);
+            };
+
+            projectMembers.forEach(m => {
+                buildRow(m, "assign", assignList);
+                buildRow(m, "notify", notifyList);
+            });
+        }
+
+        function populateDetailTagOptionsFromTasks(source) {
+            const optionsContainer = document.getElementById('tag-options-detail');
+            if (!optionsContainer) return;
+            optionsContainer.innerHTML = '';
+            const tagSet = new Set();
+            (source || []).forEach(item => {
+                if (!item) return;
+                if (Array.isArray(item.tags)) {
+                    item.tags.forEach(tag => {
+                        if (tag && typeof tag === "string") tagSet.add(tag);
+                    });
+                } else if (typeof item === "string") {
+                    tagSet.add(item);
+                }
+            });
+            const tags = Array.from(tagSet).sort((a, b) => a.localeCompare(b));
+            tags.forEach(tag => {
+                const opt = document.createElement("div");
+                opt.className = "tag-option";
+                opt.dataset.tag = tag;
+                opt.onclick = function () {
+                    window.toggleTagFromOption('detail', tag);
+                };
+                const pill = document.createElement("span");
+                pill.className = "tag-pill";
+                pill.innerText = tag;
+                opt.appendChild(pill);
+                optionsContainer.appendChild(opt);
+            });
+        }
+
+        window.renderManageSubscriberList = function (queryText) {
+            if (!manageSubsScroll) return;
+            manageSubscriberSearchQuery = (queryText || "").trim().toLowerCase();
+            manageSubsScroll.innerHTML = '';
+
+            if (!projectMembers || projectMembers.length === 0) {
+                manageSubsScroll.innerHTML = '<p class="text-muted small mb-0">No project members available.</p>';
+                return;
+            }
+
+            const filtered = projectMembers.filter(m => {
+                if (!manageSubscriberSearchQuery) return true;
+                const haystack = `${m.name || ""} ${m.email || ""}`.toLowerCase();
+                return haystack.includes(manageSubscriberSearchQuery);
+            });
+
+            if (filtered.length === 0) {
+                manageSubsScroll.innerHTML = '<p class="text-muted small mb-0">No people match your search.</p>';
+                return;
+            }
+
+            filtered.forEach(m => {
+                const isSubscribed = currentSubscribers.some(s => (s.user_id || s.userId) === m.uid);
+                const btnClass = isSubscribed ? 'btn-outline-danger' : 'btn-outline-primary';
+                const btnText = isSubscribed ? 'Unsubscribe' : 'Subscribe';
+                const rowHtml = `
+                    <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle overflow-hidden" style="width:32px; height:32px;">
+                                <img src="${m.photo}" alt="${m.name}" style="width:100%; height:100%; object-fit:cover;">
+                            </div>
+                            <div>
+                                <div class="small fw-semibold">${m.name}</div>
+                                <div class="small text-muted">${m.email || ''}</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm ${btnClass} rounded-pill px-3" type="button" onclick="toggleSubscriberForUser('${m.uid}')">
+                            ${btnText}
+                        </button>
+                    </div>
+                `;
+                manageSubsScroll.insertAdjacentHTML('beforeend', rowHtml);
+            });
         };
 
         window.showDetailForm = function () {
@@ -665,9 +2044,9 @@
         };
 
         window.saveTaskDetail = async function () {
-            const input = document.getElementById('input-task-detail');
-            if (!input) return;
-            const title = input.value.trim();
+            const titleInput = document.getElementById('title-detail');
+            if (!titleInput) return;
+            const title = titleInput.value.trim();
             if (!title) return;
 
             try {
@@ -676,21 +2055,30 @@
                     project_id: projectId,
                     list_id: listId,
                     title: title,
-                    description: "",
-                    status: "Initiate",
-                    priority: "normal",
-                    start_date: "",
-                    due_date: "",
-                    points: 0,
-                    assign_to: "",
-                    notify_to: "",
-                    tags: [],
+                    description: document.getElementById('desc-detail') ? document.getElementById('desc-detail').innerHTML : "",
+                    status: document.getElementById('status-detail') ? (document.getElementById('status-detail').value || "Initiate") : "Initiate",
+                    priority: document.getElementById('priority-detail') ? (document.getElementById('priority-detail').value || "normal") : "normal",
+                    start_date: document.getElementById('start-detail') ? (document.getElementById('start-detail').value || "") : "",
+                    due_date: document.getElementById('due-detail') ? (document.getElementById('due-detail').value || "") : "",
+                    points: document.getElementById('points-detail') && document.getElementById('points-detail').value ? Number(document.getElementById('points-detail').value) || 0 : 0,
+                    assign_to: document.getElementById('assign-detail') ? (document.getElementById('assign-detail').value || "") : "",
+                    notify_to: document.getElementById('notify-detail') ? (document.getElementById('notify-detail').value || "") : "",
+                    tags: document.getElementById('tags-detail') && document.getElementById('tags-detail').value
+                        ? document.getElementById('tags-detail').value.split(",").map(t => t.trim()).filter(Boolean)
+                        : [],
                     position: existingForList.length,
                     created_at: serverTimestamp(),
                     created_by: currentUser ? currentUser.uid : ""
                 };
                 await addDoc(collection(db, "tasks"), payload);
-                input.value = '';
+                titleInput.value = '';
+                if (document.getElementById('desc-detail')) document.getElementById('desc-detail').innerHTML = "";
+                if (document.getElementById('start-detail')) document.getElementById('start-detail').value = "";
+                if (document.getElementById('due-detail')) document.getElementById('due-detail').value = "";
+                if (document.getElementById('points-detail')) document.getElementById('points-detail').value = "";
+                if (document.getElementById('assign-detail')) document.getElementById('assign-detail').value = "";
+                if (document.getElementById('notify-detail')) document.getElementById('notify-detail').value = "";
+                if (document.getElementById('tags-detail')) document.getElementById('tags-detail').value = "";
                 await loadTasks();
                 window.hideDetailForm();
             } catch (e) {
@@ -714,15 +2102,32 @@
                 await updateDoc(doc(db, "tasks", taskId), { status: newStatus });
             } catch (e) {
                 console.error("Failed to update task status", e);
-                alert("Gagal memperbarui status: " + e.message);
                 checkbox.checked = !isChecked;
                 if (rowElement) rowElement.classList.toggle('completed');
+                return;
             }
+            if (rowElement) {
+                if (isChecked) rowElement.classList.add('completed');
+                else rowElement.classList.remove('completed');
+            }
+            const task = (listTasks || []).find(t => t.id === taskId);
+            if (task) {
+                task.status = newStatus;
+            }
+            updateAllDoneBadge();
         };
 
         window.goToTaskDetail = function (taskId) {
             if (!taskId) return;
             window.location.href = `item-details.html?taskId=${taskId}&projectId=${projectId}`;
+        };
+
+        window.handleTaskRowClickDetail = function (event, taskId) {
+            const target = event.target;
+            if (target.closest('input') || target.closest('.drag-handle-task')) {
+                return;
+            }
+            window.goToTaskDetail(taskId);
         };
 
         window.toggleSubscription = async function () {
@@ -739,6 +2144,8 @@
                 } else {
                     const localData = JSON.parse(localStorage.getItem('userData') || 'null');
                     const userName = localData && localData.name ? localData.name : (currentUser.email || 'User');
+                    const rawPhoto = localData && localData.photo ? localData.photo : (currentUser && currentUser.photoURL ? currentUser.photoURL : "");
+                    const photoUrl = getDirectPhotoUrl(rawPhoto || "", uid || "");
                     const initialsSource = userName || uid || '';
                     const initials = initialsSource
                         ? initialsSource.trim().split(' ').map(part => part[0]).join('').substring(0, 2).toUpperCase()
@@ -747,6 +2154,7 @@
                         user_id: uid,
                         user_name: userName,
                         user_initials: initials,
+                        user_photo: photoUrl,
                         created_at: serverTimestamp()
                     });
                 }
@@ -756,9 +2164,54 @@
             }
         };
 
+        window.toggleSubscriberForUser = async function (uid) {
+            if (!uid) return;
+            const existing = currentSubscribers.find(s => (s.user_id || s.userId) === uid);
+
+            try {
+                if (existing && existing.id) {
+                    await deleteDoc(doc(db, "projects", projectId, "lists", listId, "subscribers", existing.id));
+                } else {
+                    const target = projectMembers.find(m => m.uid === uid);
+                    const userName = target && target.name ? target.name : 'User';
+                    const rawPhoto = target && target.photo ? target.photo : "";
+                    const photoUrl = getDirectPhotoUrl(rawPhoto || "", uid || "");
+                    const initialsSource = userName || uid || '';
+                    const initials = initialsSource
+                        ? initialsSource.trim().split(' ').map(part => part[0]).join('').substring(0, 2).toUpperCase()
+                        : 'US';
+                    await addDoc(collection(db, "projects", projectId, "lists", listId, "subscribers"), {
+                        user_id: uid,
+                        user_name: userName,
+                        user_initials: initials,
+                        user_photo: photoUrl,
+                        created_at: serverTimestamp()
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to toggle subscriber for user", e);
+                alert("Gagal mengubah subscriber: " + e.message);
+            }
+        };
+
         window.toggleSidebar = function () {
             const sidebar = document.getElementById('sidebarNav');
             if (sidebar) sidebar.classList.toggle('show');
+        };
+
+        window.applyFormat = (editorId, command) => {
+            const editor = document.getElementById(editorId);
+            if (!editor) return;
+            editor.focus();
+            document.execCommand(command, false, null);
+        };
+
+        window.triggerDescFileInput = (scope) => {
+            if (scope === 'task-detail') {
+                const input = document.getElementById('task-desc-file-input-detail');
+                if (input) input.click();
+                return;
+            }
         };
     </script>
      <script>
