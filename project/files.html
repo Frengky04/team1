@@ -831,7 +831,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div class="dropdown">
                         <button class="btn btn-dlg-green rounded-pill px-4 fw-semibold dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            + New Files/Folders
+                            + New Things
                         </button>
                         <ul class="dropdown-menu shadow border-0" style="min-width:260px; border-radius:16px;">
                             <li>
@@ -841,15 +841,15 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item d-flex align-items-center gap-3 py-3" href="#" id="makeNewFolderLink">
-                                    <i class="bi bi-folder fs-5 text-dark"></i>
-                                    <span class="fw-semibold">Make a new folder</span>
+                                <a class="dropdown-item d-flex align-items-center gap-3 py-3" href="#" id="uploadFilesMenuItem">
+                                    <i class="bi bi-upload fs-5 text-dark"></i>
+                                    <span class="fw-semibold">Upload files</span>
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item d-flex align-items-center gap-3 py-3" href="#">
-                                    <i class="bi bi-upload fs-5 text-dark"></i>
-                                    <span class="fw-semibold">Upload files</span>
+                                <a class="dropdown-item d-flex align-items-center gap-3 py-3" href="#" id="uploadLinkLink">
+                                    <i class="bi bi-link-45deg fs-5 text-dark"></i>
+                                    <span class="fw-semibold">Upload link</span>
                                 </a>
                             </li>
                         </ul>
@@ -894,6 +894,8 @@
         </main>
     </div>
 
+    <input type="file" id="uploadFilesInput" multiple style="display:none">
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script type="module">
@@ -912,6 +914,12 @@
             addDoc,
             serverTimestamp
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import {
+            getStorage,
+            ref as storageRef,
+            uploadBytes,
+            getDownloadURL
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDyzzEYbJkkl-N8snrQf14qvj8De4YliV0",
@@ -925,6 +933,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         const params = new URLSearchParams(window.location.search);
         let projectId = params.get("id") || params.get("projectId");
@@ -951,10 +960,32 @@
         const startNewDocLink = document.getElementById("startNewDocLink");
         const fileSearchInput = document.getElementById("fileSearchInput");
         const makeNewFolderLink = document.getElementById("makeNewFolderLink");
+        const uploadFilesMenuItem = document.getElementById("uploadFilesMenuItem");
+        const uploadFilesInput = document.getElementById("uploadFilesInput");
+        const uploadLinkLink = document.getElementById("uploadLinkLink");
         let allFiles = [];
         let allFolders = [];
         let currentSearch = "";
         let isCreatingFolderInline = false;
+        let currentUser = null;
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user || null;
+        });
+
+        function getDirectPhotoUrl(url, uid) {
+            if (!url) return `https://i.pravatar.cc/150?u=${uid || "user"}`;
+            if (url.includes("drive.google.com")) {
+                let id = "";
+                if (url.includes("id=")) {
+                    id = url.split("id=")[1].split("&")[0];
+                } else if (url.includes("/d/")) {
+                    id = url.split("/d/")[1].split("/")[0];
+                }
+                if (id) return `https://lh3.googleusercontent.com/u/0/d/${id}`;
+            }
+            return url;
+        }
 
         function getFilesCollectionRef() {
             if (!projectId) return null;
@@ -966,11 +997,76 @@
             return collection(db, "projects", projectId, "file_folders");
         }
 
+        function getFileAttachmentPath(fileName) {
+            return `files/${projectId}/${Date.now()}_${fileName}`;
+        }
+
         function truncateText(text, maxLength) {
             if (!text) return "";
             const clean = String(text);
             if (clean.length <= maxLength) return clean;
             return clean.substring(0, maxLength - 3) + "...";
+        }
+
+        async function handleUploadFiles(files) {
+            if (!projectId) {
+                alert("Project ID tidak ditemukan.");
+                return;
+            }
+            if (!files || !files.length) return;
+            const filesRef = getFilesCollectionRef();
+            if (!filesRef) {
+                alert("Project ID tidak valid.");
+                return;
+            }
+            let localData = null;
+            try {
+                localData = JSON.parse(localStorage.getItem("userData") || "null");
+            } catch (e) {}
+            const uid = currentUser && currentUser.uid
+                ? currentUser.uid
+                : (localData && localData.uid ? localData.uid : "");
+            const userName = localData && localData.name
+                ? localData.name
+                : (currentUser && currentUser.email ? currentUser.email : "User");
+            const rawPhoto = localData && localData.photo
+                ? localData.photo
+                : (currentUser && currentUser.photoURL ? currentUser.photoURL : "");
+            const photoUrl = getDirectPhotoUrl(rawPhoto || "", uid || "");
+            const initialsSource = userName || uid || "";
+            const initials = initialsSource
+                ? initialsSource.trim().split(" ").map(part => part[0]).join("").substring(0, 2).toUpperCase()
+                : "US";
+
+            for (const file of files) {
+                try {
+                    const path = getFileAttachmentPath(file.name);
+                    const ref = storageRef(storage, path);
+                    await uploadBytes(ref, file);
+                    const url = await getDownloadURL(ref);
+                    const attachments = [{ name: file.name, url }];
+                    const baseName = file.name.replace(/\.[^/.]+$/, "");
+                    await addDoc(filesRef, {
+                        title: baseName || file.name,
+                        text: "",
+                        text_plain: "",
+                        attachments: attachments,
+                        user_id: uid,
+                        user_name: userName,
+                        user_initials: initials,
+                        user_photo: photoUrl,
+                        category: null,
+                        parent_id: null,
+                        created_at: serverTimestamp(),
+                        parent_comment_id: null,
+                        mentioned_user_ids: []
+                    });
+                } catch (e) {
+                    console.error("Failed to upload file", e);
+                    alert("Gagal mengunggah file: " + e.message);
+                    break;
+                }
+            }
         }
 
         function renderFiles(files, folders) {
@@ -1044,6 +1140,10 @@
                 const createdAt = d.created_at && d.created_at.toDate ? d.created_at.toDate() : null;
                 const dateStr = createdAt ? createdAt.toLocaleDateString() : "";
                 const badgeColor = "#dcfce7";
+                const category = d.category || "";
+                const categoryHtml = category
+                    ? `<span class="badge rounded-pill bg-light text-dark border mb-1">${category}</span>`
+                    : "";
                 const html = `
                     <div class="col-6 col-sm-4 col-md-3 col-lg-2">
                         <a href="${detailUrl}" class="text-decoration-none text-reset">
@@ -1054,6 +1154,7 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <div class="fw-semibold mb-1" style="max-height:40px; overflow:hidden;">${title}</div>
+                                    ${categoryHtml}
                                     <div class="text-muted small" style="font-size:0.8rem; max-height:72px; overflow:hidden;">
                                         ${preview || ""}
                                     </div>
@@ -1191,6 +1292,29 @@
                 fileSearchInput.addEventListener("input", () => {
                     currentSearch = fileSearchInput.value || "";
                     applyFileFilter();
+                });
+            }
+            if (uploadFilesMenuItem && uploadFilesInput) {
+                uploadFilesMenuItem.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    if (!projectId) {
+                        alert("Project ID tidak ditemukan.");
+                        return;
+                    }
+                    uploadFilesInput.click();
+                });
+                uploadFilesInput.addEventListener("change", async () => {
+                    const files = Array.from(uploadFilesInput.files || []);
+                    if (!files.length) return;
+                    await handleUploadFiles(files);
+                    uploadFilesInput.value = "";
+                });
+            }
+            if (uploadLinkLink && projectId) {
+                uploadLinkLink.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const url = "files-link.html?projectId=" + encodeURIComponent(projectId);
+                    window.location.href = url;
                 });
             }
             if (!projectId) {
