@@ -353,6 +353,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         let projectId = urlParams.get('projectId') || urlParams.get('id');
+        const folderId = urlParams.get('folderId') || "";
         if (!projectId) {
             try {
                 const cached = localStorage.getItem('currentProjectId');
@@ -920,13 +921,17 @@
                     user_photo: photoUrl,
                     parent_comment_id: replyTargetCommentId || null,
                     mentioned_user_ids: mentionedUnique,
+                    parent_id: folderId || null,
                     status: "draft",
                     created_at: serverTimestamp(),
                     updated_at: serverTimestamp()
                 };
                 await addDoc(draftsRef, payload);
                 if (projectId) {
-                    const targetUrl = `files.html?id=${encodeURIComponent(projectId)}`;
+                    let targetUrl = `files.html?id=${encodeURIComponent(projectId)}`;
+                    if (folderId) {
+                        targetUrl = `files-folder.html?projectId=${encodeURIComponent(projectId)}&folderId=${encodeURIComponent(folderId)}`;
+                    }
                     window.location.href = targetUrl;
                 }
             } catch (e) {
@@ -998,6 +1003,7 @@
                     user_name: userName,
                     user_initials: initials,
                     user_photo: photoUrl,
+                    parent_id: folderId || null,
                     created_at: serverTimestamp(),
                     parent_comment_id: replyTargetCommentId || null,
                     mentioned_user_ids: mentionedUnique
@@ -1010,7 +1016,10 @@
                 replyTargetCommentId = null;
 
                 if (projectId) {
-                    const targetUrl = `files.html?id=${encodeURIComponent(projectId)}`;
+                    let targetUrl = `files.html?id=${encodeURIComponent(projectId)}`;
+                    if (folderId) {
+                        targetUrl = `files-folder.html?projectId=${encodeURIComponent(projectId)}&folderId=${encodeURIComponent(folderId)}`;
+                    }
                     window.location.href = targetUrl;
                 }
             } catch (e) {
@@ -1036,7 +1045,11 @@
                 if (document.referrer) {
                     window.history.back();
                 } else {
-                    window.location.href = `files.html?id=${projectId}`;
+                    let targetUrl = `files.html?id=${projectId}`;
+                    if (folderId) {
+                        targetUrl = `files-folder.html?projectId=${encodeURIComponent(projectId)}&folderId=${encodeURIComponent(folderId)}`;
+                    }
+                    window.location.href = targetUrl;
                 }
             });
 
