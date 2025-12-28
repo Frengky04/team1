@@ -419,6 +419,7 @@ body {
     -webkit-box-shadow: 0px 5px 16px -6px rgba(114, 4, 207, 1);
     color: #fff; border: none; transition: 0.3s;
 }
+.border-dlg-blue{ border: 1px solid #0f61a8; box-shadow: 0px 7px 9px -6px rgba(114, 4, 207, 1); }
 .btn-dlg-blue:hover {
     background: linear-gradient(to bottom, #0b2b6a 5%, #0f61a8 100%);
     color: #fff;
@@ -431,6 +432,7 @@ body {
     -webkit-box-shadow: 0px 5px 16px -6px rgba(114, 4, 207, 1);
     color: #fff; border: none; transition: 0.3s;
 }
+.border-dlg-red{ border: 1px solid #e7181b; box-shadow: 0px 7px 9px -6px rgba(114, 4, 207, 1); }
 .btn-dlg-red:hover {
     background: linear-gradient(to bottom, #a31818 5%, #e7181b 100%);
     color: #fff;
@@ -443,6 +445,7 @@ body {
     -webkit-box-shadow: 0px 5px 16px -6px rgba(114, 4, 207, 1);
     color: black; border: none; transition: 0.3s;
 }
+.border-dlg-yellow{ border: 1px solid #f1ac15; box-shadow: 0px 7px 9px -6px rgba(114, 4, 207, 1); }
 .btn-dlg-yellow:hover {
     background: linear-gradient(to top,#fcf221 22%, #f1ac15 100%);
     box-shadow: 0px 0px 4px 2px rgba(114, 4, 207, 0.75);
@@ -470,11 +473,11 @@ body {
   -o-transition: 0.3s;
   border: none;
 }
-
+.border-dlg-green{ border: 1px solid #006a4e; box-shadow: 0px 7px 9px -6px rgba(114, 4, 207, 1); }
 .btn-dlg-green:hover {
     color: #fff;
   background-color: #006a4e;
-  background: linear-gradient(to bottom, #006a4e 5%, #002a1f 100%);
+  background: linear-gradient(to bottom, #002a1f 5%, #006a4e 100%);
   box-shadow: 0px 0px 4px 2px rgba(114, 4, 207, 0.75);
   -webkit-box-shadow: 0px 0px 4px 2px rgba(114, 4, 207, 0.75);
 }

@@ -154,6 +154,23 @@
             transform: translateY(-2px) scale(1.05);
             box-shadow: 0 6px 14px rgba(15, 23, 42, 0.35);
         }
+        .boost-emoji-delete {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-left: 4px;
+            color: #9ca3af;
+        }
+        .boost-emoji-delete:hover {
+            color: #ef4444;
+        }
         @media (max-width: 768px) {
             .ph-badge { display: none; }
             .ph-crumb-container { width: 100%; justify-content: center; padding: 8px 10px; gap: 8px; font-size: 0.85rem;}
@@ -302,24 +319,29 @@
                 <div id="messageContent" class="mb-4"></div>
                 <div id="messageAttachments" class="small mb-2"></div>
                 <div id="messageError" class="text-danger small mt-2"></div>
-                <div id="messageBoostSection" class="mt-4 pt-2" style="border-top:1px solid #e5e7eb;">
-                    <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap boost-emoji-container">
+                <div id="messageBoostSection" class="mt-4 pt-2" style="">
+                    <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
                         <div class="d-flex align-items-center avatar-pile" id="messageBoostAvatars"></div>
-                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 d-flex align-items-center gap-2" onclick="toggleBoostMessage()" id="messageBoostButton">
-                            <span id="messageBoostEmoji">👏</span>
-                            <span id="messageBoostLabel" class="small fw-semibold">Boost this</span>
-                        </button>
-                        <div id="boostEmojiPopover" class="boost-emoji-popover" style="display:none;">
-                            <button type="button" class="boost-emoji-option" data-emoji="👍">👍</button>
-                            <button type="button" class="boost-emoji-option" data-emoji="❤️">❤️</button>
-                            <button type="button" class="boost-emoji-option" data-emoji="😆">😆</button>
-                            <button type="button" class="boost-emoji-option" data-emoji="😮">😮</button>
-                            <button type="button" class="boost-emoji-option" data-emoji="😢">�</button>
-                            <button type="button" class="boost-emoji-option" data-emoji="😡">😡</button>
+                        <div class="boost-emoji-container">
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 d-flex align-items-center gap-2" onclick="toggleBoostMessage()" id="messageBoostButton">
+                                <span id="messageBoostEmoji">👏</span>
+                                <span id="messageBoostLabel" class="small fw-semibold">Boost this</span>
+                            </button>
+                            <div id="boostEmojiPopover" class="boost-emoji-popover" style="display:none;">
+                                <button type="button" class="boost-emoji-option" data-emoji="❤️">❤️</button>
+                                <button type="button" class="boost-emoji-option" data-emoji="👏🏻">👏🏻</button>
+                                <button type="button" class="boost-emoji-option" data-emoji="🚀">🚀</button>
+                                <button type="button" class="boost-emoji-option" data-emoji="⭐️">⭐️</button>
+                                <button type="button" class="boost-emoji-option" data-emoji="✍🏻">✍🏻</button>
+                                <button type="button" class="boost-emoji-option" data-emoji="❌">❌</button>
+                            </div>
                         </div>
+                        <button type="button" class="boost-emoji-delete" onclick="handleBoostDeleteClick()">🚫</button>
                     </div>
                 </div>
                 <div class="mt-5 pt-5 border-top">
+                <h6 class="fw-bold text-dark">Discuss Section</h6>
+                <p class="small text-muted mb-3">Let's discuss about this message.</p>
                     <div id="commentsContainer" class="mb-4 d-flex flex-column gap-3"></div>
                     <div class="d-flex gap-3">
                         <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center fw-bold flex-shrink-0 overflow-hidden" style="width:40px; height:40px;">
@@ -341,7 +363,7 @@
                             </div>
                             <div id="commentAttachmentPreview" class="small text-muted mb-2"></div>
                             <input type="file" id="comment-file-input" multiple style="display:none">
-                            <button class="btn btn-dlg-yellow rounded-pill px-4 btn-sm fw-bold" style="margin-top: 7px;" onclick="postComment()">Post comment</button>
+                            <button class="btn btn-dlg-yellow rounded-pill px-4 btn-sm fw-bold" style="margin-top: 7px;" onclick="postComment()">Post Comment</button>
                         </div>
                     </div>
                 </div>
@@ -1646,6 +1668,28 @@
             } catch (e) {
                 console.error("Failed to set boost emoji", e);
                 alert("Gagal menyimpan boost: " + e.message);
+            }
+        };
+        window.handleBoostDeleteClick = async function () {
+            try {
+                if (!currentUser && !localStorage.getItem("userData")) {
+                    alert("Harus login terlebih dahulu.");
+                    return;
+                }
+                const boostsRef = getBoostsCollectionRef();
+                if (!boostsRef) throw new Error("Project ID atau Message ID tidak tersedia untuk mengubah boost.");
+                const uid = getCurrentUserUid();
+                if (!uid) throw new Error("User tidak ditemukan.");
+                const q = query(boostsRef, where("user_id", "==", uid));
+                const snap = await getDocs(q);
+                const docs = [];
+                snap.forEach(docSnap => docs.push(docSnap));
+                if (docs.length > 0) {
+                    await Promise.all(docs.map(d => deleteDoc(d.ref)));
+                }
+            } catch (e) {
+                console.error("Failed to delete boost", e);
+                alert("Gagal menghapus boost: " + e.message);
             }
         };
         document.addEventListener("DOMContentLoaded", () => {

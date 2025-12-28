@@ -795,6 +795,12 @@
                     </div>
                 </div>
 
+                <div class="text-center mb-2">
+                    <a href="#" id="continueDraftsLink" class="small fw-semibold" style="display:none; color:#2563eb; text-decoration:none;">
+                        Continue writing drafts...
+                    </a>
+                </div>
+
                 <div id="commentsContainer" class="mb-4 d-flex flex-column"></div>
 
                 <div class="todo-list-wrapper d-none"></div>
@@ -963,6 +969,11 @@
             return collection(db, "projects", projectId, "messages");
         }
 
+        function getMessageDraftsCollectionRef() {
+            if (!projectId) return null;
+            return collection(db, "projects", projectId, "message_drafts");
+        }
+
         function getSubscribersCollectionRef() {
             if (!projectId) return null;
             if (listId) {
@@ -1061,6 +1072,7 @@
             listenSubscribers();
 
             initMessageHeaderControls();
+            loadDraftSummary();
 
             onAuthStateChanged(auth, (user) => {
                 currentUser = user || null;
@@ -1091,6 +1103,49 @@
                 editItem.addEventListener('click', () => {
                     console.log('Edit category clicked');
                 });
+            }
+        }
+
+        async function loadDraftSummary() {
+            const link = document.getElementById('continueDraftsLink');
+            if (!link) return;
+            if (!projectId) {
+                link.style.display = "none";
+                return;
+            }
+            try {
+                const draftsRef = getMessageDraftsCollectionRef();
+                if (!draftsRef) {
+                    link.style.display = "none";
+                    return;
+                }
+                const uid = getCurrentUserUid();
+                let snap;
+                if (uid) {
+                    const q = query(draftsRef, where("user_id", "==", uid));
+                    snap = await getDocs(q);
+                } else {
+                    snap = await getDocs(draftsRef);
+                }
+                const count = snap.size;
+                if (!count) {
+                    link.style.display = "none";
+                    return;
+                }
+                const text = count === 1
+                    ? "Continue writing 1 draft..."
+                    : `Continue writing ${count} drafts...`;
+                link.innerText = text;
+                link.style.display = "inline";
+                link.onclick = (e) => {
+                    e.preventDefault();
+                    const url = `message-draft.html?projectId=${encodeURIComponent(projectId)}`;
+                    window.location.href = url;
+                };
+            } catch (e) {
+                console.error("Failed to load draft summary", e);
+                const link = document.getElementById('continueDraftsLink');
+                if (link) link.style.display = "none";
             }
         }
 
@@ -1655,7 +1710,7 @@
                 const metaText = metaParts.join(' • ');
 
                 const html = `
-                    <div class="d-flex align-items-start gap-3 py-3 border-top message-board-row" style="cursor:pointer;" onclick="openMessageDetail('${c.id}')">
+                    <div class="d-flex align-items-start gap-3 py-3 border-top message-board-row" style="cursor:pointer;" data-message-id="${c.id}" onclick="openMessageDetail('${c.id}')">
                         ${avatar}
                         <div class="flex-grow-1">
                             <div class="d-flex justify-content-between align-items-baseline mb-1">
@@ -1667,10 +1722,17 @@
                                 ${escapeHtml(snippet)}
                             </div>
                         </div>
+                        <div class="ms-3 d-flex align-items-center">
+                            <span class="badge rounded-pill bg-primary text-white fw-semibold message-comment-count" style="min-width:24px; display:none; justify-content:center; font-size:0.8rem;">0</span>
+                        </div>
                     </div>
                 `;
                 commentsContainer.insertAdjacentHTML('beforeend', html);
             });
+
+            if (!listId) {
+                loadCommentCountsForMessages(roots);
+            }
         }
 
         function renderSubscribers(subs) {

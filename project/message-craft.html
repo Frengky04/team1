@@ -815,10 +815,10 @@
                                 <button id="subscriptionToggleButton" type="button" onclick="toggleSubscription()"></button>
                             </div>
                             <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-outline-success rounded-pill px-4 btn-sm" id="saveDraftButton">
+                                <button type="button" class="btn btn-outline-success rounded-pill px-4 btn-sm" id="saveDraftButton" style="border-color: #006a4e; ">
                                     Save as a draft
                                 </button>
-                                <button type="button" class="btn btn-success rounded-pill px-4 btn-sm" id="postMessageButton" onclick="postComment('list')">
+                                <button type="button" class="btn btn-dlg-green rounded-pill px-4 btn-sm" id="postMessageButton" onclick="postComment('list')">
                                     Post this message
                                 </button>
                             </div>
@@ -948,6 +948,7 @@
         const projectId = urlParams.get('projectId') || urlParams.get('id');
         const listId = urlParams.get('listId');
         const messageId = urlParams.get('messageId');
+        const draftId = urlParams.get('draftId');
 
         const tasksWrapper = document.querySelector('.todo-list-wrapper');
         const titleEl = document.getElementById('listTitleDisplay');
@@ -981,6 +982,7 @@
         let mentionDropdownElement = null;
         let currentMessageCategory = "";
         let currentEditingMessage = null;
+        let currentDraftId = null;
 
         function getDirectPhotoUrl(url, uid) {
             if (!url) return `https://i.pravatar.cc/150?u=${uid || "user"}`;
@@ -999,6 +1001,11 @@
         function getMessagesCollectionRef() {
             if (!projectId) return null;
             return collection(db, "projects", projectId, "messages");
+        }
+
+        function getMessageDraftsCollectionRef() {
+            if (!projectId) return null;
+            return collection(db, "projects", projectId, "message_drafts");
         }
 
         function getMessageSubscribersCollectionRef() {
@@ -1040,6 +1047,7 @@
             const commentFileInput = document.getElementById('comment-file-input');
             const attachmentPreview = document.getElementById('commentAttachmentPreview');
             const mentionDropdown = document.getElementById('mentionDropdown');
+            const saveDraftButton = document.getElementById('saveDraftButton');
             if (commentFileInput && attachmentPreview) {
                 commentFileInput.addEventListener('change', () => {
                     const files = Array.from(commentFileInput.files || []);
@@ -1064,6 +1072,10 @@
                         }
                     }, 150);
                 });
+            }
+
+            if (saveDraftButton) {
+                saveDraftButton.addEventListener('click', saveDraftMessage);
             }
 
             if (titleEl && listId) {
@@ -1096,6 +1108,8 @@
             initMessageComposeControls();
             if (messageId) {
                 loadEditingMessage();
+            } else if (draftId) {
+                loadEditingDraft();
             }
         });
 
@@ -1143,6 +1157,35 @@
                 }
             } catch (e) {
                 console.error("Failed to load message for editing", e);
+            }
+        }
+
+        async function loadEditingDraft() {
+            if (!projectId || !draftId) return;
+            try {
+                const ref = doc(db, "projects", projectId, "message_drafts", draftId);
+                const snap = await getDoc(ref);
+                if (!snap.exists()) return;
+                const data = snap.data();
+                currentDraftId = snap.id;
+                const titleInput = document.getElementById("messageTitleInput");
+                const input = document.getElementById("commentInput");
+                if (titleInput) {
+                    titleInput.value = data.title || "";
+                }
+                if (input) {
+                    input.innerHTML = data.text || "";
+                }
+                currentMessageCategory = data.category || "";
+                const dropdown = document.getElementById("messageCategoryDropdown");
+                if (dropdown) {
+                    const labelSpan = dropdown.querySelector("span.small");
+                    if (labelSpan) {
+                        labelSpan.innerText = formatCategoryLabel(currentMessageCategory);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to load draft for editing", e);
             }
         }
 
@@ -1817,6 +1860,101 @@
             subscriptionToggleButton.disabled = false;
         }
 
+        window.saveDraftMessage = async function () {
+            const input = document.getElementById('commentInput');
+            if (!input) return;
+            const plainText = input.innerText.replace(/\u200B/g, '').trim();
+            const htmlText = input.innerHTML.trim();
+            const titleInput = document.getElementById('messageTitleInput');
+            const title = titleInput ? (titleInput.value || '').trim() : '';
+            if (!plainText && !title) {
+                alert("Tidak ada konten untuk disimpan sebagai draft.");
+                return;
+            }
+
+            const btn = document.getElementById('saveDraftButton');
+            let originalBtnText = '';
+            if (btn) {
+                originalBtnText = btn.innerText;
+                btn.innerText = 'Saving...';
+                btn.disabled = true;
+            }
+
+            try {
+                const localData = JSON.parse(localStorage.getItem('userData') || 'null');
+                const userName = localData && localData.name ? localData.name : (currentUser ? currentUser.email : 'User');
+                const uid = currentUser ? currentUser.uid : (localData && localData.uid ? localData.uid : '');
+                const rawPhoto = localData && localData.photo ? localData.photo : (currentUser && currentUser.photoURL ? currentUser.photoURL : "");
+                const photoUrl = getDirectPhotoUrl(rawPhoto || "", uid || "");
+                const initialsSource = userName || uid || '';
+                const initials = initialsSource
+                    ? initialsSource.trim().split(' ').map(part => part[0]).join('').substring(0, 2).toUpperCase()
+                    : 'US';
+                const attachments = [];
+                if (pendingCommentFiles && pendingCommentFiles.length > 0) {
+                    for (const file of pendingCommentFiles) {
+                        try {
+                            const path = getMessageAttachmentPath(file.name);
+                            const ref = storageRef(storage, path);
+                            await uploadBytes(ref, file);
+                            const url = await getDownloadURL(ref);
+                            attachments.push({ name: file.name, url });
+                        } catch (e) {
+                            console.error("Failed to upload attachment for draft", e);
+                        }
+                    }
+                }
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = htmlText;
+                const mentionNodes = tempDiv.querySelectorAll('[data-mention-uid]');
+                const mentionedIds = Array.from(mentionNodes).map(node => node.getAttribute('data-mention-uid')).filter(Boolean);
+                const mentionedUnique = Array.from(new Set(mentionedIds));
+                const draftsRef = getMessageDraftsCollectionRef();
+                if (!draftsRef) throw new Error("Project ID tidak valid.");
+                const basePayload = {
+                    title: title,
+                    category: currentMessageCategory || '',
+                    text: htmlText,
+                    text_plain: plainText,
+                    attachments: attachments,
+                    user_id: uid,
+                    user_name: userName,
+                    user_initials: initials,
+                    user_photo: photoUrl,
+                    parent_comment_id: replyTargetCommentId || null,
+                    mentioned_user_ids: mentionedUnique,
+                    status: "draft"
+                };
+                const targetId = currentDraftId || draftId || null;
+                if (targetId) {
+                    await updateDoc(doc(draftsRef, targetId), {
+                        ...basePayload,
+                        updated_at: serverTimestamp()
+                    });
+                    currentDraftId = targetId;
+                } else {
+                    const docRef = await addDoc(draftsRef, {
+                        ...basePayload,
+                        created_at: serverTimestamp(),
+                        updated_at: serverTimestamp()
+                    });
+                    currentDraftId = docRef.id;
+                }
+                if (projectId) {
+                    const targetUrl = `message-draft.html?projectId=${encodeURIComponent(projectId)}`;
+                    window.location.href = targetUrl;
+                }
+            } catch (e) {
+                console.error("Failed to save draft", e);
+                alert("Gagal menyimpan draft: " + e.message);
+            } finally {
+                if (btn) {
+                    btn.innerText = originalBtnText || 'Save as a draft';
+                    btn.disabled = false;
+                }
+            }
+        };
+
         window.postComment = async function () {
             const input = document.getElementById('commentInput');
             if (!input) return;
@@ -1880,6 +2018,17 @@
                     parent_comment_id: replyTargetCommentId || null,
                     mentioned_user_ids: mentionedUnique
                 });
+
+                if (draftId) {
+                    try {
+                        const draftsRef = getMessageDraftsCollectionRef();
+                        if (draftsRef) {
+                            await deleteDoc(doc(draftsRef, draftId));
+                        }
+                    } catch (e) {
+                        console.error("Failed to delete draft after posting", e);
+                    }
+                }
 
                 input.innerHTML = '';
                 pendingCommentFiles = [];
