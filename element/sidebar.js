@@ -352,7 +352,7 @@ export function renderSidebar(target) {
 
         <div id="questCreateForm" class="mb-10 rounded-3xl border border-gray-200 bg-white shadow-sm p-6 md:p-8 hidden">
             <div class="mb-6">
-                <input type="text" placeholder="Quest Name"
+                <input id="questNameInput" type="text" placeholder="Quest Name"
                     class="w-full text-2xl md:text-3xl font-semibold text-gray-900 border-none focus:ring-0 focus:outline-none placeholder-gray-400" />
             </div>
             <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -743,6 +743,7 @@ export function renderSidebar(target) {
                             </div>
                         </div>
                     </div>
+
                     <div class="flex items-center gap-3">
                         <div class="font-medium text-gray-500 w-24">Notify to</div>
                         <div class="flex-1">
@@ -780,7 +781,7 @@ export function renderSidebar(target) {
                     </div>
                     <div class="flex items-center gap-3">
                         <div class="font-medium text-gray-500 w-24">Task point</div>
-                        <input type="number" min="0" placeholder="0"
+                        <input id="questPointInput" type="number" min="0" placeholder="0"
                             class="w-24 rounded-xl border border-gray-200 px-3 py-2 text-xs md:text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100" />
                     </div>
                     <div class="flex items-center gap-3">
@@ -823,12 +824,15 @@ export function renderSidebar(target) {
             </div>
             <div class="flex flex-col md:flex-row items-stretch md:items-center justify-end gap-3">
                 <button type="button"
-                    class="rounded-full px-7 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200">
+                    class="rounded-full px-7 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200"
+                    onclick="toggleQuestForm()">
                     Cancel
                 </button>
                 <button type="button"
+                    id="questSaveButton"
                     class="rounded-full px-8 py-2.5 text-sm font-semibold text-white"
-                    style="background: radial-gradient(circle at 0% 0%, #a855f7 0%, #1d4ed8 60%, #0f172a 100%); box-shadow: 0 10px 25px rgba(59,130,246,0.35);">
+                    style="background: radial-gradient(circle at 0% 0%, #a855f7 0%, #1d4ed8 60%, #0f172a 100%); box-shadow: 0 10px 25px rgba(59,130,246,0.35);"
+                    onclick="saveQuest()">
                     Add to-do
                 </button>
             </div>
@@ -1020,10 +1024,12 @@ export function renderSidebar(target) {
 
     <script>
         lucide.createIcons();
+        var questCurrentPriority = 'urgent';
 
         function switchTab(priority, element) {
             document.querySelectorAll('.nav-card').forEach(card => card.classList.remove('active'));
             element.classList.add('active');
+            questCurrentPriority = priority;
 
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
             document.getElementById(priority + '-content').classList.remove('hidden');
@@ -2262,6 +2268,188 @@ export function renderSidebar(target) {
                 }
             }
         }
+        async function saveQuest() {
+            var parentWin = window.parent;
+            if (!parentWin || !parentWin.db || !parentWin.collection || !parentWin.addDoc || !parentWin.serverTimestamp) {
+                alert('Tidak dapat menyimpan quest: koneksi database tidak tersedia.');
+                return;
+            }
+            var btn = document.getElementById('questSaveButton');
+            var originalText = btn ? btn.textContent : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Saving...';
+            }
+            try {
+                var nameInput = document.getElementById('questNameInput');
+                var title = nameInput ? String(nameInput.value || '').trim() : '';
+                if (!title) {
+                    alert('Silakan isi Quest Name terlebih dahulu.');
+                    return;
+                }
+                var descEl = document.getElementById('questDescEditor');
+                var descHtml = descEl ? descEl.innerHTML : '';
+                var dueInput = document.getElementById('questDueDate');
+                var dueText = dueInput ? String(dueInput.value || '').trim() : '';
+                var pointInput = document.getElementById('questPointInput');
+                var points = 0;
+                if (pointInput && pointInput.value) {
+                    var p = parseFloat(pointInput.value);
+                    if (!isNaN(p) && p > 0) {
+                        points = p;
+                    }
+                }
+                var deptSelected = [];
+                Array.prototype.slice.call(
+                    document.querySelectorAll('#questDepartmentDropdown input[type="checkbox"]:checked')
+                ).forEach(function (cb) {
+                    var id = cb.getAttribute('data-dept-id') || '';
+                    var row = cb.closest('.quest-dept-option');
+                    var nameEl = row ? row.querySelector('.quest-dept-name') : null;
+                    var name = nameEl ? nameEl.textContent.trim() : '';
+                    deptSelected.push({ id: id, name: name });
+                });
+                var positionSelected = [];
+                Array.prototype.slice.call(
+                    document.querySelectorAll('#questPositionDropdown input[type="checkbox"]:checked')
+                ).forEach(function (cb) {
+                    var id = cb.getAttribute('data-position-id') || '';
+                    var row = cb.closest('.quest-position-option');
+                    var nameEl = row ? row.querySelector('.quest-position-name') : null;
+                    var name = nameEl ? nameEl.textContent.trim() : '';
+                    positionSelected.push({ id: id, name: name });
+                });
+                var assignSelected = [];
+                Array.prototype.slice.call(
+                    document.querySelectorAll('#questAssignDropdown input[type="checkbox"]:checked')
+                ).forEach(function (cb) {
+                    var uid = cb.getAttribute('data-user-id') || '';
+                    assignSelected.push(uid);
+                });
+                var notifySelected = [];
+                Array.prototype.slice.call(
+                    document.querySelectorAll('#questNotifyDropdown input[type="checkbox"]:checked')
+                ).forEach(function (cb) {
+                    var uid = cb.getAttribute('data-user-id') || '';
+                    notifySelected.push(uid);
+                });
+                var tags = getQuestTags();
+                var reminderMode = questReminderState && questReminderState.mode ? questReminderState.mode : null;
+                var reminderDates = [];
+                if (questReminderState && reminderMode) {
+                    var dates = questReminderComputeDates();
+                    if (dates && dates.length) {
+                        reminderDates = dates.map(function (d) {
+                            return d.toISOString();
+                        });
+                    }
+                }
+                var recur = null;
+                if (questRecurState) {
+                    recur = {
+                        base_date: questRecurState.baseDate ? questDueFormatDate(questRecurState.baseDate) : null,
+                        unit: questRecurState.unit || null,
+                        interval: typeof questRecurState.interval === 'number' ? questRecurState.interval : 1,
+                        weekdays: Array.isArray(questRecurState.weekdays) ? questRecurState.weekdays.slice() : [],
+                        monthly_mode: questRecurState.monthlyMode || null
+                    };
+                }
+                var localData = null;
+                try {
+                    localData = JSON.parse(localStorage.getItem('userData') || 'null');
+                } catch (e) {
+                    localData = null;
+                }
+                var createdBy = localData && localData.uid ? localData.uid : '';
+                var createdByName = localData && localData.name ? localData.name : '';
+                var payload = {
+                    title: title,
+                    description: descHtml,
+                    priority: questCurrentPriority || 'normal',
+                    due_date: dueText,
+                    points: points,
+                    departments: deptSelected,
+                    positions: positionSelected,
+                    assign_to: assignSelected,
+                    notify_to: notifySelected,
+                    tags: tags,
+                    reminder_mode: reminderMode,
+                    reminder_dates: reminderDates,
+                    recur: recur,
+                    status: 'Initiate',
+                    created_at: parentWin.serverTimestamp(),
+                    created_by: createdBy,
+                    created_by_name: createdByName
+                };
+                await parentWin.addDoc(parentWin.collection(parentWin.db, 'quests'), payload);
+                if (nameInput) nameInput.value = '';
+                if (dueInput) dueInput.value = '';
+                if (pointInput) pointInput.value = '';
+                if (descEl) descEl.innerHTML = '';
+                Array.prototype.slice.call(
+                    document.querySelectorAll('#questDepartmentDropdown input[type="checkbox"]')
+                ).forEach(function (cb) { cb.checked = false; });
+                updateQuestDepartmentLabel();
+                Array.prototype.slice.call(
+                    document.querySelectorAll('#questPositionDropdown input[type="checkbox"]')
+                ).forEach(function (cb) { cb.checked = false; });
+                updateQuestPositionLabel();
+                Array.prototype.slice.call(
+                    document.querySelectorAll('#questAssignDropdown input[type="checkbox"]')
+                ).forEach(function (cb) { cb.checked = false; });
+                updateQuestUserLabel('questAssignDropdown', 'questAssignButtonLabel', 'Select user...', 'questAssignAvatars');
+                Array.prototype.slice.call(
+                    document.querySelectorAll('#questNotifyDropdown input[type="checkbox"]')
+                ).forEach(function (cb) { cb.checked = false; });
+                updateQuestUserLabel('questNotifyDropdown', 'questNotifyButtonLabel', 'Select user...', 'questNotifyAvatars');
+                setQuestTags([]);
+                questRecurState = null;
+                questRecurPrevState = null;
+                questReminderState = null;
+                var labelReminder = document.getElementById('questReminderButtonLabel');
+                if (labelReminder) {
+                    labelReminder.textContent = 'No reminder';
+                }
+                toggleQuestForm();
+                alert('Quest berhasil disimpan.');
+            } catch (err) {
+                console.error('Gagal menyimpan quest', err);
+                alert('Gagal menyimpan quest: ' + (err && err.message ? err.message : String(err)));
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = originalText || 'Add to-do';
+                }
+            }
+        }
+        function questCloseDropdownIfOutside(event, dropdownId, usesDisplayStyle) {
+            var dropdown = document.getElementById(dropdownId);
+            if (!dropdown) return;
+            var target = event.target;
+            var trigger = dropdown.previousElementSibling;
+            var insideDropdown = dropdown.contains(target);
+            var insideTrigger = trigger && trigger.contains(target);
+            if (insideDropdown || insideTrigger) return;
+            if (usesDisplayStyle) {
+                if (dropdown.style.display === 'block') {
+                    dropdown.style.display = 'none';
+                }
+            } else {
+                if (!dropdown.classList.contains('hidden')) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        }
+        document.addEventListener('click', function (event) {
+            questCloseDropdownIfOutside(event, 'questDepartmentDropdown', false);
+            questCloseDropdownIfOutside(event, 'questAssignDropdown', false);
+            questCloseDropdownIfOutside(event, 'questDueDropdown', false);
+            questCloseDropdownIfOutside(event, 'questRecurDropdown', false);
+            questCloseDropdownIfOutside(event, 'questReminderDropdown', false);
+            questCloseDropdownIfOutside(event, 'questPositionDropdown', false);
+            questCloseDropdownIfOutside(event, 'questNotifyDropdown', false);
+            questCloseDropdownIfOutside(event, 'quest-tag-dropdown', true);
+        });
         loadQuestDepartments();
         loadQuestPositions();
         loadQuestUsers();
