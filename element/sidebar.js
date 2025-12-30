@@ -355,7 +355,7 @@ export function renderSidebar(target) {
                                     <span class="text-gray-400 text-xs md:text-sm">&#9662;</span>
                                 </button>
                                 <div id="questAssignDropdown"
-                                    class="absolute top-full left-0 mt-2 w-72 md:w-80 rounded-2xl bg-slate-900 text-white shadow-2xl p-3 hidden text-xs md:text-sm">
+                                    class="absolute top-full left-0 mt-2 w-72 md:w-80 rounded-2xl bg-slate-900 text-white shadow-2xl p-3 hidden text-xs md:text-sm z-40">
                                     <div class="mb-3">
                                         <div class="relative">
                                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
@@ -719,7 +719,7 @@ export function renderSidebar(target) {
                                     <span class="text-gray-400 text-xs md:text-sm">&#9662;</span>
                                 </button>
                                 <div id="questNotifyDropdown"
-                                    class="absolute top-full left-0 mt-2 w-72 md:w-80 rounded-2xl bg-slate-900 text-white shadow-2xl p-3 hidden text-xs md:text-sm">
+                                    class="absolute top-full left-0 mt-2 w-72 md:w-80 rounded-2xl bg-slate-900 text-white shadow-2xl p-3 hidden text-xs md:text-sm z-40">
                                     <div class="mb-3">
                                         <div class="relative">
                                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
