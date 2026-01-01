@@ -2251,6 +2251,11 @@ export function renderSidebar(target) {
             html += '</div>';
             html += '</div>';
             wrapper.innerHTML = html;
+            var checkBtn = wrapper.querySelector('.quest-card-check-btn');
+            if (checkBtn) {
+                checkBtn.setAttribute('data-original-class', checkBtn.className);
+                checkBtn.setAttribute('data-original-html', checkBtn.innerHTML);
+            }
             return wrapper;
         }
         async function loadQuestTasks() {
@@ -2614,22 +2619,52 @@ export function renderSidebar(target) {
         }
         function updateQuestActionButtons() {
             var actionContainers = document.querySelectorAll('.quest-card-actions');
-            var editButtons = document.querySelectorAll('.quest-card-edit-btn');
             var deleteButtons = document.querySelectorAll('.quest-card-delete-btn');
             var cards = document.querySelectorAll('.quest-card');
+            var checkButtons = document.querySelectorAll('.quest-card-check-btn');
             if (questActionMode === 'edit') {
                 actionContainers.forEach(function (el) { el.classList.remove('hidden'); });
-                editButtons.forEach(function (el) { el.classList.remove('hidden'); });
                 deleteButtons.forEach(function (el) { el.classList.add('hidden'); });
                 cards.forEach(function (card) { card.setAttribute('title', 'Click for Edit'); });
+                checkButtons.forEach(function (btn) {
+                    var originalClass = btn.getAttribute('data-original-class');
+                    var originalHtml = btn.getAttribute('data-original-html');
+                    if (!originalClass) {
+                        btn.setAttribute('data-original-class', btn.className);
+                    }
+                    if (!originalHtml) {
+                        btn.setAttribute('data-original-html', btn.innerHTML);
+                    }
+                    btn.className = 'px-3 py-1 text-xs font-semibold rounded-full border border-blue-500 text-blue-600 quest-card-check-btn';
+                    btn.textContent = 'Edit';
+                });
             } else if (questActionMode === 'delete') {
                 actionContainers.forEach(function (el) { el.classList.remove('hidden'); });
-                editButtons.forEach(function (el) { el.classList.add('hidden'); });
                 deleteButtons.forEach(function (el) { el.classList.remove('hidden'); });
                 cards.forEach(function (card) { card.removeAttribute('title'); });
+                checkButtons.forEach(function (btn) {
+                    var originalClass = btn.getAttribute('data-original-class');
+                    var originalHtml = btn.getAttribute('data-original-html');
+                    if (originalClass) {
+                        btn.className = originalClass;
+                    }
+                    if (originalHtml) {
+                        btn.innerHTML = originalHtml;
+                    }
+                });
             } else {
                 actionContainers.forEach(function (el) { el.classList.add('hidden'); });
                 cards.forEach(function (card) { card.removeAttribute('title'); });
+                checkButtons.forEach(function (btn) {
+                    var originalClass = btn.getAttribute('data-original-class');
+                    var originalHtml = btn.getAttribute('data-original-html');
+                    if (originalClass) {
+                        btn.className = originalClass;
+                    }
+                    if (originalHtml) {
+                        btn.innerHTML = originalHtml;
+                    }
+                });
             }
         }
         function questEditTask(taskId) {
@@ -2889,18 +2924,13 @@ export function renderSidebar(target) {
                 if (card) {
                     var id = card.getAttribute('data-task-id');
                     if (id) {
-                        questOpenTask(id);
-                    }
-                }
-                return;
-            }
-            var editBtn = event.target.closest('.quest-card-edit-btn');
-            if (editBtn) {
-                var cardEdit = editBtn.closest('.quest-card');
-                if (cardEdit) {
-                    var idEdit = cardEdit.getAttribute('data-task-id');
-                    if (idEdit) {
-                        questEditTask(idEdit);
+                        if (questActionMode === 'edit') {
+                            questEditTask(id);
+                        } else if (questActionMode === 'delete') {
+                            questDeleteTask(id);
+                        } else {
+                            questOpenTask(id);
+                        }
                     }
                 }
                 return;
