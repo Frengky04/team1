@@ -2990,7 +2990,15 @@ export function renderSidebar(target) {
                     if (data.project_id || data.projectId) return;
                     var type = String(data.type || '').toLowerCase();
                     var status = String(data.status || '').toLowerCase();
-                    if (type !== 'side-quest' && status !== 'sidequest') return;
+                    var isSideQuest = false;
+                    if (type === 'side-quest') {
+                        isSideQuest = true;
+                    } else if (status === 'sidequest') {
+                        isSideQuest = true;
+                    } else if (data.task_status) {
+                        isSideQuest = true;
+                    }
+                    if (!isSideQuest) return;
                     var title = data.title || '';
                     if (!title) return;
                     var priority = String(data.priority || 'normal').toLowerCase();
@@ -3474,6 +3482,9 @@ export function renderSidebar(target) {
                     questTasksById[taskId].status = nextStatus;
                 }
                 loadQuestTasks();
+                if (typeof loadSideQuestTasks === 'function') {
+                    loadSideQuestTasks();
+                }
             } catch (e) {
                 console.error('Gagal mengubah status quest', e);
                 alert('Gagal mengubah status quest: ' + (e && e.message ? e.message : String(e)));
@@ -3808,6 +3819,12 @@ export function renderSidebar(target) {
                         } else if (questActionMode === 'delete') {
                             questDeleteTask(id);
                         } else {
+                            checkBtn.classList.add('bg-emerald-500', 'border-emerald-500', 'text-white');
+                            var icon = checkBtn.querySelector('i');
+                            if (icon) {
+                                icon.classList.remove('text-gray-400');
+                                icon.classList.add('text-white');
+                            }
                             questToggleComplete(id);
                         }
                     }
@@ -4718,8 +4735,17 @@ export function renderSidebar(target) {
                     if (data.project_id || data.projectId) return;
                     var type = String(data.type || '').toLowerCase();
                     var status = String(data.status || '').toLowerCase();
-                    if (type !== 'side-quest' && status !== 'sidequest') return;
+                    var isSideQuest = false;
+                    if (type === 'side-quest') {
+                        isSideQuest = true;
+                    } else if (status === 'sidequest') {
+                        isSideQuest = true;
+                    } else if (data.task_status) {
+                        isSideQuest = true;
+                    }
+                    if (!isSideQuest) return;
                     var title = data.title || 'Untitled Side Quest';
+                    var taskId = String(docSnap.id || '');
                     var priority = String(data.priority || 'normal').toLowerCase();
                     var targetList = null;
                     if (priority === 'urgent') {
@@ -4761,7 +4787,7 @@ export function renderSidebar(target) {
                     }
                     var dueText = data.due_date || data.dueDate || '';
                     var el = document.createElement('div');
-                    el.className = 'p-4 rounded-2xl bg-gray-50 flex flex-col gap-2';
+                    el.className = 'p-4 rounded-2xl bg-gray-50 flex flex-col gap-2 quest-card';
                     var headerRight = dueText ? String(dueText) : '';
                     var pointsValue = 0;
                     if (typeof data.points === 'number') {
@@ -4774,8 +4800,13 @@ export function renderSidebar(target) {
                     }
                     var htmlCard = '';
                     htmlCard += '<div class="flex items-start justify-between gap-2">';
+                    htmlCard += '<div class="flex items-start gap-2">';
+                    htmlCard += '<button type="button" class="w-6 h-6 border-2 border-gray-300 rounded-full mt-0.5 flex-shrink-0 flex items-center justify-center bg-white quest-card-check-btn">';
+                    htmlCard += '<i data-lucide="check" class="w-3 h-3 text-gray-400"></i>';
+                    htmlCard += '</button>';
                     htmlCard += '<div class="flex flex-col gap-1">';
                     htmlCard += '<h3 class="font-semibold text-gray-900 text-sm md:text-base leading-snug">' + esc(title) + '</h3>';
+                    htmlCard += '</div>';
                     htmlCard += '</div>';
                     if (headerRight || pointsValue > 0) {
                         htmlCard += '<div class="flex flex-col items-end gap-1">';
@@ -4856,6 +4887,27 @@ export function renderSidebar(target) {
                     }
                     el.innerHTML = htmlCard;
                     el.setAttribute('data-task-id', String(docSnap.id || ''));
+                    var btn = el.querySelector('.quest-card-check-btn');
+                    if (btn && taskId) {
+                        btn.addEventListener('click', function (evt) {
+                            if (evt && evt.stopPropagation) {
+                                evt.stopPropagation();
+                            }
+                            if (questActionMode === 'edit') {
+                                questEditTask(taskId);
+                            } else if (questActionMode === 'delete') {
+                                questDeleteTask(taskId);
+                            } else {
+                                btn.classList.add('bg-emerald-500', 'border-emerald-500', 'text-white');
+                                var icon = btn.querySelector('i');
+                                if (icon) {
+                                    icon.classList.remove('text-gray-400');
+                                    icon.classList.add('text-white');
+                                }
+                                questToggleComplete(taskId);
+                            }
+                        });
+                    }
                     targetList.appendChild(el);
                 });
                 function ensureList(listEl, message) {
@@ -4872,6 +4924,9 @@ export function renderSidebar(target) {
                 setSideQuestCount(highCountEl, highCount);
                 setSideQuestCount(normalCountEl, normalCount);
                 setSideQuestCount(lowCountEl, lowCount);
+                if (window.lucide && window.lucide.createIcons) {
+                    window.lucide.createIcons();
+                }
             } catch (e) {
                 console.error('Failed to load side quests', e);
                 if (urgentList) urgentList.innerHTML = '<p class="text-red-500 text-xs">Failed to load side quests.</p>';
