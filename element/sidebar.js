@@ -1043,6 +1043,7 @@ export function renderSidebar(target) {
         var questTasksById = {};
         var questUsersById = {};
         var questActionMode = null;
+        var questEditingTaskId = null;
         var questCurrentPriority = 'urgent';
         var sideQuestCurrentPriority = 'normal';
 
@@ -1121,6 +1122,18 @@ export function renderSidebar(target) {
                 return;
             }
 
+            var notifySelected = [];
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestNotifyDropdown input[type="checkbox"]:checked')
+            ).forEach(function (cb) {
+                var uid = cb.getAttribute('data-user-id') || '';
+                if (uid) notifySelected.push(uid);
+            });
+            if (notifySelected.length === 0) {
+                showQuestAlert('Information', 'This Task Complete Without Anyone to Report.');
+                return;
+            }
+
             var parentWin = window.parent;
             if (!parentWin || !parentWin.db || !parentWin.collection || !parentWin.addDoc || !parentWin.doc) {
                 alert('Database connection not available.');
@@ -1180,6 +1193,141 @@ export function renderSidebar(target) {
                 console.error('Failed to submit report', e);
                 alert('Failed to submit report: ' + e.message);
             }
+        }
+
+        function questOpenTask(taskId) {
+            if (!taskId) return;
+            if (!questTasksById || !questTasksById[taskId]) {
+                showQuestAlert('Perhatian', 'Tidak dapat menemukan data Side Quest untuk diedit.');
+                return;
+            }
+            var data = questTasksById[taskId] || {};
+            sideQuestEditingTaskId = taskId;
+            var dropdown = document.getElementById('sideQuestCreateDropdown');
+            var headerToggle = document.getElementById('sideQuestHeaderToggleButton');
+            var headerMenu = document.getElementById('sideQuestHeaderMenu');
+            if (dropdown) {
+                dropdown.classList.remove('hidden');
+                if (dropdown.scrollIntoView) {
+                    dropdown.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+            if (headerToggle) {
+                headerToggle.classList.add('hidden');
+            }
+            if (headerMenu) {
+                headerMenu.classList.add('hidden');
+            }
+            var saveBtn = document.getElementById('sideQuestSaveButton');
+            if (saveBtn) {
+                saveBtn.textContent = 'Update Side Quest';
+            }
+            var input = document.getElementById('sideQuestNameInput');
+            if (input) {
+                input.value = data.title || '';
+                if (input.focus) {
+                    input.focus();
+                }
+            }
+            var startEl = document.getElementById('sideQuestStartInput');
+            if (startEl) {
+                var startVal = data.start_date || data.startDate || '';
+                startEl.value = startVal;
+            }
+            var dueEl = document.getElementById('sideQuestDueInput');
+            if (dueEl) {
+                var dueVal = data.due_date || data.dueDate || '';
+                dueEl.value = dueVal;
+            }
+            var pointsEl = document.getElementById('sideQuestPointsInput');
+            if (pointsEl) {
+                var pointsVal = typeof data.points === 'number' ? data.points : (data.points ? Number(data.points) || 0 : 0);
+                pointsEl.value = pointsVal ? String(pointsVal) : '';
+            }
+            var descEl = document.getElementById('sideQuestDesc');
+            if (descEl) {
+                descEl.innerHTML = data.description || '';
+            }
+            var tags = [];
+            if (Array.isArray(data.tags)) {
+                tags = data.tags.slice();
+            }
+            setSideQuestTags(tags);
+            var departmentsMap = {};
+            if (Array.isArray(data.departments)) {
+                data.departments.forEach(function (d) {
+                    if (d && d.id) {
+                        departmentsMap[d.id] = true;
+                    }
+                });
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestDepartmentDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var id = cb.getAttribute('data-dept-id') || '';
+                cb.checked = !!departmentsMap[id];
+            });
+            updateSideQuestDepartmentLabel();
+            var positionsMap = {};
+            if (Array.isArray(data.positions)) {
+                data.positions.forEach(function (p) {
+                    if (p && p.id) {
+                        positionsMap[p.id] = true;
+                    }
+                });
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestPositionDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var id = cb.getAttribute('data-position-id') || '';
+                cb.checked = !!positionsMap[id];
+            });
+            updateSideQuestPositionLabel();
+            var assignSet = {};
+            if (Array.isArray(data.assign_to)) {
+                data.assign_to.forEach(function (uid) {
+                    if (uid) {
+                        assignSet[String(uid)] = true;
+                    }
+                });
+            } else if (data.assign_to) {
+                assignSet[String(data.assign_to)] = true;
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestAssignDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var uid = cb.getAttribute('data-user-id') || '';
+                cb.checked = !!assignSet[uid];
+            });
+            updateSideQuestUserLabel('sideQuestAssignDropdown', 'sideQuestAssignButtonLabel', 'Select user...', 'sideQuestAssignAvatars');
+            var notifySet = {};
+            if (Array.isArray(data.notify_to)) {
+                data.notify_to.forEach(function (uid) {
+                    if (uid) {
+                        notifySet[String(uid)] = true;
+                    }
+                });
+            } else if (data.notify_to) {
+                notifySet[String(data.notify_to)] = true;
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestNotifyDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var uid = cb.getAttribute('data-user-id') || '';
+                cb.checked = !!notifySet[uid];
+            });
+            updateSideQuestUserLabel('sideQuestNotifyDropdown', 'sideQuestNotifyButtonLabel', 'Select user...', 'sideQuestNotifyAvatars');
+            var priority = String(data.priority || 'normal').toLowerCase();
+            sideQuestCurrentPriority = priority;
+            var buttons = document.querySelectorAll('.side-quest-priority-btn');
+            Array.prototype.slice.call(buttons).forEach(function (btn) {
+                var p = btn.getAttribute('data-priority') || '';
+                if (p === priority) {
+                    btn.classList.add('border-slate-900', 'bg-slate-900', 'text-white');
+                } else {
+                    btn.classList.remove('border-slate-900', 'bg-slate-900', 'text-white');
+                }
+            });
         }
 
         if (window.lucide && window.lucide.createIcons) {
@@ -1350,6 +1498,11 @@ export function renderSidebar(target) {
                 dropdown.classList.remove('hidden');
                 if (headerToggle) headerToggle.classList.add('hidden');
                 if (headerMenu) headerMenu.classList.add('hidden');
+                sideQuestEditingTaskId = null;
+                var saveBtn = document.getElementById('sideQuestSaveButton');
+                if (saveBtn) {
+                    saveBtn.textContent = 'Add Side Quest';
+                }
                 var input = document.getElementById('sideQuestNameInput');
                 if (input && input.focus) {
                     input.focus();
@@ -3562,7 +3715,13 @@ export function renderSidebar(target) {
         }
         function questEditTask(taskId) {
             if (!taskId) return;
-            questOpenTask(taskId);
+            var targetWin = window.parent && window.parent !== window ? window.parent : window;
+            var url = 'quest/quest-edit.html?taskId=' + encodeURIComponent(taskId);
+            try {
+                targetWin.open(url, '_blank');
+            } catch (e) {
+                window.open(url, '_blank');
+            }
         }
         async function questToggleComplete(taskId) {
             if (!taskId) return;
@@ -3625,13 +3784,137 @@ export function renderSidebar(target) {
         }
         function questOpenTask(taskId) {
             if (!taskId) return;
-            var targetWin = window.parent && window.parent !== window ? window.parent : window;
-            var url = 'quest/quest-edit.html?taskId=' + encodeURIComponent(taskId);
-            try {
-                targetWin.open(url, '_blank');
-            } catch (e) {
-                window.open(url, '_blank');
+            if (!questTasksById || !questTasksById[taskId]) {
+                showQuestAlert('Perhatian', 'Tidak dapat menemukan data Side Quest untuk diedit.');
+                return;
             }
+            var data = questTasksById[taskId] || {};
+            sideQuestEditingTaskId = taskId;
+            var dropdown = document.getElementById('sideQuestCreateDropdown');
+            var headerToggle = document.getElementById('sideQuestHeaderToggleButton');
+            var headerMenu = document.getElementById('sideQuestHeaderMenu');
+            if (dropdown) {
+                dropdown.classList.remove('hidden');
+                if (dropdown.scrollIntoView) {
+                    dropdown.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+            if (headerToggle) {
+                headerToggle.classList.add('hidden');
+            }
+            if (headerMenu) {
+                headerMenu.classList.add('hidden');
+            }
+            var saveBtn = document.getElementById('sideQuestSaveButton');
+            if (saveBtn) {
+                saveBtn.textContent = 'Update Side Quest';
+            }
+            var input = document.getElementById('sideQuestNameInput');
+            if (input) {
+                input.value = data.title || '';
+                if (input.focus) {
+                    input.focus();
+                }
+            }
+            var startEl = document.getElementById('sideQuestStartInput');
+            if (startEl) {
+                var startVal = data.start_date || data.startDate || '';
+                startEl.value = startVal;
+            }
+            var dueEl = document.getElementById('sideQuestDueInput');
+            if (dueEl) {
+                var dueVal = data.due_date || data.dueDate || '';
+                dueEl.value = dueVal;
+            }
+            var pointsEl = document.getElementById('sideQuestPointsInput');
+            if (pointsEl) {
+                var pointsVal = typeof data.points === 'number' ? data.points : (data.points ? Number(data.points) || 0 : 0);
+                pointsEl.value = pointsVal ? String(pointsVal) : '';
+            }
+            var descEl = document.getElementById('sideQuestDesc');
+            if (descEl) {
+                descEl.innerHTML = data.description || '';
+            }
+            var tags = [];
+            if (Array.isArray(data.tags)) {
+                tags = data.tags.slice();
+            }
+            setSideQuestTags(tags);
+            var departmentsMap = {};
+            if (Array.isArray(data.departments)) {
+                data.departments.forEach(function (d) {
+                    if (d && d.id) {
+                        departmentsMap[d.id] = true;
+                    }
+                });
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestDepartmentDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var id = cb.getAttribute('data-dept-id') || '';
+                cb.checked = !!departmentsMap[id];
+            });
+            updateSideQuestDepartmentLabel();
+            var positionsMap = {};
+            if (Array.isArray(data.positions)) {
+                data.positions.forEach(function (p) {
+                    if (p && p.id) {
+                        positionsMap[p.id] = true;
+                    }
+                });
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestPositionDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var id = cb.getAttribute('data-position-id') || '';
+                cb.checked = !!positionsMap[id];
+            });
+            updateSideQuestPositionLabel();
+            var assignSet = {};
+            if (Array.isArray(data.assign_to)) {
+                data.assign_to.forEach(function (uid) {
+                    if (uid) {
+                        assignSet[String(uid)] = true;
+                    }
+                });
+            } else if (data.assign_to) {
+                assignSet[String(data.assign_to)] = true;
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestAssignDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var uid = cb.getAttribute('data-user-id') || '';
+                cb.checked = !!assignSet[uid];
+            });
+            updateSideQuestUserLabel('sideQuestAssignDropdown', 'sideQuestAssignButtonLabel', 'Select user...', 'sideQuestAssignAvatars');
+            var notifySet = {};
+            if (Array.isArray(data.notify_to)) {
+                data.notify_to.forEach(function (uid) {
+                    if (uid) {
+                        notifySet[String(uid)] = true;
+                    }
+                });
+            } else if (data.notify_to) {
+                notifySet[String(data.notify_to)] = true;
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestNotifyDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var uid = cb.getAttribute('data-user-id') || '';
+                cb.checked = !!notifySet[uid];
+            });
+            updateSideQuestUserLabel('sideQuestNotifyDropdown', 'sideQuestNotifyButtonLabel', 'Select user...', 'sideQuestNotifyAvatars');
+            var priority = String(data.priority || 'normal').toLowerCase();
+            sideQuestCurrentPriority = priority;
+            var buttons = document.querySelectorAll('.side-quest-priority-btn');
+            Array.prototype.slice.call(buttons).forEach(function (btn) {
+                var p = btn.getAttribute('data-priority') || '';
+                if (p === priority) {
+                    btn.classList.add('border-slate-900', 'bg-slate-900', 'text-white');
+                } else {
+                    btn.classList.remove('border-slate-900', 'bg-slate-900', 'text-white');
+                }
+            });
         }
         async function saveQuest() {
             var parentWin = window.parent;
@@ -4365,6 +4648,7 @@ export function renderSidebar(target) {
                     Cancel
                 </button>
                 <button type="button"
+                    id="sideQuestSaveButton"
                     class="rounded-full px-8 py-2.5 text-sm font-semibold text-white btn-dlg-blue"
                     onclick="saveSideQuest()">
                     Add Side Quest
@@ -4436,6 +4720,7 @@ export function renderSidebar(target) {
         var sideQuestCurrentPriority = 'normal';
         var questTasksById = {};
         var questActionMode = null;
+        var sideQuestEditingTaskId = null;
 
         async function questToggleComplete(taskId) {
             if (!taskId) return;
@@ -4610,6 +4895,155 @@ export function renderSidebar(target) {
             }
         }
 
+        function questOpenTask(taskId) {
+            if (!taskId) return;
+            if (!questTasksById || !questTasksById[taskId]) {
+                alert('Tidak dapat menemukan data Side Quest untuk diedit.');
+                return;
+            }
+            var data = questTasksById[taskId] || {};
+            sideQuestEditingTaskId = taskId;
+            var dropdown = document.getElementById('sideQuestCreateDropdown');
+            var headerToggle = document.getElementById('sideQuestHeaderToggleButton');
+            var headerMenu = document.getElementById('sideQuestHeaderMenu');
+            if (dropdown) {
+                dropdown.classList.remove('hidden');
+                if (dropdown.scrollIntoView) {
+                    dropdown.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+            if (headerToggle) {
+                headerToggle.classList.add('hidden');
+            }
+            if (headerMenu) {
+                headerMenu.classList.add('hidden');
+            }
+            var saveBtn = document.getElementById('sideQuestSaveButton');
+            if (saveBtn) {
+                saveBtn.textContent = 'Update Side Quest';
+            }
+            var input = document.getElementById('sideQuestNameInput');
+            if (input) {
+                input.value = data.title || '';
+                if (input.focus) {
+                    input.focus();
+                }
+            }
+            var startEl = document.getElementById('sideQuestStartInput');
+            if (startEl) {
+                var startVal = data.start_date || data.startDate || '';
+                startEl.value = startVal;
+            }
+            var dueEl = document.getElementById('sideQuestDueInput');
+            if (dueEl) {
+                var dueVal = data.due_date || data.dueDate || '';
+                dueEl.value = dueVal;
+            }
+            var pointsEl = document.getElementById('sideQuestPointsInput');
+            if (pointsEl) {
+                var pointsVal = typeof data.points === 'number'
+                    ? data.points
+                    : (data.points ? Number(data.points) || 0 : 0);
+                pointsEl.value = pointsVal ? String(pointsVal) : '';
+            }
+            var descEl = document.getElementById('sideQuestDesc');
+            if (descEl) {
+                descEl.innerHTML = data.description || '';
+            }
+            var hiddenTags = document.getElementById('sideQuest-tags');
+            if (hiddenTags && Array.isArray(data.tags)) {
+                hiddenTags.value = data.tags.map(function (t) { return String(t || '').trim(); }).filter(function (t) { return t; }).join(',');
+            }
+            if (typeof updateSideQuestSelectedTagUI === 'function') {
+                updateSideQuestSelectedTagUI();
+            }
+            var deptMap = {};
+            if (Array.isArray(data.departments)) {
+                data.departments.forEach(function (d) {
+                    if (d && d.id) {
+                        deptMap[d.id] = true;
+                    }
+                });
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestDepartmentDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var id = cb.getAttribute('data-dept-id') || '';
+                cb.checked = !!deptMap[id];
+            });
+            updateSideQuestDepartmentLabel();
+            var posMap = {};
+            if (Array.isArray(data.positions)) {
+                data.positions.forEach(function (p) {
+                    if (p && p.id) {
+                        posMap[p.id] = true;
+                    }
+                });
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestPositionDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var id = cb.getAttribute('data-position-id') || '';
+                cb.checked = !!posMap[id];
+            });
+            updateSideQuestPositionLabel();
+            var assignSet = {};
+            if (Array.isArray(data.assign_to)) {
+                data.assign_to.forEach(function (uid) {
+                    if (uid) {
+                        assignSet[String(uid)] = true;
+                    }
+                });
+            } else if (data.assign_to) {
+                assignSet[String(data.assign_to)] = true;
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestAssignDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var uid = cb.getAttribute('data-user-id') || '';
+                cb.checked = !!assignSet[uid];
+            });
+            updateSideQuestUserLabel(
+                'sideQuestAssignDropdown',
+                'sideQuestAssignButtonLabel',
+                'Select user...',
+                'sideQuestAssignAvatars'
+            );
+            var notifySet = {};
+            if (Array.isArray(data.notify_to)) {
+                data.notify_to.forEach(function (uid) {
+                    if (uid) {
+                        notifySet[String(uid)] = true;
+                    }
+                });
+            } else if (data.notify_to) {
+                notifySet[String(data.notify_to)] = true;
+            }
+            Array.prototype.slice.call(
+                document.querySelectorAll('#sideQuestNotifyDropdown input[type="checkbox"]')
+            ).forEach(function (cb) {
+                var uid = cb.getAttribute('data-user-id') || '';
+                cb.checked = !!notifySet[uid];
+            });
+            updateSideQuestUserLabel(
+                'sideQuestNotifyDropdown',
+                'sideQuestNotifyButtonLabel',
+                'Select user...',
+                'sideQuestNotifyAvatars'
+            );
+            var priority = String(data.priority || 'normal').toLowerCase();
+            sideQuestCurrentPriority = priority;
+            var buttons = document.querySelectorAll('.side-quest-priority-btn');
+            Array.prototype.slice.call(buttons).forEach(function (btn) {
+                var p = btn.getAttribute('data-priority') || '';
+                if (p === priority) {
+                    btn.classList.add('border-slate-900', 'bg-slate-900', 'text-white');
+                } else {
+                    btn.classList.remove('border-slate-900', 'bg-slate-900', 'text-white');
+                }
+            });
+        }
+
         function questEditTask(taskId) {
             if (!taskId) return;
             questOpenTask(taskId);
@@ -4634,17 +5068,6 @@ export function renderSidebar(target) {
                     console.error('Gagal menghapus quest', e);
                     alert('Gagal menghapus quest.');
                 });
-            }
-        }
-
-        function questOpenTask(taskId) {
-            if (!taskId) return;
-            var targetWin = window.parent && window.parent !== window ? window.parent : window;
-            var url = 'quest/quest-edit.html?taskId=' + encodeURIComponent(taskId);
-            try {
-                targetWin.open(url, '_blank');
-            } catch (e) {
-                window.open(url, '_blank');
             }
         }
 
@@ -5006,7 +5429,7 @@ export function renderSidebar(target) {
                 }
                 var createdBy = localData && localData.uid ? localData.uid : '';
                 var createdByName = localData && localData.name ? localData.name : '';
-                var basePayload = {
+                var baseEditable = {
                     title: title,
                     description: description,
                     priority: sideQuestCurrentPriority || 'normal',
@@ -5017,26 +5440,79 @@ export function renderSidebar(target) {
                     positions: positionSelected,
                     assign_to: assignSelected,
                     notify_to: notifySelected,
-                    tags: tags,
-                    reminder_mode: null,
-                    reminder_dates: [],
-                    recur: null,
-                    status: 'SideQuest',
-                    task_status: 'Initiate',
-                    created_by: createdBy,
-                    created_by_name: createdByName,
-                    type: 'side-quest'
+                    tags: tags
                 };
-                var payload = basePayload;
-                if (parentWin.JSON && parentWin.JSON.parse && parentWin.JSON.stringify) {
-                    try {
-                        payload = parentWin.JSON.parse(parentWin.JSON.stringify(basePayload));
-                    } catch (e) {
-                        payload = basePayload;
+                var isEditing = !!sideQuestEditingTaskId;
+                if (!isEditing) {
+                    var basePayload = {
+                        title: baseEditable.title,
+                        description: baseEditable.description,
+                        priority: baseEditable.priority,
+                        start_date: baseEditable.start_date,
+                        due_date: baseEditable.due_date,
+                        points: baseEditable.points,
+                        departments: baseEditable.departments,
+                        positions: baseEditable.positions,
+                        assign_to: baseEditable.assign_to,
+                        notify_to: baseEditable.notify_to,
+                        tags: baseEditable.tags,
+                        reminder_mode: null,
+                        reminder_dates: [],
+                        recur: null,
+                        status: 'SideQuest',
+                        task_status: 'Initiate',
+                        created_by: createdBy,
+                        created_by_name: createdByName,
+                        type: 'side-quest'
+                    };
+                    var payload = basePayload;
+                    if (parentWin.JSON && parentWin.JSON.parse && parentWin.JSON.stringify) {
+                        try {
+                            payload = parentWin.JSON.parse(parentWin.JSON.stringify(basePayload));
+                        } catch (e) {
+                            payload = basePayload;
+                        }
+                    }
+                    payload.created_at = parentWin.serverTimestamp();
+                    await parentWin.addDoc(parentWin.collection(parentWin.db, 'tasks'), payload);
+                } else {
+                    var patch = {
+                        title: baseEditable.title,
+                        description: baseEditable.description,
+                        priority: baseEditable.priority,
+                        start_date: baseEditable.start_date,
+                        due_date: baseEditable.due_date,
+                        points: baseEditable.points,
+                        departments: baseEditable.departments,
+                        positions: baseEditable.positions,
+                        assign_to: baseEditable.assign_to,
+                        notify_to: baseEditable.notify_to,
+                        tags: baseEditable.tags
+                    };
+                    var updatePayload = patch;
+                    if (parentWin.JSON && parentWin.JSON.parse && parentWin.JSON.stringify) {
+                        try {
+                            updatePayload = parentWin.JSON.parse(parentWin.JSON.stringify(patch));
+                        } catch (e) {
+                            updatePayload = patch;
+                        }
+                    }
+                    await parentWin.updateDoc(parentWin.doc(parentWin.db, 'tasks', sideQuestEditingTaskId), updatePayload);
+                    if (questTasksById && questTasksById[sideQuestEditingTaskId]) {
+                        var existing = questTasksById[sideQuestEditingTaskId];
+                        existing.title = baseEditable.title;
+                        existing.description = baseEditable.description;
+                        existing.priority = baseEditable.priority;
+                        existing.start_date = baseEditable.start_date;
+                        existing.due_date = baseEditable.due_date;
+                        existing.points = baseEditable.points;
+                        existing.departments = baseEditable.departments;
+                        existing.positions = baseEditable.positions;
+                        existing.assign_to = baseEditable.assign_to;
+                        existing.notify_to = baseEditable.notify_to;
+                        existing.tags = baseEditable.tags;
                     }
                 }
-                payload.created_at = parentWin.serverTimestamp();
-                await parentWin.addDoc(parentWin.collection(parentWin.db, 'tasks'), payload);
                 if (typeof loadSideQuestTasks === 'function') {
                     loadSideQuestTasks();
                 }
@@ -5078,6 +5554,11 @@ export function renderSidebar(target) {
                 var dropdown = document.getElementById('sideQuestCreateDropdown');
                 if (dropdown) {
                     dropdown.classList.add('hidden');
+                }
+                sideQuestEditingTaskId = null;
+                var saveBtn = document.getElementById('sideQuestSaveButton');
+                if (saveBtn) {
+                    saveBtn.textContent = 'Add Side Quest';
                 }
                 alert('Side Quest berhasil disimpan.');
             } catch (err) {
