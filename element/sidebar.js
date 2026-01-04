@@ -4616,7 +4616,7 @@ export function renderSidebar(target) {
             </div>
             <select id="reportStatusSelect" class="form-select rounded-3 border-light shadow-sm" style="width: 150px; font-size: 13px;">
                 <option value="all">All Status</option>
-                <option value="pending">Pending</option>
+                <option value="pending" selected>Pending</option>
                 <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
             </select>
@@ -4657,19 +4657,13 @@ export function renderSidebar(target) {
             <div class="modal-body p-4">
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-start gap-3">
-                        <div>
-                            <label class="stat-label mb-1">Team Member</label>
-                            <div id="mUser" class="fw-bold text-primary"></div>
+                        <div class="text-start">
+                            <div class="stat-label mb-1">Assigned</div>
+                            <div id="mAssignAvatars" class="d-flex justify-content-start gap-1 flex-wrap"></div>
                         </div>
-                        <div class="d-flex align-items-start gap-3">
-                            <div class="text-end">
-                                <div class="stat-label mb-1">Assigned</div>
-                                <div id="mAssignAvatars" class="d-flex justify-content-end gap-1 flex-wrap"></div>
-                            </div>
-                            <div class="text-end">
-                                <div class="stat-label mb-1">Report To</div>
-                                <div id="mNotifyAvatars" class="d-flex justify-content-end gap-1 flex-wrap"></div>
-                            </div>
+                        <div class="text-end">
+                            <div class="stat-label mb-1">Report To</div>
+                            <div id="mNotifyAvatars" class="d-flex justify-content-end gap-1 flex-wrap"></div>
                         </div>
                     </div>
                 </div>
@@ -5215,7 +5209,10 @@ export function renderSidebar(target) {
             var checkboxHtml = '';
             if (bulkMode) {
                 var checked = selectedTaskIds[r2.id] ? ' checked' : '';
-                checkboxHtml = '<input type="checkbox" class="form-check-input me-2 js-bulk-checkbox"' + checked + '>';
+                checkboxHtml =
+                    '<label class="form-check me-2 mb-0" style="cursor:pointer;">' +
+                        '<input type="checkbox" class="form-check-input js-bulk-checkbox"' + checked + ' style="width:18px;height:18px;">' +
+                    '</label>';
             }
             var teamHtml = renderAssigneesCell(r2.assignees || []);
             if (bulkMode) {
@@ -5224,7 +5221,32 @@ export function renderSidebar(target) {
                 teamHtml = '<div class="d-flex align-items-center">' + teamHtml + '</div>';
             }
             var filesHtml = '<span class="text-muted">-</span>';
-            if (r2.fileName) {
+            if (Array.isArray(r2.files) && r2.files.length > 0) {
+                var filesIcons = [];
+                for (var fi = 0; fi < r2.files.length; fi++) {
+                    var fobj = r2.files[fi];
+                    if (!fobj) continue;
+                    var furl = fobj.url || '#';
+                    var fname = fobj.name || 'Attachment';
+                    var ftype = String(fobj.type || '').toLowerCase();
+                    var ficon = 'far fa-file';
+                    if (ftype.indexOf('pdf') !== -1) {
+                        ficon = 'far fa-file-pdf';
+                    } else if (ftype.indexOf('zip') !== -1 || ftype.indexOf('rar') !== -1 || ftype.indexOf('7z') !== -1) {
+                        ficon = 'far fa-file-archive';
+                    } else if (ftype.indexOf('image/') === 0) {
+                        ficon = 'far fa-file-image';
+                    }
+                    filesIcons.push(
+                        '<a href="' + escapeAttr(furl) + '" class="text-primary text-decoration-none me-1" target="_blank" rel="noopener" data-bs-toggle="tooltip" title="' + escapeAttr(fname) + '">' +
+                            '<i class="' + ficon + '"></i>' +
+                        '</a>'
+                    );
+                }
+                if (filesIcons.length) {
+                    filesHtml = filesIcons.join('');
+                }
+            } else if (r2.fileName) {
                 filesHtml = '<a href="' + escapeAttr(r2.fileUrl || '#') + '" class="text-primary text-decoration-none small text-truncate-custom" data-bs-toggle="tooltip" title="' + escapeAttr(r2.fileTitle || '') + '">' +
                     '<i class="' + r2.fileIconClass + ' me-1"></i> ' + r2.fileName +
                 '</a>';
@@ -5386,7 +5408,11 @@ export function renderSidebar(target) {
         }
         var label = bulkMode === 'delete' ? 'Delete All' : 'Archive All';
         var icon = bulkMode === 'delete' ? 'fas fa-trash' : 'fas fa-box-archive';
-        btn.innerHTML = '<i class="' + icon + ' me-1"></i> ' + label;
+        btn.innerHTML =
+            '<div class="d-flex align-items-center gap-2">' +
+                '<button type="button" class="btn btn-outline-secondary btn-sm px-2 py-1" id="reportBulkExitButton">Exit</button>' +
+                '<span><i class="' + icon + ' me-1"></i> ' + label + '</span>' +
+            '</div>';
         btn.disabled = selected.length === 0;
         if (bulkMode === 'delete') {
             btn.className = 'btn btn-danger px-3 py-2 rounded-3 shadow-sm';
@@ -5412,6 +5438,16 @@ export function renderSidebar(target) {
             }
         });
         syncBulkActionButton();
+        document.addEventListener('click', function (e) {
+            var exitBtn = document.getElementById('reportBulkExitButton');
+            if (exitBtn && e.target === exitBtn) {
+                bulkMode = null;
+                selectedTaskIds = {};
+                visibleCount = pageSize;
+                syncBulkActionButton();
+                renderReports();
+            }
+        });
     }
 
     var bulkMenu = document.getElementById('reportBulkMenuButton');
