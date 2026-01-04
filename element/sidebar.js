@@ -2,11 +2,13 @@ export function renderSidebar(target) {
     if (!target) return;
     target.innerHTML = `
         <style>
-            #questBoardModal {
+            #questBoardModal,
+            #reportBoardModal {
                 padding: 0;
                 pointer-events: none;
             }
-            #questBoardModal .modal-dialog {
+            #questBoardModal .modal-dialog,
+            #reportBoardModal .modal-dialog {
                 position: fixed;
                 top: 70px;
                 left: 290px;
@@ -18,18 +20,21 @@ export function renderSidebar(target) {
                 height: calc(100vh - 120px);
                 pointer-events: auto;
             }
-            #questBoardModal .modal-content {
+            #questBoardModal .modal-content,
+            #reportBoardModal .modal-content {
                 height: 100%;
                 border-radius: 16px;
                 background: #ffffff;
                 box-shadow: 0px 7px 9px -6px rgba(114, 4, 207, 1);
                 border: 0;
             }
-            #questBoardModal .modal-body {
+            #questBoardModal .modal-body,
+            #reportBoardModal .modal-body {
                 height: 100%;
                 padding: 0;
             }
-            #questBoardModal #questBoardFrame {
+            #questBoardModal #questBoardFrame,
+            #reportBoardModal #reportBoardFrame {
                 width: 100%;
                 height: 100%;
                 border: 0;
@@ -115,8 +120,12 @@ export function renderSidebar(target) {
                         <div class="filter-label">Side Quest</div>
                     </a>
                     <a href="#" class="filter-card">
-                        <div class="filter-top"><div class="filter-icon" style="background-color: var(--dlg-green);"><i class="bi bi-calendar-event-fill"></i></div><div class="filter-count" id="projectTasksTotalCount">0</div></div>
+                        <div class="filter-top"><div class="filter-icon" style="background-color: var(--dlg-purple);"><i class="bi bi-calendar-event-fill"></i></div><div class="filter-count" id="projectTasksTotalCount">0</div></div>
                         <div class="filter-label">Project</div>
+                    </a>
+                    <a href="#" class="filter-card" id="reportFilterCard">
+                        <div class="filter-top"><div class="filter-icon" style="background-color: var(--dlg-green);"><i class="bi bi-calendar-event-fill"></i></div><div class="filter-count" id="projectTasksTotalCount">0</div></div>
+                        <div class="filter-label">Report</div>
                     </a>
                     <a href="#" class="filter-card">
                         <div class="filter-top"><div class="filter-icon bg-icon-orange"><i class="bi bi-flag-fill"></i></div><div class="filter-count">21</div></div>
@@ -165,6 +174,16 @@ export function renderSidebar(target) {
                 <div class="modal-content border-0 rounded-4">
                     <div class="modal-body p-0">
                         <iframe id="questBoardFrame"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="reportBoardModal" data-bs-backdrop="false" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content border-0 rounded-4">
+                    <div class="modal-body p-0">
+                        <iframe id="reportBoardFrame"></iframe>
                     </div>
                 </div>
             </div>
@@ -4287,6 +4306,685 @@ export function renderSidebar(target) {
             }
         });
     }
+
+    const reportCard = target.querySelector('#reportFilterCard');
+    if (reportCard) {
+        reportCard.addEventListener('click', (e) => {
+            e.preventDefault();
+            const modalEl = document.getElementById('reportBoardModal');
+            const frame = document.getElementById('reportBoardFrame');
+            window.closeReportBoardModal = function () {
+                const overlay = document.getElementById('questBoardOverlay');
+                if (overlay) {
+                    overlay.classList.remove('show');
+                }
+                if (modalEl && typeof bootstrap !== "undefined" && bootstrap.Modal) {
+                    const instance = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    instance.hide();
+                }
+            };
+            const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Management - Premium Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        :root {
+            --primary-teal: #2d5a52;
+            --bg-light: #f4f7f9;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+        body {
+            background-color: var(--bg-light);
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+        }
+        .card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .count-badge { background: #0f172a; color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; vertical-align: middle; }
+        .btn-teal { background-color: var(--primary-teal); color: white; border: none; font-size: 14px; padding: 8px 16px; }
+        .btn-teal:hover { background-color: #234741; color: white; }
+        .btn-approve-all { background-color: #0f172a; color: white; border: none; font-size: 14px; }
+        .stat-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 24px; font-weight: 700; color: #0f172a; }
+        .stat-diff { font-size: 10px; font-weight: 600; }
+        .diff-up { color: #0ea5e9; }
+        .diff-down { color: #f43f5e; }
+        .table { table-layout: fixed; width: 100%; }
+        .col-team { width: 180px; }
+        .col-type { width: 130px; }
+        .col-date { width: 140px; }
+        .col-task { width: 160px; }
+        .col-files { width: 130px; }
+        .col-action { width: 140px; }
+        .table thead th {
+            background-color: #ffffff;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 15px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .table tbody tr { cursor: pointer; transition: background 0.2s; }
+        .table tbody tr:hover { background-color: #f8fafc !important; }
+        .table tbody td { padding: 12px; vertical-align: middle; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+        .badge-quest { font-size: 10px; padding: 4px 8px; border-radius: 6px; font-weight: 600; }
+        .badge-main { background: #dbeafe; color: #1e40af; }
+        .badge-side { background: #fef3c7; color: #92400e; }
+        .badge-project { background: #f3e8ff; color: #6b21a8; }
+        .rich-text-preview {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            border-left: 3px solid var(--primary-teal);
+            font-style: italic;
+        }
+        .text-truncate-custom { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .modal-content { border-radius: 15px; border: none; }
+        .modal-header { border-bottom: 1px solid #f1f5f9; }
+    </style>
+</head>
+<body class="py-4" style="background-color: #ffffff;">
+<div class="container-fluid px-4" style="background-color: #ffffff;">
+    <div class="d-flex justify-content-between align-items-center mb-4" style="background-color: #ffffff;">
+        <div>
+            <h4 class="fw-bold d-inline-block me-2 mb-0">Report Side Quest</h4>
+            <span class="count-badge">551</span>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="btn-group shadow-sm">
+                <button class="btn btn-white border bg-white btn-sm px-3"><i class="fas fa-th-large text-secondary"></i></button>
+                <button class="btn btn-white border bg-white btn-sm px-3"><i class="fas fa-list text-muted"></i></button>
+            </div>
+            <button class="btn btn-dlg-yellow rounded-3 shadow">
+                <i class="fas fa-plus-circle me-1"></i> Add Side Quest
+            </button>
+            <button type="button" class="btn btn-outline-secondary rounded-3 shadow-sm"
+                onclick="if (window.parent && window.parent.closeReportBoardModal) { window.parent.closeReportBoardModal(); }">
+                <i class="fas fa-times me-1"></i> Close
+            </button>
+        </div>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="card p-4 h-100 shadow">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="fw-bold mb-0 text-secondary"><i class="far fa-check-circle text-primary me-2"></i> Approval Status</h6>
+                    <i class="fas fa-ellipsis-h text-muted"></i>
+                </div>
+                <div class="row">
+                    <div class="col-3">
+                        <div class="stat-label">Requested</div>
+                        <div class="stat-value" id="statRequestedValue">265</div>
+                        <div class="stat-diff diff-up">+ 12 vs yesterday</div>
+                    </div>
+                    <div class="col-3 border-start ps-4">
+                        <div class="stat-label">Approved</div>
+                        <div class="stat-value" id="statApprovedValue">3</div>
+                        <div class="stat-diff diff-down">- 6 vs yesterday</div>
+                    </div>
+                    <div class="col-3 border-start ps-4">
+                        <div class="stat-label">Rejected</div>
+                        <div class="stat-value" id="statRejectedValue">4</div>
+                        <div class="stat-diff diff-down">- 2 vs yesterday</div>
+                    </div>
+                    <div class="col-3 border-start ps-4">
+                        <div class="stat-label">Pending</div>
+                        <div class="stat-value" id="statPendingValue">18</div>
+                        <div class="stat-diff diff-down">- 6 vs yesterday</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card p-4 h-100 shadow">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0 text-secondary"><i class="far fa-clock text-primary me-2"></i> Quest Type Breakdown</h6>
+                    <i class="fas fa-ellipsis-h text-muted"></i>
+                </div>
+                <div class="mt-2">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="stat-label" style="width: 100px;">Main Quest</span>
+                        <div class="flex-grow-1 mx-3"><div class="progress" style="height: 6px;"><div class="progress-bar bg-primary" style="width: 45%"></div></div></div>
+                        <span class="fw-bold small">21</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="stat-label" style="width: 100px;">Side Quest</span>
+                        <div class="flex-grow-1 mx-3"><div class="progress" style="height: 6px;"><div class="progress-bar bg-warning" style="width: 70%"></div></div></div>
+                        <span class="fw-bold small">30</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="stat-label" style="width: 100px;">Project</span>
+                        <div class="flex-grow-1 mx-3"><div class="progress" style="height: 6px;"><div class="progress-bar bg-purple" style="width: 60%; background-color: #a855f7;"></div></div></div>
+                        <span class="fw-bold small">28</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+        <div class="d-flex gap-2">
+            <div class="position-relative">
+                <i class="fas fa-search position-absolute text-muted" style="left: 12px; top: 10px; font-size: 13px;"></i>
+                <input id="reportSearchInput" type="text" class="form-control ps-5 rounded-3 border-light shadow-sm" style="width: 280px; font-size: 13px;" placeholder="Search Report Quest">
+            </div>
+            <select id="reportPeriodSelect" class="form-select rounded-3 border-light shadow-sm" style="width: 150px; font-size: 13px;">
+                <option value="all">All Period</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="3month">3 Month</option>
+                <option value="6month">6 Month</option>
+                <option value="yearly">Yearly</option>
+            </select>
+            <select id="reportStatusSelect" class="form-select rounded-3 border-light shadow-sm" style="width: 150px; font-size: 13px;">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+        </div>
+        <button id="reportApproveAllButton" class="btn btn-approve-all px-3 py-2 rounded-3 shadow-sm">
+            <i class="fas fa-check-double me-1"></i> Approve all
+        </button>
+    </div>
+    <div class="card shadow-sm overflow-hidden border">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="col-team px-4" data-sort-key="user">Team</th>
+                        <th class="col-date" data-sort-key="date">Date</th>
+                        <th class="col-task" data-sort-key="task">Task</th>
+                        <th data-sort-key="reportPreview">Report</th>
+                        <th class="col-files" data-sort-key="fileName">Files</th>
+                        <th class="col-action text-center" data-sort-key="status">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody" class="bg-white"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-light">
+                <h6 class="modal-title fw-bold">Report Details</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="stat-label mb-1">Team Member</label>
+                    <div id="mUser" class="fw-bold text-primary"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="stat-label mb-1">Quest Type</label>
+                        <div id="mType"></div>
+                    </div>
+                    <div class="col-6">
+                        <label class="stat-label mb-1">Task Title</label>
+                        <div id="mTask" class="fw-medium"></div>
+                    </div>
+                </div>
+                <hr>
+                <div>
+                    <label class="stat-label mb-2">Report Content</label>
+                    <div id="mReport" class="p-3 rounded-3 bg-light border-start border-4 border-success" style="font-size: 14px; line-height: 1.6;"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-teal btn-sm px-4">Approve Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle=\"tooltip\"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    var detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
+    function openModal(user, type, task, report) {
+        document.getElementById('mUser').innerText = user;
+        document.getElementById('mTask').innerText = task;
+        document.getElementById('mReport').innerHTML = report;
+        var badgeClass = 'badge-quest ';
+        if (type === 'Main Quest') badgeClass += 'badge-main';
+        else if (type === 'Side Quest') badgeClass += 'badge-side';
+        else badgeClass += 'badge-project';
+        document.getElementById('mType').innerHTML = '<span class=\"' + badgeClass + '\">' + type + '</span>';
+        detailModal.show();
+    }
+
+    var allReports = [];
+    var currentReports = [];
+    var currentSortKey = 'date';
+    var currentSortDir = 'desc';
+
+    function updateCountBadge() {
+        var badge = document.querySelector('.count-badge');
+        if (!badge) return;
+        var total = allReports.length;
+        badge.textContent = String(total);
+    }
+
+    function parseDateValue(s) {
+        var parts = String(s || '').split('-');
+        if (parts.length !== 3) return null;
+        var y = parseInt(parts[0], 10);
+        var m = parseInt(parts[1], 10) - 1;
+        var d = parseInt(parts[2], 10);
+        var dt = new Date(y, m, d);
+        if (isNaN(dt.getTime())) return null;
+        return dt;
+    }
+
+    function isWithinPeriod(dateStr, period) {
+        if (!period || period === 'all') return true;
+        var dt = parseDateValue(dateStr);
+        if (!dt) return true;
+        var now = new Date();
+        var diffMs = now.getTime() - dt.getTime();
+        var dayMs = 24 * 60 * 60 * 1000;
+        var days = diffMs / dayMs;
+        if (period === 'daily') return days <= 1;
+        if (period === 'weekly') return days <= 7;
+        if (period === 'monthly') return days <= 30;
+        if (period === '3month') return days <= 90;
+        if (period === '6month') return days <= 180;
+        if (period === 'yearly') return days <= 365;
+        return true;
+    }
+
+    function updateStats() {
+        var requested = allReports.length;
+        var approved = 0;
+        var rejected = 0;
+        var pending = 0;
+        for (var i = 0; i < allReports.length; i++) {
+            var r = allReports[i];
+            var st = r.status || 'pending';
+            if (st === 'approved') {
+                approved++;
+            } else if (st === 'rejected') {
+                rejected++;
+            }
+            if (st !== 'approved' && st !== 'rejected') {
+                var n = typeof r.notifyCount === 'number' ? r.notifyCount : (r.notifyTo && r.notifyTo.length ? r.notifyTo.length : 0);
+                if (n > 1) {
+                    pending++;
+                }
+            }
+        }
+        var elReq = document.getElementById('statRequestedValue');
+        var elApp = document.getElementById('statApprovedValue');
+        var elRej = document.getElementById('statRejectedValue');
+        var elPen = document.getElementById('statPendingValue');
+        if (elReq) elReq.innerText = String(requested);
+        if (elApp) elApp.innerText = String(approved);
+        if (elRej) elRej.innerText = String(rejected);
+        if (elPen) elPen.innerText = String(pending);
+        updateCountBadge();
+    }
+
+    function openReportDetail(id) {
+        var found = null;
+        for (var i = 0; i < allReports.length; i++) {
+            if (allReports[i].id === id) {
+                found = allReports[i];
+                break;
+            }
+        }
+        if (!found) return;
+        openModal(found.user, found.questType, found.task, found.reportFull);
+    }
+
+    function renderReports() {
+        var tbody = document.getElementById('reportTableBody');
+        if (!tbody) return;
+        var searchInput = document.getElementById('reportSearchInput');
+        var periodSelect = document.getElementById('reportPeriodSelect');
+        var statusSelect = document.getElementById('reportStatusSelect');
+        var q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        var period = periodSelect ? periodSelect.value : 'all';
+        var statusFilter = statusSelect ? statusSelect.value : 'all';
+        var filtered = [];
+        for (var i = 0; i < allReports.length; i++) {
+            var r = allReports[i];
+            var text = (r.user + ' ' + r.task + ' ' + r.reportPreview).toLowerCase();
+            if (q && text.indexOf(q) === -1) continue;
+            if (!isWithinPeriod(r.date, period)) continue;
+            var st = r.status || 'pending';
+            if (statusFilter !== 'all' && st !== statusFilter) continue;
+            filtered.push(r);
+        }
+        filtered.sort(function (a, b) {
+            var dir = currentSortDir === 'asc' ? 1 : -1;
+            var ka = a[currentSortKey];
+            var kb = b[currentSortKey];
+            if (currentSortKey === 'date') {
+                var da = parseDateValue(ka);
+                var db = parseDateValue(kb);
+                var ta = da ? da.getTime() : 0;
+                var tb = db ? db.getTime() : 0;
+                if (ta < tb) return -1 * dir;
+                if (ta > tb) return 1 * dir;
+                return 0;
+            }
+            ka = String(ka || '').toLowerCase();
+            kb = String(kb || '').toLowerCase();
+            if (ka < kb) return -1 * dir;
+            if (ka > kb) return 1 * dir;
+            return 0;
+        });
+        currentReports = filtered;
+        tbody.innerHTML = '';
+        for (var j = 0; j < filtered.length; j++) {
+            var r2 = filtered[j];
+            var st2 = r2.status || 'pending';
+            var statusLabel = 'Pending';
+            var statusClass = 'text-muted small';
+            if (st2 === 'approved') {
+                statusLabel = 'Approved';
+                statusClass = 'text-success small fw-semibold';
+            } else if (st2 === 'rejected') {
+                statusLabel = 'Rejected';
+                statusClass = 'text-danger small fw-semibold';
+            }
+            var row = document.createElement('tr');
+            row.setAttribute('data-report-id', r2.id);
+            row.innerHTML =
+                '<td class="px-4">' +
+                    '<div class="d-flex align-items-center">' +
+                        '<img src="' + r2.avatar + '" class="rounded-circle me-2" width="30" height="30">' +
+                        '<span class="fw-bold text-truncate-custom" data-bs-toggle="tooltip" title="' + r2.user + '">' + r2.user + '</span>' +
+                    '</div>' +
+                '</td>' +
+                '<td><span class="text-muted small">' + r2.date + '</span></td>' +
+                '<td><span class="fw-medium text-truncate-custom" data-bs-toggle="tooltip" title="' + r2.task + '">' + r2.taskShort + '</span></td>' +
+                '<td>' +
+                    '<div class="rich-text-preview text-truncate-custom" data-bs-toggle="tooltip" title="' + r2.reportPreviewFull + '">' +
+                        r2.reportPreview +
+                    '</div>' +
+                '</td>' +
+                '<td><a href="' + r2.fileUrl + '" class="text-primary text-decoration-none small text-truncate-custom" data-bs-toggle="tooltip" title="' + r2.fileTitle + '">' +
+                    '<i class="' + r2.fileIconClass + ' me-1"></i> ' + r2.fileName +
+                '</a></td>' +
+                '<td>' +
+                    '<div class="d-flex flex-column align-items-center gap-1" onclick="event.stopPropagation();">' +
+                        '<div class="' + statusClass + '">' + statusLabel + '</div>' +
+                        '<div class="d-flex justify-content-center gap-1">' +
+                            '<button class="btn btn-outline-danger btn-sm px-2 rounded-2" onclick="rejectReport(\'' + r2.id + '\')"><i class="fas fa-times"></i></button>' +
+                            '<button class="btn btn-teal btn-sm px-2 rounded-2" onclick="approveReport(\'' + r2.id + '\')">' + (st2 === 'approved' ? 'Approved' : 'Approve') + '</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</td>';
+            row.addEventListener('click', (function (id) {
+                return function () {
+                    openReportDetail(id);
+                };
+            })(r2.id));
+            tbody.appendChild(row);
+        }
+        var tooltipTriggerList2 = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList2.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+
+    function setReportStatusInternal(id, status) {
+        for (var i = 0; i < allReports.length; i++) {
+            if (allReports[i].id === id) {
+                allReports[i].status = status;
+                break;
+            }
+        }
+    }
+
+    function approveReport(id) {
+        setReportStatusInternal(id, 'approved');
+        renderReports();
+        updateStats();
+    }
+
+    function rejectReport(id) {
+        setReportStatusInternal(id, 'rejected');
+        renderReports();
+        updateStats();
+    }
+
+    function approveAllReports() {
+        for (var i = 0; i < currentReports.length; i++) {
+            currentReports[i].status = 'approved';
+        }
+        renderReports();
+        updateStats();
+    }
+
+    var searchInputEl = document.getElementById('reportSearchInput');
+    if (searchInputEl) {
+        searchInputEl.addEventListener('input', function () {
+            renderReports();
+        });
+    }
+    var periodSelectEl = document.getElementById('reportPeriodSelect');
+    if (periodSelectEl) {
+        periodSelectEl.addEventListener('change', function () {
+            renderReports();
+        });
+    }
+    var statusSelectEl = document.getElementById('reportStatusSelect');
+    if (statusSelectEl) {
+        statusSelectEl.addEventListener('change', function () {
+            renderReports();
+        });
+    }
+    var approveAllBtn = document.getElementById('reportApproveAllButton');
+    if (approveAllBtn) {
+        approveAllBtn.addEventListener('click', function () {
+            approveAllReports();
+        });
+    }
+    async function loadReportsFromTasks() {
+        var parentWin = window.parent;
+        allReports = [];
+        currentReports = [];
+        if (!parentWin || !parentWin.db || !parentWin.collection || !parentWin.getDocs) {
+            updateStats();
+            renderReports();
+            return;
+        }
+        try {
+            var snap = await parentWin.getDocs(parentWin.collection(parentWin.db, 'tasks'));
+            var tasks = [];
+            snap.forEach(function (docSnap) {
+                var data = docSnap.data() || {};
+                var rawType = String(data.type || '');
+                var rawStatus = String(data.status || '');
+                var type = rawType.toLowerCase();
+                var status = rawStatus.toLowerCase();
+                var normType = type.replace(/[\s_]/g, '');
+                var normStatus = status.replace(/[\s_]/g, '');
+                var isSideQuest = false;
+                if (normType === 'sidequest' || type === 'side-quest') {
+                    isSideQuest = true;
+                } else if (normStatus === 'sidequest') {
+                    isSideQuest = true;
+                } else if (data.task_status) {
+                    isSideQuest = true;
+                }
+                if (!isSideQuest) return;
+                tasks.push({ id: docSnap.id, data: data });
+            });
+            var reports = [];
+            for (var i = 0; i < tasks.length; i++) {
+                var t = tasks[i];
+                var taskId = t.id;
+                var data = t.data;
+                var reportsSnap = await parentWin.getDocs(parentWin.collection(parentWin.db, 'tasks', taskId, 'reports'));
+                if (reportsSnap.empty) continue;
+                var chosenReport = null;
+                reportsSnap.forEach(function (repSnap) {
+                    var rdata = repSnap.data() || {};
+                    if (!chosenReport) {
+                        chosenReport = rdata;
+                    } else {
+                        var prev = chosenReport.createdAt || chosenReport.submittedAt || '';
+                        var curr = rdata.createdAt || rdata.submittedAt || '';
+                        if (String(curr) > String(prev)) {
+                            chosenReport = rdata;
+                        }
+                    }
+                });
+                if (!chosenReport) continue;
+                var assignRaw = data.assign_to || data.assignTo || [];
+                var assignIds = [];
+                if (Array.isArray(assignRaw)) {
+                    assignIds = assignRaw.slice();
+                } else if (assignRaw) {
+                    assignIds = [assignRaw];
+                }
+                var notifyRaw = data.notify_to || data.notifyTo || [];
+                var notifyIds = [];
+                if (Array.isArray(notifyRaw)) {
+                    notifyIds = notifyRaw.slice();
+                } else if (notifyRaw) {
+                    notifyIds = [notifyRaw];
+                }
+                var parentUsers = parentWin.questUsersById || {};
+                var displayName = 'Unassigned';
+                var avatarUrl = '';
+                if (assignIds.length > 0) {
+                    var firstId = assignIds[0];
+                    var u = parentUsers[firstId];
+                    if (u) {
+                        displayName = u.name || u.email || firstId;
+                        avatarUrl = u.photo || '';
+                    } else {
+                        displayName = firstId;
+                    }
+                }
+                if (!avatarUrl) {
+                    avatarUrl = 'https://i.pravatar.cc/150?u=' + encodeURIComponent(displayName);
+                }
+                var title = data.title || 'Untitled Side Quest';
+                var dueDate = data.due_date || data.dueDate || '';
+                var reportHtml = chosenReport.content || '';
+                var tmpDiv = document.createElement('div');
+                tmpDiv.innerHTML = reportHtml;
+                var reportText = (tmpDiv.textContent || tmpDiv.innerText || '').trim();
+                var previewMax = 140;
+                var previewText = reportText;
+                if (previewText.length > previewMax) {
+                    previewText = previewText.substring(0, previewMax);
+                    previewText = previewText.replace(/\s+\S*$/, '');
+                    previewText += '...';
+                }
+                var filesArr = Array.isArray(chosenReport.files) ? chosenReport.files : [];
+                var fileName = '';
+                var fileTitle = '';
+                var fileUrl = '#';
+                var fileIconClass = 'far fa-file';
+                if (filesArr.length > 0) {
+                    var f = filesArr[0];
+                    fileName = f.name || 'Attachment';
+                    fileTitle = f.name || '';
+                    fileUrl = f.url || '#';
+                    var ttype = String(f.type || '').toLowerCase();
+                    if (ttype.indexOf('pdf') !== -1) {
+                        fileIconClass = 'far fa-file-pdf';
+                    } else if (ttype.indexOf('zip') !== -1 || ttype.indexOf('rar') !== -1 || ttype.indexOf('7z') !== -1) {
+                        fileIconClass = 'far fa-file-archive';
+                    } else if (ttype.indexOf('image/') === 0) {
+                        fileIconClass = 'far fa-file-image';
+                    }
+                    if (filesArr.length > 1) {
+                        fileName += ' (+' + String(filesArr.length - 1) + ')';
+                    }
+                }
+                var reportObj = {
+                    id: taskId,
+                    user: displayName,
+                    avatar: avatarUrl,
+                    questType: 'Side Quest',
+                    date: dueDate,
+                    task: title,
+                    taskShort: title.length > 20 ? title.substring(0, 17) + '...' : title,
+                    reportPreview: previewText,
+                    reportPreviewFull: reportText,
+                    reportFull: reportHtml,
+                    fileName: fileName,
+                    fileTitle: fileTitle,
+                    fileUrl: fileUrl,
+                    fileIconClass: fileIconClass,
+                    status: 'pending',
+                    notifyTo: notifyIds,
+                    notifyCount: notifyIds.length
+                };
+                reports.push(reportObj);
+            }
+            allReports = reports;
+            currentReports = reports.slice();
+            updateStats();
+            renderReports();
+        } catch (e) {
+            console.error('Failed to load side quest reports', e);
+            updateStats();
+            renderReports();
+        }
+    }
+    var headerCells = document.querySelectorAll('table thead th[data-sort-key]');
+    for (var h = 0; h < headerCells.length; h++) {
+        (function (th) {
+            th.addEventListener('click', function () {
+                var key = th.getAttribute('data-sort-key');
+                if (!key) return;
+                if (currentSortKey === key) {
+                    currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSortKey = key;
+                    currentSortDir = 'asc';
+                }
+                renderReports();
+            });
+        })(headerCells[h]);
+    }
+    loadReportsFromTasks();
+</script>
+</body>
+</html>`;
+            if (frame) {
+                frame.removeAttribute('src');
+                frame.srcdoc = html;
+            }
+            if (modalEl && typeof bootstrap !== "undefined" && bootstrap.Modal) {
+                const overlay = document.getElementById('questBoardOverlay');
+                if (overlay) {
+                    overlay.classList.add('show');
+                }
+                modalEl.addEventListener('hidden.bs.modal', () => {
+                    const ov = document.getElementById('questBoardOverlay');
+                    if (ov) {
+                        ov.classList.remove('show');
+                    }
+                }, { once: true });
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+        });
+    }
     const sideQuestCard = target.querySelectorAll('.smart-filters-grid .filter-card')[1];
     if (sideQuestCard) {
         sideQuestCard.addEventListener('click', (e) => {
@@ -4430,7 +5128,7 @@ export function renderSidebar(target) {
                     </div>
                 </div>
                 <div class="relative inline-block">
-                    <button class="btn-dlg-yellow rounded-full px-6 py-2.5 text-sm font-semibold shadow-md"
+                    <button class="btn-dlg-yellow rounded-full px-6 py-2.5 text-sm font-semibold shadow-sm"
                         onclick="toggleSideQuestDropdown(event)">
                         Add Side Quest
                     </button>
