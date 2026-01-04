@@ -4404,8 +4404,14 @@ export function renderSidebar(target) {
                 <button class="btn btn-white border bg-white btn-sm px-3"><i class="fas fa-th-large text-secondary"></i></button>
                 <button class="btn btn-white border bg-white btn-sm px-3"><i class="fas fa-list text-muted"></i></button>
             </div>
-            <button class="btn btn-dlg-yellow rounded-3 shadow">
-                <i class="fas fa-plus-circle me-1"></i> Add Side Quest
+            <button id="reportTabSide" type="button" class="btn btn-dlg-yellow rounded-3 shadow">
+                Side Quest
+            </button>
+            <button id="reportTabMain" type="button" class="btn btn-dlg-blue rounded-3 shadow">
+                Main Quest
+            </button>
+            <button id="reportTabProject" type="button" class="btn btn-dlg-purple rounded-3 shadow">
+                Project Quest
             </button>
             <button type="button" class="btn btn-outline-secondary rounded-3 shadow-sm"
                 onclick="if (window.parent && window.parent.closeReportBoardModal) { window.parent.closeReportBoardModal(); }">
@@ -4481,19 +4487,32 @@ export function renderSidebar(target) {
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
                 <option value="monthly">Monthly</option>
-                <option value="3month">3 Month</option>
+                <option value="3month" selected>3 Month</option>
                 <option value="6month">6 Month</option>
                 <option value="yearly">Yearly</option>
             </select>
+            <div class="dropdown">
+                <button id="reportBulkMenuButton" class="btn btn-light rounded-3 border shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 44px;">
+                    <i class="fas fa-ellipsis-v text-muted"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><button class="dropdown-item" type="button" data-bulk-action="archive">Archive</button></li>
+                    <li><button class="dropdown-item text-danger" type="button" data-bulk-action="delete">Delete</button></li>
+                </ul>
+            </div>
             <select id="reportStatusSelect" class="form-select rounded-3 border-light shadow-sm" style="width: 150px; font-size: 13px;">
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
             </select>
+            <select id="reportPageSizeSelect" class="form-select rounded-3 border-light shadow-sm" style="width: 120px; font-size: 13px;">
+                <option value="20" selected>20 / page</option>
+                <option value="40">40 / page</option>
+                <option value="60">60 / page</option>
+            </select>
         </div>
-        <button id="reportApproveAllButton" class="btn btn-approve-all px-3 py-2 rounded-3 shadow-sm">
-            <i class="fas fa-check-double me-1"></i> Approve all
+        <button id="reportBulkActionButton" class="btn btn-approve-all px-3 py-2 rounded-3 shadow-sm" style="display:none;">
         </button>
     </div>
     <div class="card shadow-sm overflow-hidden border">
@@ -4518,7 +4537,21 @@ export function renderSidebar(target) {
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow-lg">
             <div class="modal-header bg-light">
-                <h6 class="modal-title fw-bold">Report Details</h6>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <h6 class="modal-title fw-bold mb-0">Report Details</h6>
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="text-end">
+                                <div class="stat-label mb-1">Assigned</div>
+                                <div id="mAssignAvatars" class="d-flex justify-content-end gap-1 flex-wrap"></div>
+                            </div>
+                            <div class="text-end">
+                                <div class="stat-label mb-1">Report To</div>
+                                <div id="mNotifyAvatars" class="d-flex justify-content-end gap-1 flex-wrap"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
@@ -4536,15 +4569,66 @@ export function renderSidebar(target) {
                         <div id="mTask" class="fw-medium"></div>
                     </div>
                 </div>
+                <div class="accordion mb-3" id="moreAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#moreCollapse" aria-expanded="false" aria-controls="moreCollapse">
+                                More
+                            </button>
+                        </h2>
+                        <div id="moreCollapse" class="accordion-collapse collapse" data-bs-parent="#moreAccordion">
+                            <div class="accordion-body py-3">
+                                <dl class="row mb-0 small">
+                                    <dt class="col-4 text-muted">Department</dt>
+                                    <dd class="col-8 mb-2" id="mDepartments">-</dd>
+                                    <dt class="col-4 text-muted">Position</dt>
+                                    <dd class="col-8 mb-2" id="mPositions">-</dd>
+                                    <dt class="col-4 text-muted">Start Date</dt>
+                                    <dd class="col-8 mb-2" id="mStartDate">-</dd>
+                                    <dt class="col-4 text-muted">Due Date</dt>
+                                    <dd class="col-8 mb-2" id="mDueDate">-</dd>
+                                    <dt class="col-4 text-muted">Task Point</dt>
+                                    <dd class="col-8 mb-2" id="mPoints">-</dd>
+                                    <dt class="col-4 text-muted">Priority</dt>
+                                    <dd class="col-8 mb-2" id="mPriority">-</dd>
+                                    <dt class="col-4 text-muted">Description</dt>
+                                    <dd class="col-8 mb-0" id="mDescription">-</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <hr>
                 <div>
                     <label class="stat-label mb-2">Report Content</label>
                     <div id="mReport" class="p-3 rounded-3 bg-light border-start border-4 border-success" style="font-size: 14px; line-height: 1.6;"></div>
                 </div>
+                <div id="feedbackSection" class="mt-3" style="display:none;">
+                    <label class="stat-label mb-2">Feedback</label>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Formatting">
+                            <button type="button" class="btn btn-outline-secondary" data-editor-cmd="bold"><i class="fas fa-bold"></i></button>
+                            <button type="button" class="btn btn-outline-secondary" data-editor-cmd="italic"><i class="fas fa-italic"></i></button>
+                            <button type="button" class="btn btn-outline-secondary" data-editor-cmd="underline"><i class="fas fa-underline"></i></button>
+                        </div>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Lists">
+                            <button type="button" class="btn btn-outline-secondary" data-editor-cmd="insertUnorderedList"><i class="fas fa-list-ul"></i></button>
+                            <button type="button" class="btn btn-outline-secondary" data-editor-cmd="insertOrderedList"><i class="fas fa-list-ol"></i></button>
+                        </div>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Insert">
+                            <button id="feedbackAddLinkBtn" type="button" class="btn btn-outline-secondary"><i class="fas fa-link"></i></button>
+                            <button id="feedbackAddFilesBtn" type="button" class="btn btn-outline-secondary"><i class="fas fa-paperclip"></i></button>
+                        </div>
+                    </div>
+                    <div id="feedbackEditor" class="form-control rounded-3" contenteditable="true" style="min-height: 120px; font-size: 14px;"></div>
+                    <input id="feedbackFileInput" type="file" multiple class="d-none">
+                    <div id="feedbackFileList" class="small text-muted mt-2"></div>
+                </div>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-teal btn-sm px-4">Approve Task</button>
+                <button id="approveTaskButton" type="button" class="btn btn-teal btn-sm px-4">Approve Task</button>
+                <button id="submitFeedbackButton" type="button" class="btn btn-teal btn-sm px-4" style="display:none;">Submit Feedback</button>
             </div>
         </div>
     </div>
@@ -4556,16 +4640,144 @@ export function renderSidebar(target) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
     var detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
-    function openModal(user, type, task, report) {
-        document.getElementById('mUser').innerText = user;
-        document.getElementById('mTask').innerText = task;
-        document.getElementById('mReport').innerHTML = report;
+    var activeModalReportId = null;
+    var pendingFeedbackFiles = [];
+
+    function getParentUsers() {
+        var parentWin = window.parent;
+        return parentWin && parentWin.questUsersById ? parentWin.questUsersById : {};
+    }
+
+    function getUserDisplay(uid) {
+        var users = getParentUsers();
+        var u = uid ? users[uid] : null;
+        if (!u) return { name: uid || 'Unknown', photo: '' };
+        return { name: u.name || u.email || uid, photo: u.photo || '' };
+    }
+
+    function renderAvatarPile(uids, max) {
+        var ids = Array.isArray(uids) ? uids.filter(Boolean) : [];
+        if (ids.length === 0) return '<span class="text-muted">-</span>';
+        var limit = typeof max === 'number' && max > 0 ? max : 5;
+        var html = '<div class="d-flex align-items-center gap-1">';
+        for (var i = 0; i < Math.min(ids.length, limit); i++) {
+            var info = getUserDisplay(ids[i]);
+            var src = info.photo || ('https://i.pravatar.cc/150?u=' + encodeURIComponent(info.name));
+            html += '<img src="' + escapeAttr(src) + '" width="28" height="28" class="rounded-circle border" style="object-fit:cover;" data-bs-toggle="tooltip" title="' + escapeAttr(info.name) + '">';
+        }
+        if (ids.length > limit) {
+            html += '<span class="badge bg-light text-dark border">+' + String(ids.length - limit) + '</span>';
+        }
+        html += '</div>';
+        return html;
+    }
+
+    function renderAssigneesCell(uids) {
+        var ids = Array.isArray(uids) ? uids.filter(Boolean) : [];
+        if (ids.length === 0) return '<span class="text-muted">-</span>';
+        if (ids.length === 1) {
+            var info = getUserDisplay(ids[0]);
+            var src = info.photo || ('https://i.pravatar.cc/150?u=' + encodeURIComponent(info.name));
+            return (
+                '<div class="d-flex align-items-center">' +
+                    '<img src="' + escapeAttr(src) + '" class="rounded-circle me-2 border" width="30" height="30" style="object-fit:cover;" data-bs-toggle="tooltip" title="' + escapeAttr(info.name) + '">' +
+                    '<span class="fw-bold text-truncate-custom" data-bs-toggle="tooltip" title="' + escapeAttr(info.name) + '">' + info.name + '</span>' +
+                '</div>'
+            );
+        }
+        return renderAvatarPile(ids, 5);
+    }
+
+    function renderNamedCollection(arr) {
+        if (!Array.isArray(arr) || arr.length === 0) return '-';
+        var names = [];
+        for (var i = 0; i < arr.length; i++) {
+            var x = arr[i];
+            if (!x) continue;
+            if (typeof x === 'string') names.push(x);
+            else if (x.name) names.push(String(x.name));
+        }
+        if (!names.length) return '-';
+        return names.join(', ');
+    }
+
+    function setModalMode(mode) {
+        var feedback = document.getElementById('feedbackSection');
+        var approveBtn = document.getElementById('approveTaskButton');
+        var submitBtn = document.getElementById('submitFeedbackButton');
+        if (mode === 'feedback') {
+            if (feedback) feedback.style.display = '';
+            if (approveBtn) approveBtn.style.display = 'none';
+            if (submitBtn) submitBtn.style.display = '';
+        } else {
+            if (feedback) feedback.style.display = 'none';
+            if (approveBtn) approveBtn.style.display = '';
+            if (submitBtn) submitBtn.style.display = 'none';
+        }
+    }
+
+    function openModalForReport(reportObj, mode) {
+        if (!reportObj) return;
+        activeModalReportId = reportObj.id;
+        var mUser = document.getElementById('mUser');
+        if (mUser) {
+            var ids = Array.isArray(reportObj.assignees) ? reportObj.assignees.filter(Boolean) : [];
+            if (ids.length === 0) {
+                mUser.innerText = '-';
+            } else if (ids.length === 1) {
+                mUser.innerText = getUserDisplay(ids[0]).name;
+            } else {
+                var names = [];
+                for (var i = 0; i < ids.length; i++) names.push(getUserDisplay(ids[i]).name);
+                mUser.innerText = names.join(', ');
+            }
+        }
+        var mTask = document.getElementById('mTask');
+        if (mTask) mTask.innerText = reportObj.task || '-';
+        var mReport = document.getElementById('mReport');
+        if (mReport) mReport.innerHTML = reportObj.reportFull || '';
         var badgeClass = 'badge-quest ';
-        if (type === 'Main Quest') badgeClass += 'badge-main';
-        else if (type === 'Side Quest') badgeClass += 'badge-side';
+        if (reportObj.questType === 'Main Quest') badgeClass += 'badge-main';
+        else if (reportObj.questType === 'Side Quest') badgeClass += 'badge-side';
         else badgeClass += 'badge-project';
-        document.getElementById('mType').innerHTML = '<span class="' + badgeClass + '">' + type + '</span>';
+        var mType = document.getElementById('mType');
+        if (mType) mType.innerHTML = '<span class="' + badgeClass + '">' + (reportObj.questType || '-') + '</span>';
+
+        var mAssign = document.getElementById('mAssignAvatars');
+        if (mAssign) mAssign.innerHTML = renderAvatarPile(reportObj.assignees, 6);
+        var mNotify = document.getElementById('mNotifyAvatars');
+        if (mNotify) mNotify.innerHTML = renderAvatarPile(reportObj.notifyTo, 6);
+
+        var mDepartments = document.getElementById('mDepartments');
+        if (mDepartments) mDepartments.innerText = renderNamedCollection(reportObj.departments);
+        var mPositions = document.getElementById('mPositions');
+        if (mPositions) mPositions.innerText = renderNamedCollection(reportObj.positions);
+        var mStartDate = document.getElementById('mStartDate');
+        if (mStartDate) mStartDate.innerText = reportObj.startDate || '-';
+        var mDueDate = document.getElementById('mDueDate');
+        if (mDueDate) mDueDate.innerText = reportObj.dueDate || '-';
+        var mPoints = document.getElementById('mPoints');
+        if (mPoints) mPoints.innerText = typeof reportObj.points === 'number' ? String(reportObj.points) : (reportObj.points ? String(reportObj.points) : '-');
+        var mPriority = document.getElementById('mPriority');
+        if (mPriority) mPriority.innerText = reportObj.priority || '-';
+        var mDescription = document.getElementById('mDescription');
+        if (mDescription) {
+            if (reportObj.description) mDescription.innerHTML = reportObj.description;
+            else mDescription.innerText = '-';
+        }
+
+        pendingFeedbackFiles = [];
+        var feedbackEditor = document.getElementById('feedbackEditor');
+        if (feedbackEditor) feedbackEditor.innerHTML = '';
+        var feedbackFileList = document.getElementById('feedbackFileList');
+        if (feedbackFileList) feedbackFileList.innerText = '';
+
+        setModalMode(mode);
         detailModal.show();
+        var tooltipEls = [].slice.call(document.querySelectorAll('#detailModal [data-bs-toggle="tooltip"]'));
+        tooltipEls.forEach(function (el) {
+            bootstrap.Tooltip.getOrCreateInstance(el);
+        });
     }
 
     var allReports = [];
@@ -4573,11 +4785,17 @@ export function renderSidebar(target) {
     var currentSortKey = 'date';
     var currentSortDir = 'desc';
 
-    function updateCountBadge() {
+    var currentQuestFilter = 'side';
+    var visibleCount = 20;
+    var pageSize = 20;
+    var bulkMode = null;
+    var selectedTaskIds = {};
+
+    function updateCountBadge(total) {
         var badge = document.querySelector('.count-badge');
         if (!badge) return;
-        var total = allReports.length;
-        badge.textContent = String(total);
+        var n = typeof total === 'number' ? total : allReports.length;
+        badge.textContent = String(n);
     }
 
     function parseDateValue(s) {
@@ -4596,7 +4814,7 @@ export function renderSidebar(target) {
     }
 
     function escapeJs(s) {
-        return String(s || '').replace(/'/g, "\\'");
+        return String(s || '').replace(/'/g, "\\\\'");
     }
 
     function isWithinPeriod(dateStr, period) {
@@ -4616,13 +4834,27 @@ export function renderSidebar(target) {
         return true;
     }
 
+    function getYesterdayString() {
+        var d = new Date();
+        d.setDate(d.getDate() - 1);
+        var mm = String(d.getMonth() + 1).padStart(2, '0');
+        var dd = String(d.getDate()).padStart(2, '0');
+        return d.getFullYear() + '-' + mm + '-' + dd;
+    }
+
     function updateStats() {
-        var requested = allReports.length;
+        var y = getYesterdayString();
+        var requested = 0;
         var approved = 0;
         var rejected = 0;
         var pending = 0;
         for (var i = 0; i < allReports.length; i++) {
             var r = allReports[i];
+            if (currentQuestFilter === 'side' && r.questType !== 'Side Quest') continue;
+            if (currentQuestFilter === 'main' && r.questType !== 'Main Quest') continue;
+            if (currentQuestFilter === 'project' && r.questType !== 'Project Quest') continue;
+            if (r.date !== y) continue;
+            requested++;
             var st = r.status || 'pending';
             if (st === 'approved') {
                 approved++;
@@ -4644,7 +4876,19 @@ export function renderSidebar(target) {
         if (elApp) elApp.innerText = String(approved);
         if (elRej) elRej.innerText = String(rejected);
         if (elPen) elPen.innerText = String(pending);
-        updateCountBadge();
+        var diffs = document.querySelectorAll('.stat-diff');
+        Array.prototype.slice.call(diffs).forEach(function (d) {
+            d.innerText = 'Kemarin';
+        });
+        var totalForBadge = 0;
+        for (var j = 0; j < allReports.length; j++) {
+            var rr = allReports[j];
+            if (currentQuestFilter === 'side' && rr.questType !== 'Side Quest') continue;
+            if (currentQuestFilter === 'main' && rr.questType !== 'Main Quest') continue;
+            if (currentQuestFilter === 'project' && rr.questType !== 'Project Quest') continue;
+            totalForBadge++;
+        }
+        updateCountBadge(totalForBadge);
     }
 
     function openReportDetail(id) {
@@ -4656,7 +4900,7 @@ export function renderSidebar(target) {
             }
         }
         if (!found) return;
-        openModal(found.user, found.questType, found.task, found.reportFull);
+        openModalForReport(found, 'view');
     }
 
     function renderReports() {
@@ -4665,13 +4909,19 @@ export function renderSidebar(target) {
         var searchInput = document.getElementById('reportSearchInput');
         var periodSelect = document.getElementById('reportPeriodSelect');
         var statusSelect = document.getElementById('reportStatusSelect');
+        var pageSizeSelect = document.getElementById('reportPageSizeSelect');
         var q = searchInput ? searchInput.value.toLowerCase().trim() : '';
         var period = periodSelect ? periodSelect.value : 'all';
         var statusFilter = statusSelect ? statusSelect.value : 'all';
+        var ps = pageSizeSelect ? parseInt(pageSizeSelect.value, 10) : pageSize;
+        if (!isNaN(ps) && ps > 0) pageSize = ps;
         var filtered = [];
         for (var i = 0; i < allReports.length; i++) {
             var r = allReports[i];
-            var text = (r.user + ' ' + r.task + ' ' + r.reportPreview).toLowerCase();
+            if (currentQuestFilter === 'side' && r.questType !== 'Side Quest') continue;
+            if (currentQuestFilter === 'main' && r.questType !== 'Main Quest') continue;
+            if (currentQuestFilter === 'project' && r.questType !== 'Project Quest') continue;
+            var text = ((r.task || '') + ' ' + (r.reportPreview || '')).toLowerCase();
             if (q && text.indexOf(q) === -1) continue;
             if (!isWithinPeriod(r.date, period)) continue;
             var st = r.status || 'pending';
@@ -4699,8 +4949,9 @@ export function renderSidebar(target) {
         });
         currentReports = filtered;
         tbody.innerHTML = '';
-        for (var j = 0; j < filtered.length; j++) {
-            var r2 = filtered[j];
+        var visible = filtered.slice(0, Math.min(filtered.length, visibleCount));
+        for (var j = 0; j < visible.length; j++) {
+            var r2 = visible[j];
             var st2 = r2.status || 'pending';
             var statusLabel = 'Pending';
             var statusClass = 'text-muted small';
@@ -4713,12 +4964,26 @@ export function renderSidebar(target) {
             }
             var row = document.createElement('tr');
             row.setAttribute('data-report-id', r2.id);
+            var checkboxHtml = '';
+            if (bulkMode) {
+                var checked = selectedTaskIds[r2.id] ? ' checked' : '';
+                checkboxHtml = '<input type="checkbox" class="form-check-input me-2 js-bulk-checkbox"' + checked + '>';
+            }
+            var teamHtml = renderAssigneesCell(r2.assignees || []);
+            if (bulkMode) {
+                teamHtml = '<div class="d-flex align-items-center">' + checkboxHtml + teamHtml + '</div>';
+            } else {
+                teamHtml = '<div class="d-flex align-items-center">' + teamHtml + '</div>';
+            }
+            var filesHtml = '<span class="text-muted">-</span>';
+            if (r2.fileName) {
+                filesHtml = '<a href="' + escapeAttr(r2.fileUrl || '#') + '" class="text-primary text-decoration-none small text-truncate-custom" data-bs-toggle="tooltip" title="' + escapeAttr(r2.fileTitle || '') + '">' +
+                    '<i class="' + r2.fileIconClass + ' me-1"></i> ' + r2.fileName +
+                '</a>';
+            }
             row.innerHTML =
                 '<td class="px-4">' +
-                    '<div class="d-flex align-items-center">' +
-                        '<img src="' + r2.avatar + '" class="rounded-circle me-2" width="30" height="30">' +
-                        '<span class="fw-bold text-truncate-custom" data-bs-toggle="tooltip" title="' + escapeAttr(r2.user) + '">' + r2.user + '</span>' +
-                    '</div>' +
+                    teamHtml +
                 '</td>' +
                 '<td><span class="text-muted small">' + r2.date + '</span></td>' +
                 '<td><span class="fw-medium text-truncate-custom" data-bs-toggle="tooltip" title="' + escapeAttr(r2.task) + '">' + r2.taskShort + '</span></td>' +
@@ -4727,18 +4992,40 @@ export function renderSidebar(target) {
                         r2.reportPreview +
                     '</div>' +
                 '</td>' +
-                '<td><a href="' + r2.fileUrl + '" class="text-primary text-decoration-none small text-truncate-custom" data-bs-toggle="tooltip" title="' + escapeAttr(r2.fileTitle) + '">' +
-                    '<i class="' + r2.fileIconClass + ' me-1"></i> ' + r2.fileName +
-                '</a></td>' +
+                '<td>' + filesHtml + '</td>' +
                 '<td>' +
-                    '<div class="d-flex flex-column align-items-center gap-1" onclick="event.stopPropagation();">' +
+                    '<div class="d-flex flex-column align-items-center gap-1">' +
                         '<div class="' + statusClass + '">' + statusLabel + '</div>' +
                         '<div class="d-flex justify-content-center gap-1">' +
-                            '<button class="btn btn-outline-danger btn-sm px-2 rounded-2" onclick="rejectReport(\'' + escapeJs(r2.id) + '\')"><i class="fas fa-times"></i></button>' +
-                            '<button class="btn btn-teal btn-sm px-2 rounded-2" onclick="approveReport(\'' + escapeJs(r2.id) + '\')">' + (st2 === 'approved' ? 'Approved' : 'Approve') + '</button>' +
+                            '<button type="button" class="btn btn-outline-danger btn-sm px-2 rounded-2 js-reject-report"><i class="fas fa-times"></i></button>' +
+                            '<button type="button" class="btn btn-dlg-green btn-sm px-2 rounded-2 js-approve-report">' + (st2 === 'approved' ? 'Approved' : 'Approve') + '</button>' +
                         '</div>' +
                     '</div>' +
                 '</td>';
+            (function (id) {
+                var cb = row.querySelector('.js-bulk-checkbox');
+                if (cb) {
+                    cb.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        selectedTaskIds[id] = cb.checked;
+                        syncBulkActionButton();
+                    });
+                }
+                var rejectBtn = row.querySelector('.js-reject-report');
+                if (rejectBtn) {
+                    rejectBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        rejectReport(id, true);
+                    });
+                }
+                var approveBtn = row.querySelector('.js-approve-report');
+                if (approveBtn) {
+                    approveBtn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        approveReport(id);
+                    });
+                }
+            })(r2.id);
             row.addEventListener('click', (function (id) {
                 return function () {
                     openReportDetail(id);
@@ -4765,17 +5052,30 @@ export function renderSidebar(target) {
         setReportStatusInternal(id, 'approved');
         renderReports();
         updateStats();
+        persistApprovalStatus(id, 'approved', '');
     }
 
-    function rejectReport(id) {
+    function rejectReport(id, openFeedback) {
         setReportStatusInternal(id, 'rejected');
         renderReports();
         updateStats();
+        persistApprovalStatus(id, 'rejected', '');
+        if (openFeedback) {
+            var found = null;
+            for (var i = 0; i < allReports.length; i++) {
+                if (allReports[i].id === id) {
+                    found = allReports[i];
+                    break;
+                }
+            }
+            if (found) openModalForReport(found, 'feedback');
+        }
     }
 
     function approveAllReports() {
         for (var i = 0; i < currentReports.length; i++) {
             currentReports[i].status = 'approved';
+            persistApprovalStatus(currentReports[i].id, 'approved', '');
         }
         renderReports();
         updateStats();
@@ -4784,26 +5084,346 @@ export function renderSidebar(target) {
     var searchInputEl = document.getElementById('reportSearchInput');
     if (searchInputEl) {
         searchInputEl.addEventListener('input', function () {
+            visibleCount = pageSize;
             renderReports();
         });
     }
     var periodSelectEl = document.getElementById('reportPeriodSelect');
     if (periodSelectEl) {
         periodSelectEl.addEventListener('change', function () {
+            visibleCount = pageSize;
             renderReports();
         });
     }
     var statusSelectEl = document.getElementById('reportStatusSelect');
     if (statusSelectEl) {
         statusSelectEl.addEventListener('change', function () {
+            visibleCount = pageSize;
             renderReports();
         });
     }
-    var approveAllBtn = document.getElementById('reportApproveAllButton');
-    if (approveAllBtn) {
-        approveAllBtn.addEventListener('click', function () {
-            approveAllReports();
+
+    var approveTaskBtn = document.getElementById('approveTaskButton');
+    if (approveTaskBtn) {
+        approveTaskBtn.addEventListener('click', function () {
+            if (!activeModalReportId) return;
+            approveReport(activeModalReportId);
+            detailModal.hide();
         });
+    }
+    var pageSizeSelectEl = document.getElementById('reportPageSizeSelect');
+    if (pageSizeSelectEl) {
+        pageSizeSelectEl.addEventListener('change', function () {
+            var ps = parseInt(pageSizeSelectEl.value, 10);
+            if (!isNaN(ps) && ps > 0) pageSize = ps;
+            visibleCount = pageSize;
+            renderReports();
+        });
+    }
+
+    function syncBulkActionButton() {
+        var btn = document.getElementById('reportBulkActionButton');
+        if (!btn) return;
+        var selected = Object.keys(selectedTaskIds).filter(function (k) { return !!selectedTaskIds[k]; });
+        if (!bulkMode) {
+            btn.className = 'btn btn-approve-all px-3 py-2 rounded-3 shadow-sm';
+            btn.innerHTML = '<i class="fas fa-check-double me-1"></i> Approve all';
+            btn.disabled = false;
+            return;
+        }
+        var label = bulkMode === 'delete' ? 'Delete All' : 'Archive All';
+        var icon = bulkMode === 'delete' ? 'fas fa-trash' : 'fas fa-box-archive';
+        btn.innerHTML = '<i class="' + icon + ' me-1"></i> ' + label;
+        btn.disabled = selected.length === 0;
+        if (bulkMode === 'delete') {
+            btn.className = 'btn btn-danger px-3 py-2 rounded-3 shadow-sm';
+        } else {
+            btn.className = 'btn btn-warning px-3 py-2 rounded-3 shadow-sm';
+        }
+    }
+
+    var bulkBtn = document.getElementById('reportBulkActionButton');
+    if (bulkBtn) {
+        bulkBtn.style.display = '';
+        bulkBtn.addEventListener('click', function () {
+            if (!bulkMode) {
+                approveAllReports();
+                return;
+            }
+            var selected = Object.keys(selectedTaskIds).filter(function (k) { return !!selectedTaskIds[k]; });
+            if (selected.length === 0) return;
+            if (bulkMode === 'delete') {
+                bulkDeleteTasks(selected);
+            } else {
+                bulkArchiveTasks(selected);
+            }
+        });
+        syncBulkActionButton();
+    }
+
+    var bulkMenu = document.getElementById('reportBulkMenuButton');
+    if (bulkMenu) {
+        bulkMenu.addEventListener('click', function () {
+            var menuItems = document.querySelectorAll('[data-bulk-action]');
+            Array.prototype.slice.call(menuItems).forEach(function (el) {
+                el.addEventListener('click', function () {
+                    var action = el.getAttribute('data-bulk-action');
+                    bulkMode = action === 'delete' ? 'delete' : 'archive';
+                    selectedTaskIds = {};
+                    visibleCount = pageSize;
+                    syncBulkActionButton();
+                    renderReports();
+                }, { once: true });
+            });
+        });
+    }
+
+    function setQuestFilter(next) {
+        currentQuestFilter = next;
+        visibleCount = pageSize;
+        var titleEl = document.querySelector('h4.fw-bold');
+        if (titleEl) {
+            if (next === 'side') titleEl.innerText = 'Report Side Quest';
+            else if (next === 'main') titleEl.innerText = 'Report Main Quest';
+            else titleEl.innerText = 'Report Project Quest';
+        }
+        updateStats();
+        renderReports();
+        syncBulkActionButton();
+    }
+
+    var tabSide = document.getElementById('reportTabSide');
+    if (tabSide) tabSide.addEventListener('click', function () { setQuestFilter('side'); });
+    var tabMain = document.getElementById('reportTabMain');
+    if (tabMain) tabMain.addEventListener('click', function () { setQuestFilter('main'); });
+    var tabProject = document.getElementById('reportTabProject');
+    if (tabProject) tabProject.addEventListener('click', function () { setQuestFilter('project'); });
+
+    var tableScroll = document.querySelector('.table-responsive');
+    if (tableScroll) {
+        tableScroll.addEventListener('scroll', function () {
+            var nearBottom = tableScroll.scrollTop + tableScroll.clientHeight >= tableScroll.scrollHeight - 40;
+            if (nearBottom) {
+                if (visibleCount < currentReports.length) {
+                    visibleCount += pageSize;
+                    renderReports();
+                }
+            }
+        });
+    }
+
+    function stripHtml(s) {
+        var div = document.createElement('div');
+        div.innerHTML = s || '';
+        return (div.textContent || div.innerText || '').trim();
+    }
+
+    function attachFeedbackToolbarHandlers() {
+        var feedbackEditor = document.getElementById('feedbackEditor');
+        if (!feedbackEditor) return;
+        var cmdButtons = document.querySelectorAll('[data-editor-cmd]');
+        Array.prototype.slice.call(cmdButtons).forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var cmd = btn.getAttribute('data-editor-cmd');
+                if (!cmd) return;
+                feedbackEditor.focus();
+                try { document.execCommand(cmd, false, null); } catch (e) {}
+            });
+        });
+        var linkBtn = document.getElementById('feedbackAddLinkBtn');
+        if (linkBtn) {
+            linkBtn.addEventListener('click', function () {
+                var url = prompt('Add link (URL):');
+                if (!url) return;
+                feedbackEditor.focus();
+                try { document.execCommand('createLink', false, url); } catch (e) {}
+            });
+        }
+        var filesBtn = document.getElementById('feedbackAddFilesBtn');
+        var fileInput = document.getElementById('feedbackFileInput');
+        if (filesBtn && fileInput) {
+            filesBtn.addEventListener('click', function () { fileInput.click(); });
+            fileInput.addEventListener('change', function () {
+                pendingFeedbackFiles = Array.prototype.slice.call(fileInput.files || []);
+                var list = document.getElementById('feedbackFileList');
+                if (list) {
+                    if (!pendingFeedbackFiles.length) list.innerText = '';
+                    else list.innerText = pendingFeedbackFiles.map(function (f) { return f.name; }).join(', ');
+                }
+            });
+        }
+    }
+
+    attachFeedbackToolbarHandlers();
+
+    function findReportById(id) {
+        for (var i = 0; i < allReports.length; i++) {
+            if (allReports[i].id === id) return allReports[i];
+        }
+        return null;
+    }
+
+    async function persistApprovalStatus(id, status, feedbackHtml) {
+        var parentWin = window.parent;
+        var r = findReportById(id);
+        if (!r || !parentWin || !parentWin.db || !parentWin.updateDoc || !parentWin.doc) return;
+        var payload = {
+            approval_status: status,
+            approvalStatus: status,
+            approvalUpdatedAt: parentWin.serverTimestamp ? parentWin.serverTimestamp() : new Date().toISOString()
+        };
+        if (feedbackHtml) {
+            payload.feedback = feedbackHtml;
+            payload.feedback_at = parentWin.serverTimestamp ? parentWin.serverTimestamp() : new Date().toISOString();
+            payload.feedback_by = parentWin.auth && parentWin.auth.currentUser ? parentWin.auth.currentUser.uid : '';
+        }
+        try {
+            if (r.reportSource === 'root' && r.reportDocId) {
+                await parentWin.updateDoc(parentWin.doc(parentWin.db, 'quest_reports', r.reportDocId), payload);
+            } else if (r.reportSource === 'sub' && r.reportDocId) {
+                await parentWin.updateDoc(parentWin.doc(parentWin.db, 'tasks', id, 'reports', r.reportDocId), payload);
+            }
+        } catch (e) {
+            console.error('Failed to persist approval status', e);
+        }
+    }
+
+    async function uploadFeedbackFiles(taskId, files) {
+        var parentWin = window.parent;
+        if (!files || !files.length) return [];
+        if (!parentWin || !parentWin.storage || !parentWin.ref || !parentWin.uploadBytes || !parentWin.getDownloadURL) return [];
+        var out = [];
+        for (var i = 0; i < files.length; i++) {
+            var f = files[i];
+            try {
+                var path = 'report_feedback/' + taskId + '/' + Date.now() + '_' + f.name;
+                var sRef = parentWin.ref(parentWin.storage, path);
+                await parentWin.uploadBytes(sRef, f);
+                var url = await parentWin.getDownloadURL(sRef);
+                out.push({ name: f.name, url: url, type: f.type || '' });
+            } catch (e) {}
+        }
+        return out;
+    }
+
+    var submitFeedbackBtn = document.getElementById('submitFeedbackButton');
+    if (submitFeedbackBtn) {
+        submitFeedbackBtn.addEventListener('click', async function () {
+            var id = activeModalReportId;
+            if (!id) return;
+            var editor = document.getElementById('feedbackEditor');
+            var html = editor ? editor.innerHTML : '';
+            if (!stripHtml(html)) return;
+            var attachments = await uploadFeedbackFiles(id, pendingFeedbackFiles);
+            var parentWin = window.parent;
+            var r = findReportById(id);
+            if (r && parentWin && parentWin.updateDoc && parentWin.doc && parentWin.db) {
+                try {
+                    var payload = {
+                        feedback: html,
+                        feedback_files: attachments,
+                        feedbackFiles: attachments
+                    };
+                    if (r.reportSource === 'root' && r.reportDocId) {
+                        await parentWin.updateDoc(parentWin.doc(parentWin.db, 'quest_reports', r.reportDocId), payload);
+                    } else if (r.reportSource === 'sub' && r.reportDocId) {
+                        await parentWin.updateDoc(parentWin.doc(parentWin.db, 'tasks', id, 'reports', r.reportDocId), payload);
+                    }
+                } catch (e) {
+                    console.error('Failed to submit feedback', e);
+                }
+            }
+            persistApprovalStatus(id, 'rejected', html);
+            setReportStatusInternal(id, 'rejected');
+            renderReports();
+            updateStats();
+            detailModal.hide();
+        });
+    }
+
+    function getSelectedTaskIds() {
+        return Object.keys(selectedTaskIds).filter(function (k) { return !!selectedTaskIds[k]; });
+    }
+
+    async function bulkArchiveTasks(taskIds) {
+        var parentWin = window.parent;
+        if (!parentWin || !parentWin.updateDoc || !parentWin.doc || !parentWin.db) return;
+        try {
+            for (var i = 0; i < taskIds.length; i++) {
+                await parentWin.updateDoc(parentWin.doc(parentWin.db, 'tasks', taskIds[i]), {
+                    archived: true,
+                    archived_at: parentWin.serverTimestamp ? parentWin.serverTimestamp() : new Date().toISOString(),
+                    archived_by: parentWin.auth && parentWin.auth.currentUser ? parentWin.auth.currentUser.uid : ''
+                });
+            }
+        } catch (e) {
+            console.error('Failed to archive tasks', e);
+        }
+        bulkMode = null;
+        selectedTaskIds = {};
+        syncBulkActionButton();
+        loadReportsFromTasks();
+    }
+
+    async function bulkDeleteTasks(taskIds) {
+        var parentWin = window.parent;
+        if (!parentWin || !parentWin.deleteDoc || !parentWin.doc || !parentWin.db || !parentWin.collection || !parentWin.getDocs) return;
+        try {
+            var rootSnap = await parentWin.getDocs(parentWin.collection(parentWin.db, 'quest_reports'));
+            var rootDocs = [];
+            rootSnap.forEach(function (d) { rootDocs.push({ id: d.id, data: d.data() || {} }); });
+            for (var i = 0; i < taskIds.length; i++) {
+                var tId = taskIds[i];
+                try {
+                    var repSnap = await parentWin.getDocs(parentWin.collection(parentWin.db, 'tasks', tId, 'reports'));
+                    var deletes = [];
+                    repSnap.forEach(function (d) { deletes.push(d.id); });
+                    for (var j = 0; j < deletes.length; j++) {
+                        await parentWin.deleteDoc(parentWin.doc(parentWin.db, 'tasks', tId, 'reports', deletes[j]));
+                    }
+                } catch (eSub) {}
+                for (var k = 0; k < rootDocs.length; k++) {
+                    var d2 = rootDocs[k];
+                    var tid = d2.data.taskId || d2.data.task_id || '';
+                    if (tid === tId) {
+                        await parentWin.deleteDoc(parentWin.doc(parentWin.db, 'quest_reports', d2.id));
+                    }
+                }
+                await parentWin.deleteDoc(parentWin.doc(parentWin.db, 'tasks', tId));
+            }
+        } catch (e) {
+            console.error('Failed to delete tasks', e);
+        }
+        bulkMode = null;
+        selectedTaskIds = {};
+        syncBulkActionButton();
+        loadReportsFromTasks();
+    }
+    function normalizeTimeValue(v) {
+        if (!v) return '';
+        if (v.toDate && typeof v.toDate === 'function') {
+            var d = v.toDate();
+            if (!isNaN(d.getTime())) return d.toISOString();
+            return '';
+        }
+        if (typeof v === 'number') {
+            var d2 = new Date(v);
+            if (!isNaN(d2.getTime())) return d2.toISOString();
+            return '';
+        }
+        return String(v);
+    }
+    function normalizeDateString(v, fallback) {
+        var s = normalizeTimeValue(v);
+        if (s) {
+            if (s.length >= 10 && s.indexOf('T') >= 0) {
+                return s.slice(0, 10);
+            }
+            if (s.length >= 10) {
+                return s.slice(0, 10);
+            }
+        }
+        return fallback || '';
     }
     async function loadReportsFromTasks() {
         var parentWin = window.parent;
@@ -4815,64 +5435,69 @@ export function renderSidebar(target) {
             return;
         }
         try {
-            var snap = await parentWin.getDocs(parentWin.collection(parentWin.db, 'tasks'));
-            var tasks = [];
+            var tasksSnap = await parentWin.getDocs(parentWin.collection(parentWin.db, 'tasks'));
             var tasksById = {};
-            snap.forEach(function (docSnap) {
+            var completeTaskIds = [];
+            var taskQuestTypeById = {};
+            tasksSnap.forEach(function (docSnap) {
                 var data = docSnap.data() || {};
                 tasksById[docSnap.id] = data;
-                var rawType = String(data.type || '');
-                var rawStatus = String(data.status || '');
-                var type = rawType.toLowerCase();
-                var status = rawStatus.toLowerCase();
-                var normType = type.replace(/[\s_]/g, '');
-                var normStatus = status.replace(/[\s_]/g, '');
-                var isSideQuest = false;
-                if (normType === 'sidequest' || type === 'side-quest') {
-                    isSideQuest = true;
-                } else if (normStatus === 'sidequest') {
-                    isSideQuest = true;
-                } else if (data.task_status) {
-                    isSideQuest = true;
-                }
-                if (!isSideQuest) return;
-                var isComplete = false;
-                if (normStatus === 'complete' || normStatus === 'done') isComplete = true;
-                if (data.task_status) {
-                    var ts = String(data.task_status).toLowerCase().replace(/[\s_]/g, '');
-                    if (ts === 'complete' || ts === 'done') isComplete = true;
-                }
+                var archived = !!(data.archived || data.is_archived);
+                if (archived) return;
+                var statusRaw = '';
+                if (typeof data.status === 'string') statusRaw = data.status;
+                else if (data.status && typeof data.status === 'object') statusRaw = data.status.name || data.status.label || '';
+                var normStatus = String(statusRaw || '').trim().toLowerCase().replace(/[\s_]/g, '');
+                var isComplete = normStatus === 'complete' || normStatus === 'done';
                 if (!isComplete) return;
-                tasks.push({ id: docSnap.id, data: data });
+                completeTaskIds.push(docSnap.id);
+                var questType = 'Side Quest';
+                if (data.project_id) questType = 'Project Quest';
+                else if (data.recur) questType = 'Main Quest';
+                taskQuestTypeById[docSnap.id] = questType;
             });
-            var reports = [];
-            for (var i = 0; i < tasks.length; i++) {
-                var t = tasks[i];
-                var taskId = t.id;
-                var data = t.data;
-                var reportsSnap = await parentWin.getDocs(parentWin.collection(parentWin.db, 'tasks', taskId, 'reports'));
-                if (reportsSnap.empty) continue;
-                var chosenReport = null;
-                reportsSnap.forEach(function (repSnap) {
-                    var rdata = repSnap.data() || {};
-                    if (!chosenReport) {
-                        chosenReport = rdata;
-                    } else {
-                        var prev = chosenReport.createdAt || chosenReport.submittedAt || '';
-                        var curr = rdata.createdAt || rdata.submittedAt || '';
-                        if (String(curr) > String(prev)) {
-                            chosenReport = rdata;
-                        }
-                    }
-                });
-                if (!chosenReport) continue;
-                var assignRaw = data.assign_to || data.assignTo || [];
-                var assignIds = [];
-                if (Array.isArray(assignRaw)) {
-                    assignIds = assignRaw.slice();
-                } else if (assignRaw) {
-                    assignIds = [assignRaw];
+
+            var latestByTaskId = {};
+            var rootSnap = await parentWin.getDocs(parentWin.collection(parentWin.db, 'quest_reports'));
+            rootSnap.forEach(function (repSnap) {
+                var rdataRoot = repSnap.data() || {};
+                var taskIdRoot = rdataRoot.taskId || rdataRoot.task_id || '';
+                if (!taskIdRoot) return;
+                if (!taskQuestTypeById[taskIdRoot]) return;
+                var prevRoot = latestByTaskId[taskIdRoot];
+                var prevTimeRoot = prevRoot ? normalizeTimeValue(prevRoot.data.submittedAt || prevRoot.data.createdAt || prevRoot.data.timestamp) : '';
+                var currTimeRoot = normalizeTimeValue(rdataRoot.submittedAt || rdataRoot.createdAt || rdataRoot.timestamp);
+                if (!prevRoot || currTimeRoot > prevTimeRoot) {
+                    latestByTaskId[taskIdRoot] = { data: rdataRoot, source: 'root', docId: repSnap.id };
                 }
+            });
+
+            for (var i0 = 0; i0 < completeTaskIds.length; i0++) {
+                var tId0 = completeTaskIds[i0];
+                if (latestByTaskId[tId0]) continue;
+                var qt = taskQuestTypeById[tId0] || 'Side Quest';
+                if (qt === 'Side Quest') continue;
+                try {
+                    var repSnap0 = await parentWin.getDocs(parentWin.collection(parentWin.db, 'tasks', tId0, 'reports'));
+                    repSnap0.forEach(function (docRep) {
+                        var rdata = docRep.data() || {};
+                        var prev = latestByTaskId[tId0];
+                        var prevTime = prev ? normalizeTimeValue(prev.data.submittedAt || prev.data.createdAt || prev.data.timestamp) : '';
+                        var currTime = normalizeTimeValue(rdata.submittedAt || rdata.createdAt || rdata.timestamp);
+                        if (!prev || currTime > prevTime) {
+                            latestByTaskId[tId0] = { data: rdata, source: 'sub', docId: docRep.id };
+                        }
+                    });
+                } catch (eSub0) {}
+            }
+
+            var reports = [];
+            Object.keys(latestByTaskId).forEach(function (taskId) {
+                var entry = latestByTaskId[taskId] || {};
+                var rdata = entry.data || {};
+                var data = tasksById[taskId] || {};
+                var questType = taskQuestTypeById[taskId] || 'Side Quest';
+
                 var notifyRaw = data.notify_to || data.notifyTo || [];
                 var notifyIds = [];
                 if (Array.isArray(notifyRaw)) {
@@ -4880,25 +5505,17 @@ export function renderSidebar(target) {
                 } else if (notifyRaw) {
                     notifyIds = [notifyRaw];
                 }
-                var parentUsers = parentWin.questUsersById || {};
-                var displayName = 'Unassigned';
-                var avatarUrl = '';
-                if (assignIds.length > 0) {
-                    var firstId = assignIds[0];
-                    var u = parentUsers[firstId];
-                    if (u) {
-                        displayName = u.name || u.email || firstId;
-                        avatarUrl = u.photo || '';
-                    } else {
-                        displayName = firstId;
-                    }
+
+                var assignRaw = data.assign_to || data.assignTo || [];
+                var assignIds = [];
+                if (Array.isArray(assignRaw)) {
+                    assignIds = assignRaw.slice();
+                } else if (assignRaw) {
+                    assignIds = [assignRaw];
                 }
-                if (!avatarUrl) {
-                    avatarUrl = 'https://i.pravatar.cc/150?u=' + encodeURIComponent(displayName);
-                }
-                var title = data.title || 'Untitled Side Quest';
-                var dueDate = data.due_date || data.dueDate || '';
-                var reportHtml = chosenReport.content || '';
+
+                var title = data.title || 'Untitled Task';
+                var reportHtml = rdata.content || '';
                 var tmpDiv = document.createElement('div');
                 tmpDiv.innerHTML = reportHtml;
                 var reportText = (tmpDiv.textContent || tmpDiv.innerText || '').trim();
@@ -4909,7 +5526,14 @@ export function renderSidebar(target) {
                     previewText = previewText.replace(/\s+\S*$/, '');
                     previewText += '...';
                 }
-                var filesArr = Array.isArray(chosenReport.files) ? chosenReport.files : [];
+
+                var submittedAt = rdata.submittedAt || rdata.createdAt || '';
+                var dateStr = normalizeDateString(submittedAt, '');
+                if (!dateStr) {
+                    dateStr = data.due_date || data.dueDate || '';
+                }
+
+                var filesArr = Array.isArray(rdata.files) ? rdata.files : [];
                 var fileName = '';
                 var fileTitle = '';
                 var fileUrl = '#';
@@ -4931,12 +5555,15 @@ export function renderSidebar(target) {
                         fileName += ' (+' + String(filesArr.length - 1) + ')';
                     }
                 }
-                var reportObj = {
+
+                var appr = rdata.approval_status || rdata.approvalStatus || '';
+                appr = String(appr || '').toLowerCase();
+                var statusVal = appr === 'approved' || appr === 'rejected' ? appr : 'pending';
+
+                reports.push({
                     id: taskId,
-                    user: displayName,
-                    avatar: avatarUrl,
-                    questType: 'Side Quest',
-                    date: dueDate,
+                    questType: questType,
+                    date: dateStr,
                     task: title,
                     taskShort: title.length > 20 ? title.substring(0, 17) + '...' : title,
                     reportPreview: previewText,
@@ -4946,143 +5573,29 @@ export function renderSidebar(target) {
                     fileTitle: fileTitle,
                     fileUrl: fileUrl,
                     fileIconClass: fileIconClass,
-                    status: 'pending',
+                    status: statusVal,
                     notifyTo: notifyIds,
-                    notifyCount: notifyIds.length
-                };
-                reports.push(reportObj);
-            }
-            try {
-                var rootSnap = await parentWin.getDocs(parentWin.collection(parentWin.db, 'quest_reports'));
-                rootSnap.forEach(function (repSnap) {
-                    var rdata = repSnap.data() || {};
-                    var taskId = rdata.taskId || rdata.task_id || '';
-                    if (!taskId) return;
-                    var exists = false;
-                    for (var i = 0; i < reports.length; i++) {
-                        if (reports[i].id === taskId) {
-                            exists = true;
-                            break;
-                        }
-                    }
-                    if (exists) return;
-                    var data = tasksById[taskId] || {};
-                    var rawType = String(data.type || '');
-                    var rawStatus = String(data.status || '');
-                    var type = rawType.toLowerCase();
-                    var status = rawStatus.toLowerCase();
-                    var normType = type.replace(/[\s_]/g, '');
-                    var normStatus = status.replace(/[\s_]/g, '');
-                    var isSideQuest = false;
-                    if (normType === 'sidequest' || type === 'side-quest') {
-                        isSideQuest = true;
-                    } else if (normStatus === 'sidequest') {
-                        isSideQuest = true;
-                    } else if (data.task_status) {
-                        isSideQuest = true;
-                    }
-                    if (!isSideQuest) return;
-                    var isComplete2 = false;
-                    if (normStatus === 'complete' || normStatus === 'done') isComplete2 = true;
-                    if (data.task_status) {
-                        var ts2 = String(data.task_status).toLowerCase().replace(/[\s_]/g, '');
-                        if (ts2 === 'complete' || ts2 === 'done') isComplete2 = true;
-                    }
-                    if (!isComplete2) return;
-                    var assignRaw = data.assign_to || data.assignTo || [];
-                    var assignIds = [];
-                    if (Array.isArray(assignRaw)) {
-                        assignIds = assignRaw.slice();
-                    } else if (assignRaw) {
-                        assignIds = [assignRaw];
-                    }
-                    var notifyRaw = data.notify_to || data.notifyTo || [];
-                    var notifyIds = [];
-                    if (Array.isArray(notifyRaw)) {
-                        notifyIds = notifyRaw.slice();
-                    } else if (notifyRaw) {
-                        notifyIds = [notifyRaw];
-                    }
-                    var parentUsers = parentWin.questUsersById || {};
-                    var displayName = 'Unassigned';
-                    var avatarUrl = '';
-                    if (assignIds.length > 0) {
-                        var firstId2 = assignIds[0];
-                        var u2 = parentUsers[firstId2];
-                        if (u2) {
-                            displayName = u2.name || u2.email || firstId2;
-                            avatarUrl = u2.photo || '';
-                        } else {
-                            displayName = firstId2;
-                        }
-                    }
-                    if (!avatarUrl) {
-                        avatarUrl = 'https://i.pravatar.cc/150?u=' + encodeURIComponent(displayName);
-                    }
-                    var title2 = data.title || 'Untitled Side Quest';
-                    var dueDate2 = data.due_date || data.dueDate || '';
-                    var reportHtml2 = rdata.content || '';
-                    var tmpDiv2 = document.createElement('div');
-                    tmpDiv2.innerHTML = reportHtml2;
-                    var reportText2 = (tmpDiv2.textContent || tmpDiv2.innerText || '').trim();
-                    var previewMax2 = 140;
-                    var previewText2 = reportText2;
-                    if (previewText2.length > previewMax2) {
-                        previewText2 = previewText2.substring(0, previewMax2);
-                        previewText2 = previewText2.replace(/\s+\S*$/, '');
-                        previewText2 += '...';
-                    }
-                    var filesArr2 = Array.isArray(rdata.files) ? rdata.files : [];
-                    var fileName2 = '';
-                    var fileTitle2 = '';
-                    var fileUrl2 = '#';
-                    var fileIconClass2 = 'far fa-file';
-                    if (filesArr2.length > 0) {
-                        var f2 = filesArr2[0];
-                        fileName2 = f2.name || 'Attachment';
-                        fileTitle2 = f2.name || '';
-                        fileUrl2 = f2.url || '#';
-                        var ttype2 = String(f2.type || '').toLowerCase();
-                        if (ttype2.indexOf('pdf') !== -1) {
-                            fileIconClass2 = 'far fa-file-pdf';
-                        } else if (ttype2.indexOf('zip') !== -1 || ttype2.indexOf('rar') !== -1 || ttype2.indexOf('7z') !== -1) {
-                            fileIconClass2 = 'far fa-file-archive';
-                        } else if (ttype2.indexOf('image/') === 0) {
-                            fileIconClass2 = 'far fa-file-image';
-                        }
-                        if (filesArr2.length > 1) {
-                            fileName2 += ' (+' + String(filesArr2.length - 1) + ')';
-                        }
-                    }
-                    reports.push({
-                        id: taskId,
-                        user: displayName,
-                        avatar: avatarUrl,
-                        questType: 'Side Quest',
-                        date: dueDate2,
-                        task: title2,
-                        taskShort: title2.length > 20 ? title2.substring(0, 17) + '...' : title2,
-                        reportPreview: previewText2,
-                        reportPreviewFull: reportText2,
-                        reportFull: reportHtml2,
-                        fileName: fileName2,
-                        fileTitle: fileTitle2,
-                        fileUrl: fileUrl2,
-                        fileIconClass: fileIconClass2,
-                        status: 'pending',
-                        notifyTo: notifyIds,
-                        notifyCount: notifyIds.length
-                    });
+                    notifyCount: notifyIds.length,
+                    assignees: assignIds,
+                    departments: Array.isArray(data.departments) ? data.departments : [],
+                    positions: Array.isArray(data.positions) ? data.positions : [],
+                    startDate: data.start_date || data.startDate || '',
+                    dueDate: data.due_date || data.dueDate || '',
+                    points: typeof data.points === 'number' ? data.points : (data.points ? Number(data.points) || 0 : 0),
+                    priority: data.priority || '',
+                    description: data.description || '',
+                    reportSource: entry.source || 'root',
+                    reportDocId: entry.docId || ''
                 });
-            } catch (eRoot) {
-                console.error('Failed to load quest_reports', eRoot);
-            }
+            });
+
             allReports = reports;
             currentReports = reports.slice();
+            visibleCount = pageSize;
             updateStats();
             renderReports();
         } catch (e) {
-            console.error('Failed to load side quest reports', e);
+            console.error('Failed to load reports', e);
             updateStats();
             renderReports();
         }
