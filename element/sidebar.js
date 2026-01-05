@@ -138,6 +138,25 @@ export function renderSidebar(target) {
                 content: attr(data-placeholder);
                 color: #94a3b8;
             }
+            .sidebar-submenu {
+                padding-left: 45px;
+                display: none;
+                margin-bottom: 10px;
+            }
+            .sidebar-submenu.show {
+                display: block;
+            }
+            .sidebar-submenu-link {
+                display: block;
+                padding: 6px 0;
+                color: #64748b;
+                text-decoration: none;
+                font-size: 13px;
+                transition: color 0.2s;
+            }
+            .sidebar-submenu-link:hover {
+                color: #2563eb;
+            }
         </style>
         <!-- 2. SIDEBAR (Light, Smart Filters, Pending Widget) -->
         <aside class="sidebar" id="sidebarNav">
@@ -155,7 +174,7 @@ export function renderSidebar(target) {
                         <div class="filter-top"><div class="filter-icon" style="background-color: var(--dlg-yellow);"><i class="bi bi-archive-fill"></i></div><div class="filter-count" id="sideQuestCount">0</div></div>
                         <div class="filter-label">Side Quest</div>
                     </a>
-                    <a href="#" class="filter-card">
+                    <a href="/home.html" class="filter-card">
                         <div class="filter-top"><div class="filter-icon" style="background-color: var(--dlg-purple);"><i class="bi bi-calendar-event-fill"></i></div><div class="filter-count" id="projectTasksTotalCount">0</div></div>
                         <div class="filter-label">Project</div>
                     </a>
@@ -163,11 +182,11 @@ export function renderSidebar(target) {
                         <div class="filter-top"><div class="filter-icon" style="background-color: var(--dlg-green);"><i class="bi bi-calendar-event-fill"></i></div><div class="filter-count" id="reportPendingApprovalCount">0</div></div>
                         <div class="filter-label">Report</div>
                     </a>
-                    <a href="#" class="filter-card">
+                    <a href="javascript:void(0)" class="filter-card" onclick="alert('Under Development')">
                         <div class="filter-top"><div class="filter-icon bg-icon-orange"><i class="bi bi-flag-fill"></i></div><div class="filter-count">21</div></div>
                         <div class="filter-label">Files</div>
                     </a>
-                    <a href="#" class="filter-card">
+                    <a href="javascript:void(0)" class="filter-card" onclick="alert('Under Development')">
                         <div class="filter-top"><div class="filter-icon bg-icon-red"><i class="bi bi-calendar-check-fill"></i></div><div class="filter-count">30</div></div>
                         <div class="filter-label">Reminder</div>
                     </a>
@@ -175,16 +194,27 @@ export function renderSidebar(target) {
 
                 <!-- Navigation Links -->
                 <div class="nav-category">Main Navigation</div>
-                <a href="#" class="sidebar-link active"><i class="bi bi-columns-gap"></i> Dashboard</a>
-                <a href="#" class="sidebar-link"><i class="bi bi-list-columns-reverse"></i> Lineup <span class="sidebar-badge">4</span></a>
-                <a href="#" class="sidebar-link"><i class="bi bi-chat-dots"></i> Pings</a>
-                <a href="#" class="sidebar-link"><i class="bi bi-bell"></i> Hey!</a>
-                <a href="#" class="sidebar-link"><i class="bi bi-activity"></i> Activity</a>
-                <a href="#" class="sidebar-link"><i class="bi bi-person-circle"></i> My Stuff</a>
+                <a href="javascript:void(0)" class="sidebar-link active" onclick="window.toggleDashboardMenu(this)">
+                    <i class="bi bi-columns-gap"></i> Dashboard 
+                    <span class="sidebar-badge">
+                        <i class="bi bi-arrow-left-square-fill" id="dashboardIcon"></i>
+                    </span>
+                </a>
+                <div class="sidebar-submenu">
+                    <a href="javascript:void(0)" class="sidebar-submenu-link">Closing</a>
+                    <a href="javascript:void(0)" class="sidebar-submenu-link">Rebuy</a>
+                    <a href="javascript:void(0)" class="sidebar-submenu-link">Happy</a>
+                    <a href="javascript:void(0)" class="sidebar-submenu-link">Branding</a>
+                </div>
+                <a href="#" class="sidebar-link"><i class="bi bi-list-columns-reverse"></i> Shortcut <span class="sidebar-badge">4</span></a>
+                <a href="javascript:void(0)" class="sidebar-link" onclick="alert('Under Development')"><i class="bi bi-chat-dots"></i> Pings</a>
+                <a href="javascript:void(0)" class="sidebar-link" onclick="alert('Under Development')"><i class="bi bi-bell"></i> Hey!</a>
+                <a href="javascript:void(0)" class="sidebar-link" onclick="alert('Under Development')"><i class="bi bi-activity"></i> Activity</a>
+                <a href="javascript:void(0)" class="sidebar-link" onclick="alert('Under Development')"><i class="bi bi-person-circle"></i> My Stuff</a>
 
                 <div class="nav-category mt-4">System</div>
-                <a href="#" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
-                <a href="#" class="sidebar-link text-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                <a href="javascript:void(0)" class="sidebar-link" onclick="alert('Under Development')"><i class="bi bi-gear"></i>System Settings</a>
+                <a href="javascript:void(0)" class="sidebar-link text-danger" id="logoutBtn"><i class="bi bi-box-arrow-right"></i> Logout</a>
 
             </div> <!-- End Scroll Wrapper -->
 
@@ -1306,6 +1336,13 @@ export function renderSidebar(target) {
         function handleSideQuestFiles(input) {
             if (input.files && input.files.length > 0) {
                 var container = input.closest('.rich-editor');
+                // Jika input file berada di luar rich-editor (seperti "Optional : Attach files")
+                // maka kita cari container terdekat yang menaungi area laporan
+                if (!container) {
+                    container = input.closest('#report-accordion-' + input.id.split('-')[1]);
+                }
+                if (!container) return;
+
                 var fileList = container.querySelector('.rich-file-list');
                 if (!fileList) {
                     fileList = document.createElement('div');
@@ -1561,7 +1598,51 @@ export function renderSidebar(target) {
                     btn.classList.remove('border-slate-900', 'bg-slate-900', 'text-white');
                 }
             });
+            
+            // Populate files
+            sideQuestCurrentFiles = Array.isArray(data.files) ? JSON.parse(JSON.stringify(data.files)) : [];
+            var fileInput = document.getElementById('sideQuestFileInput');
+            if (fileInput) fileInput.value = '';
+            
+            var richEditor = document.querySelector('#sideQuestCreateDropdown .rich-editor');
+            if (richEditor) {
+                var fileList = richEditor.querySelector('.rich-file-list');
+                if (!fileList) {
+                    fileList = document.createElement('div');
+                    fileList.className = 'rich-file-list px-4 py-2 border-t border-gray-100 flex flex-wrap gap-2';
+                    richEditor.appendChild(fileList);
+                }
+                fileList.innerHTML = '';
+                sideQuestCurrentFiles.forEach(function(file, idx) {
+                    var item = document.createElement('div');
+                    item.className = 'flex items-center gap-2 bg-gray-50 px-2 py-1 rounded text-xs text-gray-600 border border-gray-200';
+                    item.innerHTML = '<i class="bi bi-file-earmark"></i> <span class="truncate max-w-[150px]">' + (file.name || 'File') + '</span>' +
+                                   '<button type="button" class="text-gray-400 hover:text-red-500" onclick="sideQuestRemoveFile(' + idx + ')"><i class="bi bi-x"></i></button>';
+                    fileList.appendChild(item);
+                });
+            }
         }
+        
+        window.sideQuestRemoveFile = function(idx) {
+            if (idx >= 0 && idx < sideQuestCurrentFiles.length) {
+                sideQuestCurrentFiles.splice(idx, 1);
+                // Refresh UI
+                var richEditor = document.querySelector('#sideQuestCreateDropdown .rich-editor');
+                if (richEditor) {
+                    var fileList = richEditor.querySelector('.rich-file-list');
+                    if (fileList) {
+                        fileList.innerHTML = '';
+                        sideQuestCurrentFiles.forEach(function(file, i) {
+                            var item = document.createElement('div');
+                            item.className = 'flex items-center gap-2 bg-gray-50 px-2 py-1 rounded text-xs text-gray-600 border border-gray-200';
+                            item.innerHTML = '<i class="bi bi-file-earmark"></i> <span class="truncate max-w-[150px]">' + (file.name || 'File') + '</span>' +
+                                           '<button type="button" class="text-gray-400 hover:text-red-500" onclick="sideQuestRemoveFile(' + i + ')"><i class="bi bi-x"></i></button>';
+                            fileList.appendChild(item);
+                        });
+                    }
+                }
+            }
+        };
 
         if (window.lucide && window.lucide.createIcons) {
             window.lucide.createIcons();
@@ -4704,15 +4785,17 @@ export function renderSidebar(target) {
                 <button class="btn btn-white border bg-white btn-sm px-3"><i class="fas fa-th-large text-secondary"></i></button>
                 <button class="btn btn-white border bg-white btn-sm px-3"><i class="fas fa-list text-muted"></i></button>
             </div>
-            <button id="reportTabSide" type="button" class="btn btn-dlg-yellow rounded-3 shadow">
-                Side Quest
-            </button>
-            <button id="reportTabMain" type="button" class="btn btn-dlg-blue rounded-3 shadow">
-                Main Quest
-            </button>
-            <button id="reportTabProject" type="button" class="btn btn-dlg-purple rounded-3 shadow">
-                Project Quest
-            </button>
+            <ul class="nav nav-tabs border-bottom-0 me-2">
+                <li class="nav-item">
+                    <a class="nav-link active fw-bold px-3" id="reportTabSide" href="javascript:void(0)">Side Quest</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold px-3" id="reportTabMain" href="javascript:void(0)">Main Quest</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-bold px-3" id="reportTabProject" href="javascript:void(0)">Project Quest</a>
+                </li>
+            </ul>
             <button type="button" class="btn btn-outline-secondary rounded-3 shadow-sm"
                 onclick="if (window.parent && window.parent.closeReportBoardModal) { window.parent.closeReportBoardModal(); }">
                 <i class="fas fa-times me-1"></i> Close
@@ -5707,6 +5790,19 @@ export function renderSidebar(target) {
             else if (next === 'main') titleEl.innerText = 'Report Main Quest';
             else titleEl.innerText = 'Report Project Quest';
         }
+
+        // Update active tab class
+        ['reportTabSide', 'reportTabMain', 'reportTabProject'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                var isMatch = (id === 'reportTabSide' && next === 'side') || 
+                             (id === 'reportTabMain' && next === 'main') || 
+                             (id === 'reportTabProject' && next === 'project');
+                if (isMatch) el.classList.add('active');
+                else el.classList.remove('active');
+            }
+        });
+
         updateStats();
         renderReports();
         syncBulkActionButton();
@@ -6029,7 +6125,7 @@ export function renderSidebar(target) {
                 if (!shouldFetchSubReports) {
                      // Check status string for keywords indicating a report might exist
                      var s = normStatus;
-                     if (s.indexOf('wait') >= 0 || s.indexOf('pending') >= 0 || s.indexOf('review') >= 0 || s.indexOf('approv') >= 0 || s.indexOf('submit') >= 0) {
+                     if (s.indexOf('wait') >= 0 || s.indexOf('pending') >= 0 || s.indexOf('review') >= 0 || s.indexOf('approv') >= 0 || s.indexOf('submit') >= 0 || s.indexOf('initiate') >= 0) {
                          shouldFetchSubReports = true;
                      }
                      // Check task_status string as well
@@ -6041,7 +6137,7 @@ export function renderSidebar(target) {
                              tsRaw = data.task_status.name || data.task_status.label || '';
                          }
                          var nts = String(tsRaw || '').trim().toLowerCase().replace(/[\s_]/g, '');
-                         if (nts.indexOf('wait') >= 0 || nts.indexOf('pending') >= 0 || nts.indexOf('review') >= 0 || nts.indexOf('approv') >= 0 || nts.indexOf('submit') >= 0) {
+                         if (nts.indexOf('wait') >= 0 || nts.indexOf('pending') >= 0 || nts.indexOf('review') >= 0 || nts.indexOf('approv') >= 0 || nts.indexOf('submit') >= 0 || nts.indexOf('initiate') >= 0) {
                              shouldFetchSubReports = true;
                          }
                      }
@@ -6069,13 +6165,20 @@ export function renderSidebar(target) {
 
             async function fetchLatestSubReport(tId0) {
                 try {
+                    // Try to fetch latest report from root collection quest_reports first
+                    // because we already have rootSnap loaded above. 
+                    // But we already processed rootSnap into latestByTaskId before calling this function.
+                    
+                    // Now fetch from sub-collection tasks/{taskId}/reports
                     var repSnap0 = await parentWin.getDocs(parentWin.collection(parentWin.db, 'tasks', tId0, 'reports'));
                     repSnap0.forEach(function (docRep) {
                         var rdata = docRep.data() || {};
                         var prev = latestByTaskId[tId0];
                         var prevTime = prev ? normalizeTimeValue(prev.data.submittedAt || prev.data.createdAt || prev.data.timestamp) : '';
                         var currTime = normalizeTimeValue(rdata.submittedAt || rdata.createdAt || rdata.timestamp);
-                        if (!prev || currTime > prevTime) {
+                        
+                        // Prioritize sub-collection reports, or newer reports
+                        if (!prev || currTime >= prevTime || prev.source === 'root') {
                             latestByTaskId[tId0] = { data: rdata, source: 'sub', docId: docRep.id };
                         }
                     });
@@ -6721,6 +6824,7 @@ export function renderSidebar(target) {
         var questUsersById = {};
         var questActionMode = null;
         var sideQuestEditingTaskId = null;
+        var sideQuestCurrentFiles = [];
 
         function computeInitials(user) {
             var source = '';
@@ -6812,6 +6916,13 @@ export function renderSidebar(target) {
         function handleSideQuestFiles(input) {
             if (input.files && input.files.length > 0) {
                 var container = input.closest('.rich-editor');
+                // Jika input file berada di luar rich-editor (seperti "Optional : Attach files")
+                // maka kita cari container terdekat yang menaungi area laporan
+                if (!container) {
+                    container = input.closest('#report-accordion-' + input.id.split('-')[1]);
+                }
+                if (!container) return;
+
                 var fileList = container.querySelector('.rich-file-list');
                 if (!fileList) {
                     fileList = document.createElement('div');
@@ -7290,6 +7401,42 @@ export function renderSidebar(target) {
         if (typeof window !== 'undefined') {
             window.switchTab = switchTab;
         }
+
+        window.toggleDashboardMenu = function(el) {
+            var submenu = el.nextElementSibling;
+            var icon = document.getElementById('dashboardIcon');
+            if (submenu) {
+                var isShow = submenu.classList.toggle('show');
+                if (icon) {
+                    if (isShow) {
+                        icon.classList.remove('bi-arrow-left-square-fill');
+                        icon.classList.add('bi-arrow-down-square-fill');
+                    } else {
+                        icon.classList.remove('bi-arrow-down-square-fill');
+                        icon.classList.add('bi-arrow-left-square-fill');
+                    }
+                }
+            }
+        };
+
+        var logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.onclick = function() {
+                var w = window.parent && window.parent.db ? window.parent : window;
+                if (w.auth && w.signOut) {
+                    w.signOut(w.auth).then(function() {
+                        window.location.href = '/login.html';
+                    }).catch(function(error) {
+                        console.error('Logout error:', error);
+                        alert('Logout failed');
+                    });
+                } else {
+                    // Fallback jika Firebase auth tidak tersedia
+                    window.location.href = '/login.html';
+                }
+            };
+        }
+
         function setSideQuestPriority(priority, element) {
             sideQuestCurrentPriority = priority || 'normal';
             var buttons = document.querySelectorAll('.side-quest-priority-btn');
@@ -7578,6 +7725,58 @@ export function renderSidebar(target) {
             }
             var descEl = document.getElementById('sideQuestDesc');
             var description = descEl ? String(descEl.innerHTML || '').trim() : '';
+            
+            // Handle file attachments
+            var fileInput = document.getElementById('sideQuestFileInput');
+            var files = fileInput ? fileInput.files : [];
+            var attachedFiles = [];
+            
+            // If editing, we might have existing files
+            if (sideQuestEditingTaskId && questTasksById[sideQuestEditingTaskId]) {
+                var existingTask = questTasksById[sideQuestEditingTaskId];
+                if (Array.isArray(existingTask.files)) {
+                    attachedFiles = JSON.parse(JSON.stringify(existingTask.files));
+                }
+            }
+
+            if (files && files.length > 0 && parentWin.storage && parentWin.ref && parentWin.uploadBytes && parentWin.getDownloadURL) {
+                var saveBtn = document.getElementById('sideQuestSaveButton');
+                var originalText = saveBtn ? saveBtn.textContent : 'Add Side Quest';
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = 'Uploading...';
+                }
+
+                try {
+                    for (var i = 0; i < files.length; i++) {
+                        var file = files[i];
+                        var fileRef = parentWin.ref(parentWin.storage, 'side_quests/' + Date.now() + '_' + file.name);
+                        var snapshot = await parentWin.uploadBytes(fileRef, file);
+                        var downloadURL = await parentWin.getDownloadURL(snapshot.ref);
+                        attachedFiles.push({
+                            name: file.name,
+                            url: downloadURL,
+                            type: file.type,
+                            size: file.size,
+                            uploadedAt: new Date().toISOString()
+                        });
+                    }
+                } catch (err) {
+                    console.error('Upload failed', err);
+                    alert('Gagal mengunggah file.');
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = originalText;
+                    }
+                    return;
+                }
+                
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = originalText;
+                }
+            }
+
             var assignSelected = [];
             Array.prototype.slice.call(
                 document.querySelectorAll('#sideQuestAssignDropdown input[type=\"checkbox\"]:checked')
@@ -7643,7 +7842,8 @@ export function renderSidebar(target) {
                     positions: positionSelected,
                     assign_to: assignSelected,
                     notify_to: notifySelected,
-                    tags: tags
+                    tags: tags,
+                    files: attachedFiles
                 };
                 var isEditing = !!sideQuestEditingTaskId;
                 if (!isEditing) {
@@ -7659,6 +7859,7 @@ export function renderSidebar(target) {
                         assign_to: baseEditable.assign_to,
                         notify_to: baseEditable.notify_to,
                         tags: baseEditable.tags,
+                        files: baseEditable.files,
                         reminder_mode: null,
                         reminder_dates: [],
                         recur: null,
@@ -7690,7 +7891,8 @@ export function renderSidebar(target) {
                         positions: baseEditable.positions,
                         assign_to: baseEditable.assign_to,
                         notify_to: baseEditable.notify_to,
-                        tags: baseEditable.tags
+                        tags: baseEditable.tags,
+                        files: baseEditable.files
                     };
                     var updatePayload = patch;
                     if (parentWin.JSON && parentWin.JSON.parse && parentWin.JSON.stringify) {
@@ -7714,6 +7916,7 @@ export function renderSidebar(target) {
                         existing.assign_to = baseEditable.assign_to;
                         existing.notify_to = baseEditable.notify_to;
                         existing.tags = baseEditable.tags;
+                        existing.files = baseEditable.files;
                     }
                 }
                 if (typeof loadSideQuestTasks === 'function') {
@@ -8075,7 +8278,15 @@ export function renderSidebar(target) {
                             fileBtn.addEventListener('click', function () {
                                 var fileInput = document.getElementById('reportFileInput-' + taskId);
                                 if (fileInput) {
-                                    fileInput.click();
+                                    if (typeof fileInput.showPicker === 'function') {
+                                        try {
+                                            fileInput.showPicker();
+                                        } catch (e) {
+                                            fileInput.click();
+                                        }
+                                    } else {
+                                        fileInput.click();
+                                    }
                                 }
                             });
                         }
