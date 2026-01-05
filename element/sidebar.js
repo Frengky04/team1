@@ -1,5 +1,41 @@
 export function renderSidebar(target) {
     if (!target) return;
+
+    // --- INITIALIZE GLOBAL DATA ---
+    if (typeof window !== 'undefined') {
+        if (!window.questTasksById) window.questTasksById = {};
+        if (!window.questUsersById) window.questUsersById = {};
+        
+        // Expose helper to fetch users once and share it
+        window.initGlobalUsers = async function() {
+            var w = window.parent && window.parent.db ? window.parent : window;
+            if (!w.db || !w.getDocs || !w.collection) return;
+            try {
+                const snap = await w.getDocs(w.collection(w.db, 'users'));
+                var usersMap = {};
+                snap.forEach(docSnap => {
+                    var d = docSnap.data() || {};
+                    usersMap[docSnap.id] = {
+                        uid: docSnap.id,
+                        name: d.name || d.email || 'Unknown',
+                        email: d.email || '',
+                        photo: d.photo || ''
+                    };
+                });
+                window.questUsersById = usersMap;
+                if (window.parent && window.parent !== window) {
+                    window.parent.questUsersById = usersMap;
+                }
+                console.log('Global users initialized:', Object.keys(usersMap).length);
+            } catch (e) {
+                console.error('Failed to init global users:', e);
+            }
+        };
+
+        // Trigger initialization immediately
+        window.initGlobalUsers();
+    }
+
     target.innerHTML = `
         <style>
             #questBoardModal,
@@ -3818,7 +3854,7 @@ export function renderSidebar(target) {
                             row.className = 'quest-user-option flex items-center gap-3 px-2 py-2 hover:bg-slate-800 rounded-xl cursor-pointer';
                             var initials = getQuestUserInitials(user);
                             var avatar;
-                            if (user.photo) {
+                            if (user.photo && user.photo.indexOf('pravatar.cc') === -1) {
                                 avatar = '<img src="' + user.photo + '" alt="' + user.name + '" class="w-8 h-8 rounded-full object-cover border border-slate-700">';
                             } else {
                                 avatar = '<span class="w-8 h-8 rounded-full bg-slate-700 text-slate-100 text-[10px] font-semibold flex items-center justify-center">' + initials + '</span>';
@@ -3866,7 +3902,7 @@ export function renderSidebar(target) {
                             row2.className = 'quest-user-option flex items-center gap-3 px-2 py-2 hover:bg-slate-800 rounded-xl cursor-pointer';
                             var initials2 = getQuestUserInitials(user);
                             var avatar2;
-                            if (user.photo) {
+                            if (user.photo && user.photo.indexOf('pravatar.cc') === -1) {
                                 avatar2 = '<img src="' + user.photo + '" alt="' + user.name + '" class="w-8 h-8 rounded-full object-cover border border-slate-700">';
                             } else {
                                 avatar2 = '<span class="w-8 h-8 rounded-full bg-slate-700 text-slate-100 text-[10px] font-semibold flex items-center justify-center">' + initials2 + '</span>';
@@ -6225,8 +6261,7 @@ export function renderSidebar(target) {
                     instance.hide();
                 }
             };
-            const html = `
-<!DOCTYPE html>
+            const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -6645,6 +6680,23 @@ export function renderSidebar(target) {
         var questActionMode = null;
         var sideQuestEditingTaskId = null;
 
+        function computeInitials(user) {
+            var source = '';
+            if (user) {
+                source = user.name || user.email || user.uid || '';
+            }
+            source = String(source || '').trim();
+            if (!source) return 'US';
+            var parts = source.split(/\s+/);
+            var initials = '';
+            for (var i = 0; i < parts.length && i < 2; i++) {
+                if (parts[i] && parts[i].length > 0) {
+                    initials += parts[i].charAt(0).toUpperCase();
+                }
+            }
+            return initials || 'US';
+        }
+
         async function questToggleComplete(taskId) {
             if (!taskId) return;
             var parentWin = window.parent;
@@ -7009,6 +7061,9 @@ export function renderSidebar(target) {
             if (pane) {
                 pane.classList.remove('hidden');
             }
+        }
+        if (typeof window !== 'undefined') {
+            window.switchTab = switchTab;
         }
         function setSideQuestPriority(priority, element) {
             sideQuestCurrentPriority = priority || 'normal';
@@ -7497,6 +7552,17 @@ export function renderSidebar(target) {
             if (!urgentList && !highList && !normalList && !lowList) return;
             var parentWin = window.parent;
             if (!parentWin || !parentWin.db || !parentWin.collection || !parentWin.getDocs) return;
+
+            // Use global users if available, otherwise fetch
+            var users = window.questUsersById || (window.parent && window.parent.questUsersById);
+            if (!users || Object.keys(users).length === 0) {
+                console.log('Users not found in global scope, loading via loadSideQuestUsersForForm');
+                await loadSideQuestUsersForForm();
+            } else {
+                // Ensure local questUsersById is in sync
+                questUsersById = users;
+            }
+
             try {
                 function esc(str) {
                     return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -7717,7 +7783,7 @@ export function renderSidebar(target) {
                                 initials = initials.substring(0, 2).toUpperCase();
                             }
                             var titleText = user && user.name ? user.name : initials;
-                            if (user.photo) {
+                            if (user.photo && !user.photo.includes('pravatar.cc')) {
                                 htmlCard += '<img src="' + esc(user.photo) + '" alt="' + esc(titleText) + '" title="' + esc(titleText) + '" class="w-7 h-7 rounded-full object-cover border border-gray-200 bg-white">';
                             } else {
                                 htmlCard += '<span class="w-7 h-7 rounded-full bg-slate-700 text-slate-100 text-[10px] font-semibold flex items-center justify-center border border-gray-200" title="' + esc(titleText) + '">';
@@ -8103,57 +8169,42 @@ export function renderSidebar(target) {
             var parentWin = window.parent;
             var assignList = document.getElementById('sideQuestAssignList');
             var notifyList = document.getElementById('sideQuestNotifyList');
-            if (!assignList && !notifyList) return;
-            if (assignList) {
-                assignList.innerHTML = '<div class="text-slate-500 text-xs">Loading users...</div>';
-            }
-            if (notifyList) {
-                notifyList.innerHTML = '<div class="text-slate-500 text-xs">Loading users...</div>';
-            }
+            
             if (!parentWin || !parentWin.db || !parentWin.collection || !parentWin.getDocs) {
-                if (assignList) {
-                    assignList.innerHTML = '<div class="text-red-500 text-xs">Users not available.</div>';
-                }
-                if (notifyList) {
-                    notifyList.innerHTML = '<div class="text-red-500 text-xs">Users not available.</div>';
-                }
-                return;
+                if (assignList) assignList.innerHTML = '<div class="text-red-500 text-xs">Users not available.</div>';
+                if (notifyList) notifyList.innerHTML = '<div class="text-red-500 text-xs">Users not available.</div>';
+                return Promise.resolve();
             }
-            function computeInitials(user) {
-                var source = user.name || user.email || user.uid || '';
-                if (!source) return 'U';
-                var parts = String(source).trim().split(/\s+/);
-                var initials = parts.map(function (p) { return p[0]; }).join('');
-                return initials.substring(0, 2).toUpperCase();
-            }
-            function filterUsers(list, query) {
-                var q = String(query || '').trim().toLowerCase();
-                if (!q) return list.slice();
-                return list.filter(function (u) {
-                    var name = String(u.name || '').toLowerCase();
-                    var email = String(u.email || '').toLowerCase();
-                    return name.indexOf(q) !== -1 || email.indexOf(q) !== -1;
-                });
-            }
-            parentWin.getDocs(parentWin.collection(parentWin.db, 'users')).then(function (snap) {
+
+            return parentWin.getDocs(parentWin.collection(parentWin.db, 'users')).then(function (snap) {
                 var users = [];
+                var usersMap = {};
                 snap.forEach(function (docSnap) {
                     var d = docSnap.data() || {};
-                    users.push({
+                    var u = {
                         uid: docSnap.id,
                         name: d.name || d.email || 'Unknown',
                         email: d.email || '',
                         photo: d.photo || ''
-                    });
+                    };
+                    users.push(u);
+                    usersMap[docSnap.id] = u;
                 });
-                questUsersById = {};
-                users.forEach(function (user) {
-                    questUsersById[user.uid] = user;
-                });
+                questUsersById = usersMap;
+                // Sync to global/parent scope
+                window.questUsersById = usersMap;
+                if (window.parent && window.parent !== window) {
+                    window.parent.questUsersById = usersMap;
+                }
+
                 users.sort(function (a, b) {
                     return a.name.localeCompare(b.name);
                 });
+
+                if (!assignList && !notifyList) return;
+                
                 if (assignList) {
+                    assignList.innerHTML = '';
                     var baseUsers = users.slice();
                     function renderAssign(list) {
                         assignList.innerHTML = '';
@@ -8162,7 +8213,7 @@ export function renderSidebar(target) {
                             row.className = 'quest-user-option flex items-center gap-3 px-2 py-2 hover:bg-slate-800 rounded-xl cursor-pointer';
                             var initials = computeInitials(user);
                             var avatar;
-                            if (user.photo) {
+                            if (user.photo && !user.photo.includes('pravatar.cc')) {
                                 avatar = '<img src="' + user.photo + '" alt="' + user.name + '" class="w-8 h-8 rounded-full object-cover border border-slate-700">';
                             } else {
                                 avatar = '<span class="w-8 h-8 rounded-full bg-slate-700 text-slate-100 text-[10px] font-semibold flex items-center justify-center">' + initials + '</span>';
@@ -8202,6 +8253,7 @@ export function renderSidebar(target) {
                     }
                 }
                 if (notifyList) {
+                    notifyList.innerHTML = '';
                     var baseUsersNotify = users.slice();
                     function renderNotify(listN) {
                         notifyList.innerHTML = '';
@@ -8210,7 +8262,7 @@ export function renderSidebar(target) {
                             row2.className = 'quest-user-option flex items-center gap-3 px-2 py-2 hover:bg-slate-800 rounded-xl cursor-pointer';
                             var initials2 = computeInitials(user);
                             var avatar2;
-                            if (user.photo) {
+                            if (user.photo && !user.photo.includes('pravatar.cc')) {
                                 avatar2 = '<img src="' + user.photo + '" alt="' + user.name + '" class="w-8 h-8 rounded-full object-cover border border-slate-700">';
                             } else {
                                 avatar2 = '<span class="w-8 h-8 rounded-full bg-slate-700 text-slate-100 text-[10px] font-semibold flex items-center justify-center">' + initials2 + '</span>';
@@ -8257,12 +8309,8 @@ export function renderSidebar(target) {
                 }
             }).catch(function (e) {
                 console.error('Failed to load users for side quest', e);
-                if (assignList) {
-                    assignList.innerHTML = '<div class="text-red-500 text-xs">Failed to load users.</div>';
-                }
-                if (notifyList) {
-                    notifyList.innerHTML = '<div class="text-red-500 text-xs">Failed to load users.</div>';
-                }
+                if (assignList) assignList.innerHTML = '<div class="text-red-500 text-xs">Failed to load users.</div>';
+                if (notifyList) notifyList.innerHTML = '<div class="text-red-500 text-xs">Failed to load users.</div>';
             });
         }
         document.addEventListener('click', function (event) {
