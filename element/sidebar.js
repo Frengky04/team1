@@ -420,6 +420,18 @@ export function renderSidebar(target) {
     if (questCard) {
         questCard.addEventListener('click', (e) => {
             e.preventDefault();
+            if (typeof window.closeReportBoardModal === 'function') {
+                try { window.closeReportBoardModal(); } catch (err) {}
+            } else {
+                try {
+                    var rbm = document.getElementById('reportBoardModal');
+                    if (rbm && typeof bootstrap !== "undefined" && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance(rbm).hide();
+                    }
+                    var ov0 = document.getElementById('questBoardOverlay');
+                    if (ov0) ov0.classList.remove('show');
+                } catch (err2) {}
+            }
             const modalEl = document.getElementById('questBoardModal');
             const frame = document.getElementById('questBoardFrame');
             window.closeQuestBoardModal = function () {
@@ -4699,6 +4711,9 @@ export function renderSidebar(target) {
             if (typeof refreshSidebarCounts === 'function') {
                 refreshSidebarCounts(0);
             }
+            if (typeof window.closeQuestBoardModal === 'function') {
+                try { window.closeQuestBoardModal(); } catch (err) {}
+            }
             const modalEl = document.getElementById('reportBoardModal');
             const frame = document.getElementById('reportBoardFrame');
             window.closeReportBoardModal = function () {
@@ -6416,6 +6431,18 @@ export function renderSidebar(target) {
     if (sideQuestCard) {
         sideQuestCard.addEventListener('click', (e) => {
             e.preventDefault();
+            if (typeof window.closeReportBoardModal === 'function') {
+                try { window.closeReportBoardModal(); } catch (err) {}
+            } else {
+                try {
+                    var rbm1 = document.getElementById('reportBoardModal');
+                    if (rbm1 && typeof bootstrap !== "undefined" && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance(rbm1).hide();
+                    }
+                    var ov1 = document.getElementById('questBoardOverlay');
+                    if (ov1) ov1.classList.remove('show');
+                } catch (err3) {}
+            }
             const modalEl = document.getElementById('questBoardModal');
             const frame = document.getElementById('questBoardFrame');
             window.closeQuestBoardModal = function () {
