@@ -1413,11 +1413,16 @@ export function renderSidebar(target) {
                 var files = fileInput.files;
                 var attachedFiles = [];
 
-                if (files && files.length > 0 && parentWin.storage && parentWin.ref && parentWin.uploadBytes && parentWin.getDownloadURL) {
+                var refFn = parentWin.ref || parentWin.storageRef;
+                if (files && files.length > 0) {
+                    if (!(parentWin.storage && refFn && parentWin.uploadBytes && parentWin.getDownloadURL)) {
+                        alert('Upload file belum tersedia. Silakan refresh halaman lalu coba lagi.');
+                        return;
+                    }
                     for (var i = 0; i < files.length; i++) {
                         var file = files[i];
                         var path = 'reports/' + taskId + '/' + Date.now() + '_' + file.name;
-                        var sRef = parentWin.ref(parentWin.storage, path);
+                        var sRef = refFn(parentWin.storage, path);
                         await parentWin.uploadBytes(sRef, file);
                         var url = await parentWin.getDownloadURL(sRef);
                         attachedFiles.push({
@@ -6974,11 +6979,16 @@ export function renderSidebar(target) {
                 var files = fileInput.files;
                 var attachedFiles = [];
                 
-                if (files && files.length > 0 && parentWin.storage && parentWin.ref && parentWin.uploadBytes && parentWin.getDownloadURL) {
+                var refFn = parentWin.ref || parentWin.storageRef;
+                if (files && files.length > 0) {
+                    if (!(parentWin.storage && refFn && parentWin.uploadBytes && parentWin.getDownloadURL)) {
+                        alert('Upload file belum tersedia. Silakan refresh halaman lalu coba lagi.');
+                        return;
+                    }
                     for (var i = 0; i < files.length; i++) {
                         var file = files[i];
                         var path = 'reports/' + taskId + '/' + Date.now() + '_' + file.name;
-                        var sRef = parentWin.ref(parentWin.storage, path);
+                        var sRef = refFn(parentWin.storage, path);
                         await parentWin.uploadBytes(sRef, file);
                         var url = await parentWin.getDownloadURL(sRef);
                         attachedFiles.push({
