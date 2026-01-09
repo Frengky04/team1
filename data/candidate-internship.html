@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Internship</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="../assets/css/style.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .page-title {
+            color: #0B2B6A;
+            font-weight: 800;
+            font-size: 1.8rem;
+            letter-spacing: -0.02em;
+        }
+
+        .filter-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 1.25rem;
+            box-shadow: 0 10px 30px rgba(11, 43, 106, 0.04);
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(11, 43, 106, 0.05);
+        }
+
+        .candidate-card {
+            background: white;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            height: 100%;
+            border: none;
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .img-wrapper {
+            position: relative;
+            height: 350px;
+            border-radius: 16px 16px 0 0;
+            overflow: hidden;
+        }
+
+        .candidate-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .social-tags {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .tag-icon {
+            width: 35px;
+            height: 35px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #0f172a;
+            backdrop-filter: blur(4px);
+            transition: 0.2s;
+        }
+
+        .tag-icon:hover {
+            background: white;
+            transform: scale(1.1);
+            color: #3b82f6;
+        }
+
+        .card-action-menu {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+
+        .img-assign-badge {
+            position: absolute;
+            right: 15px;
+            bottom: 15px;
+        }
+
+        .assign-avatar-stack {
+            display: flex;
+        }
+
+        .assign-avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            border: 2px solid #ffffff;
+            overflow: hidden;
+            background: #1e40af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #f9fafb;
+        }
+
+        .assign-avatar-circle + .assign-avatar-circle {
+            margin-left: -10px;
+        }
+
+        .assign-avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .assign-avatar-initials {
+            background: #1e3a8a;
+        }
+
+        .list-view-container {
+            display: none;
+        }
+
+        .table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            vertical-align: middle;
+        }
+
+        .list-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-right: 15px;
+        }
+
+        .status-select {
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 8px;
+            padding: 6px 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .status-not-contacted { background-color: #f1f5f9; color: #475569; }
+        .status-replied { background-color: #dcfce7; color: #166534; }
+        .status-waiting { background-color: #fef9c3; color: #854d0e; }
+    </style>
+</head>
+<body class="p-8">
+
+    <div id="topbarContainer"></div>
+
+    <div class="dashboard-container">
+        <div id="sidebarContainer"></div>
+
+        <main class="main-content">
+            <div class="container-fluid">
+                <div class="container">
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
+                        <div>
+                            <h1 class="page-title">Candidate Internship</h1>
+                            <p class="text-muted small mb-0">Daftar calon pemagang dan detail aplikasi mereka.</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="btn-group" role="group" aria-label="View toggle" style="background-color: #fff; border-radius: 10px;">
+                                <button type="button" class="btn view-btn active" id="btnGrid"><i class="fas fa-th-large"></i></button>
+                                <button type="button" class="btn view-btn" id="btnList"><i class="fas fa-list"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-panel">
+                        <div class="row g-3 justify-content-between">
+                            <div class="col-md-6">
+                                <div class="input-group border-0 bg-light rounded-4 px-2">
+                                    <span class="input-group-text bg-transparent border-0"><i class="fas fa-search text-muted"></i></span>
+                                    <input type="text" id="candidateSearchInput" class="form-control bg-transparent border-0 py-2 shadow-none" placeholder="Cari kandidat...">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="candidateSortSelect" class="form-select border-0 bg-light rounded-4 w-100 shadow-none py-2 px-3 fw-bold" style="font-size: 13px;">
+                                    <option value="none">Urutkan</option>
+                                    <option value="name_asc">Nama A-Z</option>
+                                    <option value="name_desc">Nama Z-A</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="gridView" class="row g-4"></div>
+
+                    <div id="listView" class="list-view-container mt-4">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle shadow-sm">
+                                <thead class="table-light text-center">
+                                    <tr>
+                                        <th class="ps-4">Mode</th>
+                                        <th>Created</th>
+                                        <th>Position</th>
+                                        <th>Platform</th>
+                                        <th>Portofolio</th>
+                                        <th>Resume</th>
+                                        <th>Address</th>
+                                        <th>Condition</th>
+                                        <th>Campus</th>
+                                        <th>Instagram</th>
+                                        <th>LinkedIn</th>
+                                        <th>Email</th>
+                                        <th>Whatsapp</th>
+                                        <th>Experience</th>
+                                        <th>Reason</th>
+                                        <th>Hope</th>
+                                        <th>Other</th>
+                                        <th>Choose</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const btnGrid = document.getElementById('btnGrid');
+        const btnList = document.getElementById('btnList');
+        const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
+        const searchInput = document.getElementById('candidateSearchInput');
+        const sortSelect = document.getElementById('candidateSortSelect');
+
+        function applyCandidateFilters() {
+            const term = (searchInput && searchInput.value ? searchInput.value : "").toLowerCase();
+            const sortValue = sortSelect ? (sortSelect.value || "none") : "none";
+
+            const gridItems = Array.from(document.querySelectorAll('.candidate-item'));
+            const listRows = Array.from(document.querySelectorAll('.candidate-row'));
+
+            gridItems.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(term) ? "" : "none";
+            });
+
+            listRows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(term) ? "" : "none";
+            });
+
+            if (sortValue === "none") return;
+
+            const compare = (a, b) => {
+                const nameA = (a.dataset.name || "").toLowerCase();
+                const nameB = (b.dataset.name || "").toLowerCase();
+                if (sortValue === "name_asc") {
+                    return nameA.localeCompare(nameB, "id");
+                } else if (sortValue === "name_desc") {
+                    return nameB.localeCompare(nameA, "id");
+                }
+                return 0;
+            };
+
+            const gridContainer = document.getElementById('gridView');
+            const listTbody = document.querySelector('#listView tbody');
+
+            const visibleGrid = gridItems.filter(item => item.style.display !== "none");
+            visibleGrid.sort(compare).forEach(item => gridContainer.appendChild(item));
+
+            const visibleRows = listRows.filter(row => row.style.display !== "none");
+            visibleRows.sort(compare).forEach(row => listTbody.appendChild(row));
+        }
+
+        if (btnGrid && btnList && gridView && listView) {
+            btnGrid.addEventListener('click', () => {
+                btnGrid.classList.add('active');
+                btnList.classList.remove('active');
+                gridView.style.display = 'flex';
+                listView.style.display = 'none';
+            });
+
+            btnList.addEventListener('click', () => {
+                btnList.classList.add('active');
+                btnGrid.classList.remove('active');
+                gridView.style.display = 'none';
+                listView.style.display = 'block';
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', applyCandidateFilters);
+        }
+
+        if (sortSelect) {
+            sortSelect.addEventListener('change', applyCandidateFilters);
+        }
+
+        if (window.bootstrap && typeof window.bootstrap.Tooltip === 'function') {
+            window.refreshTooltips = function () {
+                const triggers = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                triggers.forEach(el => {
+                    if (!el._tooltipInstance) {
+                        el._tooltipInstance = new bootstrap.Tooltip(el);
+                    }
+                });
+            };
+        }
+    </script>
+
+    <script type="module">
+        import { renderTopBar } from "../element/topbar.js";
+        import { renderSidebar } from "../element/sidebar.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import {
+            getFirestore,
+            collection,
+            getDocs
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDyzzEYbJkkl-N8snrQf14qvj8De4YliV0",
+            authDomain: "pre-dialogika.firebaseapp.com", 
+            projectId: "pre-dialogika", 
+            storageBucket: "pre-dialogika.firebasestorage.app", 
+            messagingSenderId: "343771410480", 
+            appId: "1:343771410480:web:32881c9868522090237df5", 
+            measurementId: "G-SXN811P3N0" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const topbarTarget = document.getElementById('topbarContainer');
+        renderTopBar(topbarTarget);
+
+        const sidebarTarget = document.getElementById('sidebarContainer');
+        renderSidebar(sidebarTarget);
+
+        window.toggleSidebar = () => {
+            const sidebar = document.getElementById('sidebarNav');
+            if (sidebar) sidebar.classList.toggle('show');
+        };
+
+        function escapeHtml(str) {
+            return (str || "").toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function truncateText(text, maxLength) {
+            const value = (text || "").toString();
+            if (value.length <= maxLength) return value;
+            return value.substring(0, maxLength) + "...";
+        }
+
+        function formatCreatedDate(raw) {
+            try {
+                if (!raw) return "";
+                let dateObj = null;
+                if (typeof raw.toDate === "function") {
+                    dateObj = raw.toDate();
+                } else if (raw instanceof Date) {
+                    dateObj = raw;
+                } else if (typeof raw === "string" || typeof raw === "number") {
+                    const tmp = new Date(raw);
+                    if (!isNaN(tmp.getTime())) dateObj = tmp;
+                }
+                if (!dateObj) return "";
+                return dateObj.toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                });
+            } catch (e) {
+                return "";
+            }
+        }
+
+        function buildEssayCell(text) {
+            const full = (text || "").toString().trim();
+            if (!full) return "-";
+            const short = truncateText(full, 40);
+            const fullEsc = escapeHtml(full);
+            const shortEsc = escapeHtml(short);
+            return '<span data-bs-toggle="tooltip" title="' + fullEsc + '">' + shortEsc + '</span>';
+        }
+
+        function appendCandidateToUI(params) {
+            const name = escapeHtml(params.name || "Tanpa Nama");
+            const position = escapeHtml(params.positionName || "");
+            const avatarUrl = params.avatarUrl || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=800";
+            const platform = (params.platform || "").toString().toLowerCase();
+            const platformLabel = platform ? platform.toUpperCase() : "-";
+            const createdText = escapeHtml(params.createdText || "");
+            const mode = (params.mode || "").toString().toUpperCase();
+            const address = escapeHtml(params.address || "");
+            const condition = escapeHtml(params.condition || "");
+            const campus = escapeHtml(params.campus || "");
+            const instagramUrl = params.instagramUrl || "";
+            const linkedinUrl = params.linkedinUrl || "";
+            const email = escapeHtml(params.email || "");
+            const whatsapp = escapeHtml(params.whatsapp || "");
+            const portfolioUrl = params.portfolioUrl || "";
+            const resumeUrl = params.resumeUrl || "";
+            const experienceHtml = buildEssayCell(params.experienceText || "");
+            const reasonHtml = buildEssayCell(params.reasonText || "");
+            const hopeHtml = buildEssayCell(params.hopeText || "");
+            const otherHtml = buildEssayCell(params.otherText || "");
+            const chooseHtml = buildEssayCell(params.chooseText || "");
+            const talentId = params.talentId || "";
+
+            let platformIcon = "fab fa-globe";
+            if (platform === "linkedin") platformIcon = "fab fa-linkedin";
+            if (platform === "instagram") platformIcon = "fab fa-instagram";
+            if (platform === "facebook") platformIcon = "fab fa-facebook";
+            if (platform === "tiktok") platformIcon = "fab fa-tiktok";
+
+            const gridContainer = document.getElementById('gridView');
+            const listTbody = document.querySelector('#listView tbody');
+            if (!gridContainer || !listTbody) return;
+
+            const subtitleParts = [];
+            if (position) subtitleParts.push(position);
+            const subtitle = subtitleParts.join(" | ");
+
+            const modeValue = mode || "";
+            const modeLower = modeValue.toLowerCase();
+
+            const modeSelectHtml =
+                '<select class="form-select form-select-sm">' +
+                    '<option value="WFO"' + (modeLower === "wfo" ? ' selected' : '') + '>WFO</option>' +
+                    '<option value="WFH"' + (modeLower === "wfh" ? ' selected' : '') + '>WFH</option>' +
+                    '<option value="HYBRID"' + (modeLower === "hybrid" ? ' selected' : '') + '>Hybrid</option>' +
+                '</select>';
+
+            const portfolioHtml = portfolioUrl
+                ? '<a href="' + portfolioUrl + '" target="_blank" class="text-primary" data-bs-toggle="tooltip" title="' + escapeHtml(portfolioUrl) + '">View</a>'
+                : '-';
+
+            const resumeHtml = resumeUrl
+                ? '<a href="' + resumeUrl + '" target="_blank" class="text-primary" data-bs-toggle="tooltip" title="' + escapeHtml(resumeUrl) + '">View</a>'
+                : '-';
+
+            const instagramHtml = instagramUrl
+                ? '<a href="' + instagramUrl + '" target="_blank" class="text-danger"><i class="fab fa-instagram"></i></a>'
+                : '-';
+
+            const linkedinHtml = linkedinUrl
+                ? '<a href="' + linkedinUrl + '" target="_blank" class="text-primary"><i class="fab fa-linkedin"></i></a>'
+                : '-';
+
+            const gridHtml =
+                '<div class="col-12 col-md-6 col-lg-4 candidate-item" data-name="' + name + '" data-talent-id="' + talentId + '">' +
+                    '<div class="candidate-card">' +
+                        '<div class="img-wrapper">' +
+                            '<img src="' + avatarUrl + '" class="candidate-img" alt="Kandidat">' +
+                            '<div class="card-action-menu dropdown">' +
+                                '<button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
+                                    '<i class="fas fa-ellipsis-v"></i>' +
+                                '</button>' +
+                                '<ul class="dropdown-menu dropdown-menu-end">' +
+                                    '<li><span class="dropdown-item disabled">Detail hanya tampilan</span></li>' +
+                                '</ul>' +
+                            '</div>' +
+                            '<div class="social-tags">' +
+                                '<a href="' + (linkedinUrl || instagramUrl || "#") + '" target="_blank" class="tag-icon"><i class="' + platformIcon + '"></i></a>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="p-4">' +
+                            '<div class="d-flex justify-content-between align-items-start mb-3">' +
+                                '<div>' +
+                                    '<h5 class="fw-bold mb-0 candidate-name">' + name + '</h5>' +
+                                    '<small class="text-muted">' + subtitle + '</small>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="status-box">' +
+                                '<hr/>' +
+                                '<div class="small text-muted">Mode: ' + (modeValue || "-") + '</div>' +
+                                '<div class="small text-muted">Platform: ' + platformLabel + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+
+            const listHtml =
+                '<tr class="candidate-row" data-name="' + name + '" data-talent-id="' + talentId + '">' +
+                    '<td class="ps-4">' + modeSelectHtml + '</td>' +
+                    '<td>' + createdText + '</td>' +
+                    '<td>' +
+                        '<div class="d-flex align-items-center">' +
+                            '<img src="' + avatarUrl + '" class="list-img">' +
+                            '<div>' +
+                                '<div class="fw-bold candidate-name">' + name + '</div>' +
+                                '<small class="text-muted">' + subtitle + '</small>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td>' + platformLabel + '</td>' +
+                    '<td>' + portfolioHtml + '</td>' +
+                    '<td>' + resumeHtml + '</td>' +
+                    '<td>' + (address || "-") + '</td>' +
+                    '<td>' + (condition || "-") + '</td>' +
+                    '<td>' + (campus || "-") + '</td>' +
+                    '<td>' + instagramHtml + '</td>' +
+                    '<td>' + linkedinHtml + '</td>' +
+                    '<td>' + (email || "-") + '</td>' +
+                    '<td>' + (whatsapp || "-") + '</td>' +
+                    '<td>' + experienceHtml + '</td>' +
+                    '<td>' + reasonHtml + '</td>' +
+                    '<td>' + hopeHtml + '</td>' +
+                    '<td>' + otherHtml + '</td>' +
+                    '<td>' + chooseHtml + '</td>' +
+                '</tr>';
+
+            gridContainer.insertAdjacentHTML('beforeend', gridHtml);
+            listTbody.insertAdjacentHTML('beforeend', listHtml);
+            if (window.refreshTooltips) {
+                window.refreshTooltips();
+            }
+        }
+
+        async function loadInternshipCandidates() {
+            const gridContainer = document.getElementById('gridView');
+            const listTbody = document.querySelector('#listView tbody');
+            if (!gridContainer || !listTbody) return;
+            gridContainer.innerHTML = "";
+            listTbody.innerHTML = "";
+            try {
+                const snap = await getDocs(collection(db, "talents"));
+                if (snap.empty) return;
+                snap.forEach(docSnap => {
+                    const data = docSnap.data() || {};
+                    const basic = data.basic_info || {};
+                    const scouting = data.scouting_info || {};
+                    const contact = data.contact_info || {};
+                    const education = data.education || {};
+                    const availability = data.availability || {};
+                    const internship = data.internship || data.internship_info || {};
+
+                    const name = basic.full_name || scouting.full_name || data.full_name || "Tanpa Nama";
+                    const positionName = scouting.position_name || internship.position || "";
+                    const avatarUrl = basic.avatar_url || null;
+
+                    const createdRaw = data.created_at || data.createdAt || data.created || null;
+                    const createdText = formatCreatedDate(createdRaw);
+
+                    const mode = internship.mode || availability.mode || "";
+                    const platform = internship.platform || scouting.channel_type || "";
+                    const portfolioUrl = internship.portfolio_url || data.portfolio_url || "";
+                    const resumeUrl = internship.resume_url || data.resume_url || "";
+                    const address = internship.address || contact.address || "";
+                    const condition = internship.condition || data.condition || "";
+                    const campus = internship.campus || education.campus || education.university || "";
+                    const instagramUrl = internship.instagram || contact.instagram || "";
+                    const linkedinUrl = internship.linkedin || contact.linkedin || scouting.channel_url || "";
+                    const email = internship.email || contact.email || basic.email || "";
+                    const whatsapp = internship.whatsapp || contact.whatsapp || contact.phone || "";
+
+                    const expObj = data.experience || {};
+                    const experienceText = internship.experience || expObj.text || expObj.summary || "";
+
+                    const profiling = data.profiling || {};
+                    const reasonText = internship.reason || profiling.reason || "";
+                    const hopeText = internship.hope || profiling.hope || "";
+                    const otherText = internship.other || profiling.other || "";
+                    const chooseText = internship.choose || profiling.choose || "";
+
+                    appendCandidateToUI({
+                        name,
+                        positionName,
+                        avatarUrl,
+                        createdText,
+                        mode,
+                        platform,
+                        portfolioUrl,
+                        resumeUrl,
+                        address,
+                        condition,
+                        campus,
+                        instagramUrl,
+                        linkedinUrl,
+                        email,
+                        whatsapp,
+                        experienceText,
+                        reasonText,
+                        hopeText,
+                        otherText,
+                        chooseText,
+                        talentId: docSnap.id
+                    });
+                });
+                applyCandidateFilters();
+            } catch (e) {
+                console.error("Failed to load internship candidates", e);
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "../index.html";
+                return;
+            }
+            loadInternshipCandidates();
+        });
+    </script>
+</body>
+</html>
+
