@@ -107,6 +107,86 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+        .assign-display {
+            border-radius: 999px;
+            border: 1px solid #cbd5e1;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            color: #64748b;
+            background: #ffffff;
+            cursor: pointer;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+        }
+        .assign-display.has-value {
+            color: #0f172a;
+        }
+        .assign-dropdown {
+            position: relative;
+        }
+        .assign-panel {
+            position: absolute;
+            left: 0;
+            right: 0;
+            margin-top: 6px;
+            z-index: 30;
+            display: none;
+        }
+        .assign-dropdown.open .assign-panel {
+            display: block;
+        }
+        .mentor-assign-users {
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .assign-user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 4px;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+        .assign-user-item:hover {
+            background: rgba(148, 163, 184, 0.25);
+        }
+        .assign-user-item.active {
+            background: rgba(37, 99, 235, 0.3);
+        }
+        .assign-user-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .assign-user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            object-fit: cover;
+        }
+        .assign-user-initials {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111827;
+            color: #e5e7eb;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .assign-user-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #0f172a;
+        }
+        .assign-user-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #0f172a;
+        }
     </style>
 </head>
 <body class="p-8">
@@ -156,29 +236,8 @@
                     
                     <div id="gridView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"></div>
 
-                    <div id="listView" class="list-view-container mt-4">
-                        <div class="table-responsive">
-                            <table class="table align-middle shadow-sm border-0">
-                                <thead class="bg-slate-50/50 border-b border-slate-100">
-                                    <tr class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                                        <th class="ps-4 px-3 py-3">Nama</th>
-                                        <th class="px-3 py-3">Photo</th>
-                                        <th class="px-3 py-3">Resume</th>
-                                        <th class="px-3 py-3">Status Candidate</th>
-                                        <th class="px-3 py-3">Date Created</th>
-                                        <th class="px-3 py-3">Link Instagram</th>
-                                        <th class="px-3 py-3">Link LinkedIn</th>
-                                        <th class="px-3 py-3">Address</th>
-                                        <th class="px-3 py-3">Provider</th>
-                                        <th class="px-3 py-3">Notebook</th>
-                                        <th class="px-3 py-3">Whatsapp</th>
-                                        <th class="px-3 py-3">Email</th>
-                                        <th class="px-3 py-3 text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="mentorTableBody" class="text-[13px] text-slate-700"></tbody>
-                            </table>
-                        </div>
+                    <div id="listView" class="mt-4">
+                        <div id="mentorTableBody" class="space-y-4"></div>
                     </div>
 
                 </div>
@@ -360,7 +419,9 @@
             collection,
             getDoc,
             getDocs,
-            addDoc
+            addDoc,
+            updateDoc,
+            arrayUnion
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import {
             getStorage,
@@ -476,8 +537,8 @@
             let cls = "status-badge status-badge-default";
             if (value === "screening") cls = "status-badge status-badge-screening";
             else if (value === "radar") cls = "status-badge status-badge-radar";
-            else if (value === "accepted") cls = "status-badge status-badge-accepted";
-            else if (value === "rejected") cls = "status-badge status-badge-rejected";
+            else if (value === "accepted" || value === "accept") cls = "status-badge status-badge-accepted";
+            else if (value === "rejected" || value === "reject") cls = "status-badge status-badge-rejected";
             const label = value ? value.toUpperCase() : "-";
             return '<span class="badge rounded-pill ' + cls + '">' + escapeHtml(label) + '</span>';
         }
@@ -582,6 +643,214 @@
                 '</div>';
         }
 
+        const mentorAssignUsersMap = {};
+
+        async function ensureMentorUsersLoaded() {
+            if (Object.keys(mentorAssignUsersMap).length > 0) {
+                return mentorAssignUsersMap;
+            }
+            if (window.questUsersById && Object.keys(window.questUsersById).length > 0) {
+                Object.assign(mentorAssignUsersMap, window.questUsersById);
+                return mentorAssignUsersMap;
+            }
+            try {
+                const snap = await getDocs(collection(db, "users"));
+                snap.forEach(docSnap => {
+                    const data = docSnap.data() || {};
+                    const id = docSnap.id;
+                    const name = data.displayName || data.name || data.email || "User";
+                    const photo = data.photo || data.photoURL || data.avatar_url || data.avatar || null;
+                    mentorAssignUsersMap[id] = { name, photo };
+                });
+            } catch (e) {}
+            return mentorAssignUsersMap;
+        }
+
+        function buildAssignLabelFromIds(userIds) {
+            const ids = Array.isArray(userIds) ? userIds : [];
+            const valid = ids.filter(uid => mentorAssignUsersMap[uid]);
+            if (!valid.length) return "";
+            const names = valid.map(uid => (mentorAssignUsersMap[uid]?.name || "User"));
+            const shown = names.slice(0, 2);
+            const extra = names.length - shown.length;
+            return extra > 0 ? (shown.join(", ") + " +" + extra) : shown.join(", ");
+        }
+
+        function getMentorSelectedIds(fieldEl) {
+            if (!fieldEl) return [];
+            const items = fieldEl.querySelectorAll(".mentor-assign-users .assign-user-item");
+            const selected = [];
+            items.forEach(item => {
+                if (item.classList.contains("active")) {
+                    const uid = item.dataset.userId;
+                    if (uid) selected.push(uid);
+                }
+            });
+            return selected;
+        }
+
+        function refreshMentorInterviewerDisplay(fieldEl, selectedIds) {
+            if (!fieldEl) return;
+            const display = fieldEl.querySelector(".mentor-interviewer-display");
+            const hiddenInput = fieldEl.querySelector(".mentor-interviewer-input");
+            if (!display || !hiddenInput) return;
+            const ids = Array.isArray(selectedIds) ? selectedIds : [];
+            hiddenInput.value = ids.join(",");
+            if (!ids.length) {
+                display.textContent = "Pilih interviewer...";
+                display.classList.remove("has-value");
+                return;
+            }
+            const label = buildAssignLabelFromIds(ids);
+            if (label) {
+                display.textContent = label;
+                display.classList.add("has-value");
+            } else {
+                display.textContent = "Pilih interviewer...";
+                display.classList.remove("has-value");
+            }
+        }
+
+        async function saveMentorInterviewers(talentId, interviewerIds) {
+            if (!talentId) return;
+            const ids = Array.isArray(interviewerIds) ? interviewerIds.filter(Boolean) : [];
+            const ref = doc(db, "talents", talentId);
+            try {
+                await updateDoc(ref, {
+                    interviewers: ids
+                });
+            } catch (e) {
+                console.error("Failed to save mentor interviewers", e);
+            }
+        }
+
+        function buildMentorAssignItem(fieldEl, container, userId, userData, selectedSet) {
+            const name = userData && userData.name ? userData.name : "User";
+            const photo = userData ? userData.photo : null;
+            const item = document.createElement("div");
+            item.className = "assign-user-item";
+            item.dataset.userId = userId;
+            item.dataset.name = name;
+            if (selectedSet && selectedSet.has(userId)) {
+                item.classList.add("active");
+            }
+            const left = document.createElement("div");
+            left.className = "assign-user-left";
+            let avatarElement;
+            if (photo) {
+                avatarElement = document.createElement("img");
+                avatarElement.src = photo;
+                avatarElement.alt = name;
+                avatarElement.className = "assign-user-avatar";
+            } else {
+                avatarElement = document.createElement("div");
+                avatarElement.className = "assign-user-initials";
+                const initials = name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+                avatarElement.textContent = initials || "U";
+            }
+            const nameSpan = document.createElement("div");
+            nameSpan.className = "assign-user-name";
+            nameSpan.textContent = name;
+            left.appendChild(avatarElement);
+            left.appendChild(nameSpan);
+            const right = document.createElement("div");
+            right.className = "assign-user-checkbox";
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = selectedSet && selectedSet.has(userId);
+            checkbox.addEventListener("change", () => {
+                item.classList.toggle("active", checkbox.checked);
+                const selectedIds = getMentorSelectedIds(fieldEl);
+                refreshMentorInterviewerDisplay(fieldEl, selectedIds);
+                const talentId = fieldEl.dataset.talentId || "";
+                if (talentId) {
+                    saveMentorInterviewers(talentId, selectedIds);
+                }
+            });
+            right.appendChild(checkbox);
+            item.appendChild(left);
+            item.appendChild(right);
+            item.addEventListener("click", (ev) => {
+                if (ev.target.tagName.toLowerCase() !== "input") {
+                    checkbox.checked = !checkbox.checked;
+                    const event = new Event("change");
+                    checkbox.dispatchEvent(event);
+                }
+            });
+            container.appendChild(item);
+        }
+
+        async function openMentorInterviewerDropdownForField(fieldEl) {
+            if (!fieldEl) return;
+            const panel = fieldEl.querySelector(".mentor-interviewer-panel");
+            const listContainer = fieldEl.querySelector(".mentor-assign-users");
+            const hiddenInput = fieldEl.querySelector(".mentor-interviewer-input");
+            if (!panel || !listContainer || !hiddenInput) return;
+            listContainer.innerHTML = "";
+            const users = await ensureMentorUsersLoaded();
+            const currentIds = (hiddenInput.value || "").split(",").map(v => v.trim()).filter(Boolean);
+            const selectedSet = new Set(currentIds);
+            const entries = Object.entries(users);
+            entries
+                .sort((a, b) => {
+                    const nameA = (a[1].name || "").toLowerCase();
+                    const nameB = (b[1].name || "").toLowerCase();
+                    return nameA.localeCompare(nameB, "id");
+                })
+                .forEach(([uid, data]) => {
+                    buildMentorAssignItem(fieldEl, listContainer, uid, data, selectedSet);
+                });
+            refreshMentorInterviewerDisplay(fieldEl, currentIds);
+        }
+
+        async function updateMentorStatus(talentId, newStatus, actorName) {
+            if (!talentId || !newStatus) return;
+            const ref = doc(db, "talents", talentId);
+            const nowIso = new Date().toISOString();
+            const logEntry = {
+                action: "mentor_status_change",
+                to: newStatus,
+                by: actorName || null,
+                date: nowIso
+            };
+            try {
+                await updateDoc(ref, {
+                    "recruitment_status.current": newStatus,
+                    "recruitment_status.history": arrayUnion({
+                        status: newStatus,
+                        date: nowIso
+                    }),
+                    logs: arrayUnion(logEntry)
+                });
+            } catch (e) {
+                console.error("Failed to update mentor status", e);
+            }
+        }
+
+        function updateMentorStatusUI(talentId, newStatus, sourceSelect) {
+            if (!talentId) return;
+            const selects = document.querySelectorAll('.mentor-status-select[data-talent-id="' + talentId + '"]');
+            selects.forEach(sel => {
+                if (sel !== sourceSelect) {
+                    sel.value = newStatus;
+                }
+            });
+            const card = document.querySelector('.mentor-item[data-talent-id="' + talentId + '"]');
+            if (card) {
+                const badge = card.querySelector(".status-badge");
+                if (badge) {
+                    const value = (newStatus || "").toString().toLowerCase();
+                    let cls = "status-badge-default";
+                    if (value === "screening") cls = "status-badge-screening";
+                    else if (value === "radar") cls = "status-badge-radar";
+                    else if (value === "accepted" || value === "accept") cls = "status-badge-accepted";
+                    else if (value === "rejected" || value === "reject") cls = "status-badge-rejected";
+                    badge.className = "badge rounded-pill status-badge " + cls;
+                    badge.textContent = value ? value.toUpperCase() : "-";
+                }
+            }
+        }
+
         function appendMentorToTable(params) {
             const tbody = document.getElementById("mentorTableBody");
             const gridContainer = document.getElementById("gridView");
@@ -601,6 +870,7 @@
             const whatsapp = escapeHtml(params.whatsapp || "");
             const email = escapeHtml(params.email || "");
             const talentId = params.talentId || "";
+            const interviewers = Array.isArray(params.interviewers) ? params.interviewers.filter(Boolean) : [];
 
             const instagramHtml = instagramUrl
                 ? '<a href="' + instagramUrl + '" target="_blank" class="text-decoration-none">Open</a>'
@@ -652,32 +922,93 @@
                     '</div>' +
                 '</div>';
 
-            const row = document.createElement("tr");
-            row.className = "mentor-row";
+            const row = document.createElement("div");
+            row.className = "mentor-row bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-sm hover:shadow-md transition-shadow";
             row.dataset.name = name;
             row.dataset.talentId = talentId;
             row.innerHTML =
-                '<td class="ps-4">' +
-                    '<div class="fw-bold">' + name + '</div>' +
-                '</td>' +
-                '<td>' +
-                    '<img src="' + avatarUrl + '" class="mentor-img shadow-sm" alt="' + name + '">' +
-                '</td>' +
-                '<td>' + resumeHtml + '</td>' +
-                '<td>' + statusHtml + '</td>' +
-                '<td>' + (createdText || '-') + '</td>' +
-                '<td>' + instagramHtml + '</td>' +
-                '<td>' + linkedinHtml + '</td>' +
-                '<td><span class="small text-muted text-ellipsis-2">' + (address || '-') + '</span></td>' +
-                '<td>' + (provider || '-') + '</td>' +
-                '<td>' + (notebook || '-') + '</td>' +
-                '<td>' + (whatsapp || '-') + '</td>' +
-                '<td>' + (email || '-') + '</td>' +
-                '<td class="text-center">' +
-                    '<button type="button" class="btn btn-sm btn-light rounded-3 mentor-view-btn" title="View">' +
-                        '<i class="fas fa-eye"></i>' +
-                    '</button>' +
-                '</td>';
+                '<div class="flex flex-col lg:flex-row gap-4 md:gap-6">' +
+                    '<div class="flex items-center gap-4 lg:w-1/4">' +
+                        '<img src="' + avatarUrl + '" alt="' + name + '" class="w-16 h-16 rounded-xl object-cover border-2 border-blue-50 shadow-sm">' +
+                        '<div>' +
+                            '<h3 class="font-bold text-slate-800 text-sm md:text-base leading-tight mb-1">' + name + '</h3>' +
+                            (createdText
+                                ? '<p class="text-xs text-slate-500 mb-1">Mendaftar: ' + createdText + '</p>'
+                                : '') +
+                            '<div class="mt-1 mentor-interviewer-field" data-talent-id="' + talentId + '">' +
+                                '<div class="mentor-interviewer-display assign-display small">Pilih interviewer...</div>' +
+                                '<div class="mentor-interviewer-panel assign-dropdown mt-1">' +
+                                    '<div class="assign-panel card border-0 shadow-sm">' +
+                                        '<div class="card-body p-2">' +
+                                            '<div class="assign-search mb-2 d-flex align-items-center gap-2">' +
+                                                '<span class="assign-search-icon text-muted"><i class="fas fa-search"></i></span>' +
+                                                '<input type="text" class="form-control form-control-sm assign-search-input mentor-interviewer-search" placeholder="Search...">' +
+                                            '</div>' +
+                                            '<div class="assign-list">' +
+                                                '<div class="assign-list-header text-uppercase text-[10px] text-slate-400 fw-bold mb-1">People</div>' +
+                                                '<div class="mentor-assign-users"></div>' +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</div>' +
+                                '</div>' +
+                                '<input type="hidden" class="mentor-interviewer-input" value="' + interviewers.join(",") + '">' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 items-center border-y lg:border-y-0 lg:border-x border-slate-50 py-3 lg:py-0 px-0 lg:px-4">' +
+                        '<div>' +
+                            '<span class="text-[10px] uppercase tracking-wider font-bold text-slate-400 block mb-1">Status</span>' +
+                            '<select class="form-select form-select-sm mentor-status-select" data-talent-id="' + talentId + '">' +
+                                '<option value="screening"' + (statusText.toLowerCase() === "screening" ? ' selected' : '') + '>Screening</option>' +
+                                '<option value="interview"' + (statusText.toLowerCase() === "interview" ? ' selected' : '') + '>Interview</option>' +
+                                '<option value="microteaching"' + (statusText.toLowerCase() === "microteaching" ? ' selected' : '') + '>Microteaching</option>' +
+                                '<option value="decision"' + (statusText.toLowerCase() === "decision" ? ' selected' : '') + '>Decision</option>' +
+                                '<option value="rejected"' + (statusText.toLowerCase() === "rejected" || statusText.toLowerCase() === "reject" ? ' selected' : '') + '>Reject</option>' +
+                                '<option value="accepted"' + (statusText.toLowerCase() === "accepted" || statusText.toLowerCase() === "accept" ? ' selected' : '') + '>Accept</option>' +
+                            '</select>' +
+                        '</div>' +
+                        '<div>' +
+                            '<span class="text-[10px] uppercase tracking-wider font-bold text-slate-400 block mb-1">Provider & Device</span>' +
+                            '<p class="text-sm text-slate-700 font-medium">' + (provider || '-') + '</p>' +
+                            '<p class="text-xs text-slate-500">' + (notebook || '-') + '</p>' +
+                        '</div>' +
+                        '<div class="col-span-2">' +
+                            '<span class="text-[10px] uppercase tracking-wider font-bold text-slate-400 block mb-1">Alamat</span>' +
+                            '<p class="text-sm text-slate-600 truncate">' + (address || '-') + '</p>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="lg:w-1/4 flex flex-col justify-center gap-3 mt-3 lg:mt-0">' +
+                        '<div class="d-flex gap-2">' +
+                            (whatsapp
+                                ? '<a href="https://wa.me/' + whatsapp.replace(/[^0-9]/g, "") + '" target="_blank" class="flex-1 d-flex align-items-center justify-content-center gap-2 bg-emerald-50 text-emerald-700 text-sm fw-semibold py-2 px-3 rounded-lg text-decoration-none">' +
+                                    '<i class="fa-brands fa-whatsapp fs-5"></i><span>WhatsApp</span>' +
+                                  '</a>'
+                                : '') +
+                            (email
+                                ? '<a href="mailto:' + email + '" class="px-3 d-flex align-items-center justify-content-center bg-slate-50 text-slate-600 rounded-lg text-decoration-none">' +
+                                    '<i class="fa-regular fa-envelope"></i>' +
+                                  '</a>'
+                                : '') +
+                        '</div>' +
+                        '<div class="d-flex align-items-center justify-content-between">' +
+                            '<div class="d-flex gap-3 text-slate-400 text-sm">' +
+                                (instagramUrl
+                                    ? '<a href="' + instagramUrl + '" target="_blank" class="text-slate-400 hover:text-pink-500 text-decoration-none"><i class="fa-brands fa-instagram"></i></a>'
+                                    : '') +
+                                (linkedinUrl
+                                    ? '<a href="' + linkedinUrl + '" target="_blank" class="text-slate-400 hover:text-blue-700 text-decoration-none"><i class="fa-brands fa-linkedin"></i></a>'
+                                    : '') +
+                                (resumeUrl
+                                    ? '<a href="' + resumeUrl + '" target="_blank" class="text-slate-400 hover:text-blue-600 text-decoration-none"><i class="fa-solid fa-file-pdf"></i> CV</a>'
+                                    : '') +
+                            '</div>' +
+                            '<button type="button" class="text-blue-600 hover:text-blue-800 text-sm fw-bold d-flex align-items-center gap-1 border-0 bg-transparent mentor-view-btn">' +
+                                '<span>Detail</span>' +
+                                '<i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i>' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
 
             gridContainer.appendChild(card);
             tbody.appendChild(row);
@@ -733,6 +1064,10 @@
 
                     const resumeUrl = internship.resume_url || data.resume_url || "";
 
+                    const interviewers = Array.isArray(data.interviewers)
+                        ? data.interviewers.filter(Boolean)
+                        : [];
+
                     appendMentorToTable({
                         name,
                         avatarUrl,
@@ -746,7 +1081,8 @@
                         notebook,
                         whatsapp,
                         email,
-                        talentId: docSnap.id
+                        talentId: docSnap.id,
+                        interviewers
                     });
                     found += 1;
                 });
@@ -927,6 +1263,65 @@
                     console.error(err);
                     alert("Gagal memuat detail kandidat.");
                 }
+            }
+        });
+
+        document.addEventListener("click", async (e) => {
+            const display = e.target.closest(".mentor-interviewer-display");
+            if (display) {
+                e.preventDefault();
+                const fieldEl = display.closest(".mentor-interviewer-field");
+                if (!fieldEl) return;
+                const panel = fieldEl.querySelector(".mentor-interviewer-panel");
+                if (!panel) return;
+                const alreadyOpen = panel.classList.contains("open");
+                const allPanels = document.querySelectorAll(".mentor-interviewer-panel.open");
+                allPanels.forEach(p => {
+                    if (p !== panel) {
+                        p.classList.remove("open");
+                    }
+                });
+                if (!alreadyOpen) {
+                    await openMentorInterviewerDropdownForField(fieldEl);
+                    panel.classList.add("open");
+                    const searchInput = fieldEl.querySelector(".mentor-interviewer-search");
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                } else {
+                    panel.classList.remove("open");
+                }
+                return;
+            }
+            const openPanels = document.querySelectorAll(".mentor-interviewer-panel.open");
+            openPanels.forEach(panel => {
+                if (!panel.contains(e.target)) {
+                    panel.classList.remove("open");
+                }
+            });
+        });
+
+        document.addEventListener("input", (e) => {
+            const search = e.target.closest(".mentor-interviewer-search");
+            if (!search) return;
+            const fieldEl = search.closest(".mentor-interviewer-field");
+            if (!fieldEl) return;
+            const term = search.value.toLowerCase();
+            const items = fieldEl.querySelectorAll(".mentor-assign-users .assign-user-item");
+            items.forEach(item => {
+                const text = (item.dataset.name || "").toLowerCase();
+                item.style.display = text.includes(term) ? "" : "none";
+            });
+        });
+
+        document.addEventListener("change", async (e) => {
+            const select = e.target.closest(".mentor-status-select");
+            if (select) {
+                const talentId = select.dataset.talentId || "";
+                const newStatus = select.value || "";
+                if (!talentId || !newStatus) return;
+                updateMentorStatusUI(talentId, newStatus, select);
+                await updateMentorStatus(talentId, newStatus, (auth.currentUser && auth.currentUser.displayName) || null);
             }
         });
 
