@@ -548,6 +548,7 @@
             addDoc,
             updateDoc,
             deleteDoc,
+            setDoc,
             serverTimestamp
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import {
@@ -577,6 +578,23 @@
 
         const sidebarTarget = document.getElementById('sidebarContainer');
         renderSidebar(sidebarTarget);
+
+        window.app = app;
+        window.auth = auth;
+        window.db = db;
+        window.collection = collection;
+        window.getDoc = getDoc;
+        window.getDocs = getDocs;
+        window.addDoc = addDoc;
+        window.doc = doc;
+        window.deleteDoc = deleteDoc;
+        window.updateDoc = updateDoc;
+        window.setDoc = setDoc;
+        window.serverTimestamp = serverTimestamp;
+        window.storage = storage;
+        window.storageRef = storageRef;
+        window.uploadBytes = uploadBytes;
+        window.getDownloadURL = getDownloadURL;
 
         window.toggleSidebar = () => {
             const sidebar = document.getElementById('sidebarNav');
@@ -938,9 +956,7 @@
                                     : '') +
                             '</div>' +
                             '<div class="mt-auto">' +
-                                (portfolioUrl
-                                    ? '<button type="button" class="w-full inline-flex justify-center items-center py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-[11px] font-bold text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all uppercase tracking-widest internship-view-btn">View Profile</button>'
-                                    : '<span class="inline-flex justify-center items-center w-full py-2.5 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-[11px] font-medium text-slate-400 uppercase tracking-widest">No Portfolio</span>') +
+                                '<button type="button" class="w-full inline-flex justify-center items-center py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-[11px] font-bold text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all uppercase tracking-widest internship-view-btn">View Profile</button>' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
@@ -1039,6 +1055,7 @@
             try {
                 const snap = await getDocs(collection(db, "talents"));
                 if (snap.empty) return;
+                let found = 0;
                 snap.forEach(docSnap => {
                     const data = docSnap.data() || {};
                     const basic = data.basic_info || {};
@@ -1052,7 +1069,10 @@
                     const roleNameRaw = data.role_name || data.role || basic.current_role || scouting.role_name || "";
                     const roleIdValue = (roleIdRaw || "").toString().toLowerCase();
                     const roleNameValue = (roleNameRaw || "").toString().toLowerCase();
-                    if (roleIdValue !== "internship" && roleNameValue !== "internship") {
+                    const hasInternshipBlock = internship && Object.keys(internship).length > 0;
+                    const normalizedRoleId = roleIdValue.replace(/\s/g, "");
+                    const normalizedRoleName = roleNameValue.replace(/\s/g, "");
+                    if (!hasInternshipBlock && normalizedRoleId !== "internship" && normalizedRoleName !== "internship") {
                         return;
                     }
 
@@ -1107,7 +1127,16 @@
                         chooseText,
                         talentId: docSnap.id
                     });
+                    found += 1;
                 });
+                if (!found) {
+                    gridContainer.innerHTML =
+                        '<div class="col-span-1 sm:col-span-2 lg:col-span-3 xl:col-span-4 py-10 text-center text-slate-400 text-sm">' +
+                            'Belum ada data kandidat internship yang dapat ditampilkan.' +
+                        '</div>';
+                    listTbody.innerHTML =
+                        '<tr><td colspan="6" class="text-center text-muted small py-4">Belum ada data kandidat internship yang dapat ditampilkan.</td></tr>';
+                }
                 applyCandidateFilters();
             } catch (e) {
                 console.error("Failed to load internship candidates", e);
@@ -1183,6 +1212,8 @@
                 ? candidateResumeInput.files[0]
                 : null;
 
+            const nowIso = new Date().toISOString();
+
             const payload = {
                 basic_info: {
                     full_name: fullName,
@@ -1222,6 +1253,12 @@
                 },
                 role_id: ROLE_ID,
                 role_name: ROLE_NAME,
+                recruitment_status: {
+                    current: "screening",
+                    history: [
+                        { status: "screening", date: nowIso }
+                    ]
+                },
                 created_at: serverTimestamp()
             };
 
