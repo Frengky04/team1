@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelas Public Speaking Offline Jogja | Dialogika - Garansi Mengulang</title>
+<meta name="description" content="Kursus Public Speaking Jogja di Dialogika. Kelas offline 10 pertemuan, max 7 orang, praktik intensif & garansi mengulang sepuasnya. Dekat UGM & UNY.">
+
+
+<!-- SEO Meta Tags -->
+<meta name="keywords" content="kelas public speaking jogja, kursus public speaking terdekat, les public speaking jogja, dialogika yogyakarta">
+<meta name="author" content="Dialogika">
+
+<style>
+    :root {
+        --primary: #003366; /* Deep Blue Dialogika style */
+        --secondary: #f39c12; /* Accent Gold/Orange */
+        --accent: #25d366; /* WA Green */
+        --text-dark: #333333;
+        --text-light: #666666;
+        --bg-light: #f8f9fa;
+        --white: #ffffff;
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+        line-height: 1.6;
+        color: var(--text-dark);
+        background-color: var(--white);
+        overflow-x: hidden;
+    }
+
+    /* Utility Classes */
+    .container {
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 15px 30px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background-color: var(--accent);
+        color: var(--white);
+        box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+        filter: brightness(1.1);
+    }
+
+    .section-padding {
+        padding: 60px 0;
+    }
+
+    .text-center { text-align: center; }
+
+    h1, h2, h3 {
+        color: var(--primary);
+        line-height: 1.2;
+    }
+
+    /* Header */
+    header {
+        padding: 15px 0;
+        background: var(--white);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .logo {
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--primary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Hero Section */
+    .hero {
+        background: linear-gradient(135deg, #003366 0%, #001a33 100%);
+        color: var(--white);
+        padding: 80px 0 60px;
+        text-align: center;
+        position: relative;
+    }
+
+    .hero h1 {
+        color: var(--white);
+        font-size: 2.8rem;
+        margin-bottom: 20px;
+        font-weight: 800;
+    }
+
+    .hero p {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+        opacity: 0.9;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-benefits {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 35px;
+    }
+
+    .benefit-tag {
+        background: rgba(255,255,255,0.1);
+        padding: 8px 15px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* Proof Bar */
+    .proof-bar {
+        background: #f1f5f9;
+        padding: 20px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .proof-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        text-align: center;
+    }
+
+    .proof-item strong {
+        display: block;
+        font-size: 1.2rem;
+        color: var(--primary);
+    }
+
+    .proof-item span {
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+
+    /* Pain Points */
+    .pain-section {
+        background: var(--white);
+    }
+
+    .pain-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 40px;
+    }
+
+    .pain-card {
+        background: #fff5f5;
+        padding: 25px;
+        border-radius: 12px;
+        border-left: 5px solid #fc8181;
+    }
+
+    .pain-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        color: #c53030;
+    }
+
+    /* Curriculum & Program */
+    .program-section {
+        background: var(--bg-light);
+    }
+
+    .curriculum-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 40px;
+    }
+
+    .curriculum-item {
+        background: var(--white);
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+    }
+
+    .curriculum-num {
+        background: var(--primary);
+        color: var(--white);
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        flex-shrink: 0;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+
+    /* Why Dialogika */
+    .why-us-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 30px;
+        margin-top: 40px;
+    }
+
+    .why-card {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .why-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    /* Location */
+    .location-section {
+        background: var(--white);
+    }
+
+    .location-flex {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        margin-top: 30px;
+    }
+
+    .loc-info {
+        flex: 1;
+        min-width: 300px;
+    }
+
+    .loc-map {
+        flex: 1;
+        min-width: 300px;
+        height: 350px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .loc-map iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+
+    /* Pricing */
+    .pricing-section {
+        background: var(--primary);
+        color: var(--white);
+    }
+
+    .pricing-section h2 { color: var(--white); }
+
+    .pricing-card {
+        background: var(--white);
+        color: var(--text-dark);
+        max-width: 500px;
+        margin: 40px auto 0;
+        padding: 40px;
+        border-radius: 20px;
+        position: relative;
+        text-align: center;
+    }
+
+    .pricing-card .badge {
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--secondary);
+        padding: 5px 20px;
+        border-radius: 50px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    .price-old {
+        text-decoration: line-through;
+        color: var(--text-light);
+        font-size: 1.2rem;
+    }
+
+    .price-new {
+        font-size: 3rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin: 10px 0;
+    }
+
+    .pricing-features {
+        list-style: none;
+        margin: 25px 0;
+        text-align: left;
+    }
+
+    .pricing-features li {
+        margin-bottom: 10px;
+        padding-left: 25px;
+        position: relative;
+    }
+
+    .pricing-features li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        font-weight: bold;
+    }
+
+    /* Testimonials */
+    .testimonial-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 40px;
+    }
+
+    .testi-card {
+        background: var(--bg-light);
+        padding: 30px;
+        border-radius: 15px;
+        font-style: italic;
+    }
+
+    .testi-user {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-style: normal;
+        font-weight: bold;
+    }
+
+    /* FAQ */
+    .faq-section {
+        background: var(--white);
+    }
+
+    .faq-item {
+        margin-bottom: 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .faq-question {
+        padding: 15px 20px;
+        background: #fff;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+    }
+
+    .faq-answer {
+        padding: 0 20px;
+        max-height: 0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .faq-item.active .faq-answer {
+        padding: 15px 20px;
+        max-height: 500px;
+    }
+
+    /* Guarantee Box */
+    .guarantee-box {
+        background: #fffaf0;
+        border: 2px dashed var(--secondary);
+        padding: 30px;
+        border-radius: 15px;
+        margin: 40px 0;
+    }
+
+    /* Sticky WA */
+    .sticky-wa {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        background: var(--accent);
+        color: white;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        z-index: 9999;
+        text-decoration: none;
+        font-size: 30px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero h1 { font-size: 2rem; }
+        .proof-grid { grid-template-columns: 1fr; gap: 10px; }
+        .price-new { font-size: 2.2rem; }
+        .section-padding { padding: 40px 0; }
+    }
+</style>
+</head>
+<body>
+
+
+<header>
+    <div class="container">
+        <div class="logo">Dialogika</div>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1>Kelas Public Speaking Offline Jogja</h1>
+        <p>Ubah rasa gugup menjadi rasa percaya diri hanya dalam 10 pertemuan. Belajar langsung di kelas intensif dengan mentor berpengalaman.</p>
+        
+        <div class="hero-benefits">
+            <span class="benefit-tag">10 Pertemuan Intensif</span>
+            <span class="benefit-tag">Maksimal 7 Orang</span>
+            <span class="benefit-tag">Praktik Tiap Sesi</span>
+            <span class="benefit-tag">Garansi Mengulang</span>
+        </div>
+
+        <a href="https://wa.me/6281234567890?text=Halo!%20Saya%20ingin%20tanya%20info%20lengkap%20tentang%20Kelas%20Public%20Speaking%20Offline%20Jogja%20di%20Dialogika." class="btn btn-primary">Cek Slot Kelas Minggu Ini via WhatsApp</a>
+    </div>
+</section>
+
+<!-- Proof Bar -->
+<div class="proof-bar">
+    <div class="container">
+        <div class="proof-grid">
+            <div class="proof-item">
+                <strong>⭐ 4.9 Google Review</strong>
+                <span>939+ Review Peserta</span>
+            </div>
+            <div class="proof-item">
+                <strong>👥 3.325+ Alumni</strong>
+                <span>Sukses Meningkatkan Skill</span>
+            </div>
+            <div class="proof-item">
+                <strong>📍 Lokasi Strategis</strong>
+                <span>Dekat Kampus UGM, UNY, UPN</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pain Section -->
+<section class="section-padding pain-section">
+    <div class="container">
+        <h2 class="text-center">Sering Alami Ini Saat Harus Berbicara?</h2>
+        <div class="pain-grid">
+            <div class="pain-card">
+                <h3>Gugup Saat Meeting</h3>
+                <p>Tangan berkeringat dan jantung berdebar kencang tiap kali diminta pendapat oleh atasan.</p>
+            </div>
+            <div class="pain-card">
+                <h3>Tiba-tiba "Blank"</h3>
+                <p>Materi sudah disiapkan, tapi mendadak hilang semua saat sudah berdiri di depan audiens.</p>
+            </div>
+            <div class="pain-card">
+                <h3>Overthinking Parah</h3>
+                <p>Terlalu takut dinilai jelek atau ditertawakan sebelum mulai bicara.</p>
+            </div>
+            <div class="pain-card">
+                <h3>Suara Bergetar</h3>
+                <p>Ingin terlihat tegas, tapi suara kecil dan bergetar membuat wibawa Anda jatuh.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Program Explanation -->
+<section class="section-padding program-section">
+    <div class="container">
+        <h2 class="text-center">Sistem Belajar 10 Sesi (Full Praktik)</h2>
+        <p class="text-center" style="margin-bottom: 30px;">Setiap sesi dirancang untuk mengupas tuntas kendala Anda dengan metode praktik langsung & evaluasi.</p>
+        
+        <div class="curriculum-list">
+            <div class="curriculum-item"><div class="curriculum-num">1</div> Intro & Mindset</div>
+            <div class="curriculum-item"><div class="curriculum-num">2</div> Be Confidence</div>
+            <div class="curriculum-item"><div class="curriculum-num">3</div> Personal Branding</div>
+            <div class="curriculum-item"><div class="curriculum-num">4</div> Vocal & Artikulasi</div>
+            <div class="curriculum-item"><div class="curriculum-num">5</div> Impromptu (Bicara Spontan)</div>
+            <div class="curriculum-item"><div class="curriculum-num">6</div> Body Language</div>
+            <div class="curriculum-item"><div class="curriculum-num">7</div> Teknik Persuasi</div>
+            <div class="curriculum-item"><div class="curriculum-num">8</div> QnA & Handling Objections</div>
+            <div class="curriculum-item"><div class="curriculum-num">9</div> Storytelling</div>
+            <div class="curriculum-item"><div class="curriculum-num">10</div> Final Practice</div>
+        </div>
+
+        <div style="margin-top: 40px; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <h3 style="margin-bottom: 15px;">Kenapa Hanya Maksimal 7 Orang?</h3>
+            <p>Kami menjaga kualitas belajar. Dengan peserta terbatas, Anda mendapatkan <strong>feedback personal</strong>, <strong>waktu praktik lebih lama</strong>, dan suasana kelas yang lebih <strong>nyaman & intim</strong> untuk pemula.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Why Us -->
+<section class="section-padding">
+    <div class="container">
+        <h2 class="text-center">Kenapa Pilih Dialogika Jogja?</h2>
+        <div class="why-us-grid">
+            <div class="why-card">
+                <span class="icon">🏆</span>
+                <h3>Mentor Expert</h3>
+                <p>Praktisi public speaking dengan jam terbang panggung >2 tahun.</p>
+            </div>
+            <div class="why-card">
+                <span class="icon">🔄</span>
+                <h3>Garansi Mengulang</h3>
+                <p>Belum PD? Bisa mengulang kelas GRATIS sampai bisa selama 1 tahun.</p>
+            </div>
+            <div class="why-card">
+                <span class="icon">📅</span>
+                <h3>Jadwal Jelas</h3>
+                <p>Setiap Minggu buka batch baru. Kelas weekend pukul 09.30 WIB.</p>
+            </div>
+            <div class="why-card">
+                <span class="icon">📱</span>
+                <h3>Support Group</h3>
+                <p>Tergabung dalam WA Group kelas untuk diskusi dan reminder tugas.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Location & Schedule -->
+<section class="section-padding location-section">
+    <div class="container">
+        <h2 class="text-center">Jadwal & Lokasi Strategis</h2>
+        <div class="location-flex">
+            <div class="loc-info">
+                <h3 style="margin-bottom: 15px;">Alamat Offline Jogja:</h3>
+                <p><strong>Jl. Sumbawa, Purwosari, Sinduadi, Kec. Mlati, Sleman, Yogyakarta 55284</strong></p>
+                <p style="margin: 10px 0; color: var(--text-light);">📍 Landmark: Dekat Jalan Kaliurang KM 5,5 (Belakang UGM/UNY)</p>
+                <ul style="list-style: none; margin-top: 20px;">
+                    <li>✅ Ruang AC & Kursi Nyaman</li>
+                    <li>✅ Parkir Motor & Mobil Tersedia</li>
+                    <li>✅ Dekat Halte Bus (±200 meter)</li>
+                    <li>✅ Dekat Tempat Kuliner & Cafe</li>
+                </ul>
+                <div style="margin-top: 25px;">
+                    <p><strong>Waktu Belajar:</strong></p>
+                    <p>Setiap Hari Minggu | Jam 09.30 - 11.00 WIB</p>
+                </div>
+            </div>
+            <div class="loc-map">
+                <!-- Embed Google Maps Placeholder -->
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.2205561571473!2d110.3752672!3d-7.7669466!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a5900227181f7%3A0xc3f982956f483c6b!2sDialogika%20-%20Kelas%20Public%20Speaking!5e0!3m2!1sid!2sid!4v1705600000000!5m2!1sid!2sid" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="section-padding pricing-section">
+    <div class="container">
+        <h2 class="text-center">Investasi Terbaik Untuk Karir Anda</h2>
+        <div class="pricing-card">
+            <span class="badge">PROMO BATCH MINGGU INI</span>
+            <p class="price-old">Rp3.000.000</p>
+            <p class="price-new">Rp1.579.000</p>
+            <p><em>*Tersedia opsi Cicilan & DP</em></p>
+            
+            <ul class="pricing-features">
+                <li>10x Pertemuan Offline (Tatap Muka)</li>
+                <li>Sertifikat Kelulusan</li>
+                <li>Modul & Handout Materi</li>
+                <li>Evaluasi Progres Setiap Sesi</li>
+                <li>Grup Konsultasi Mentor Seumur Hidup</li>
+                <li><strong>Hak Mengulang Kelas Gratis 1 Tahun</strong></li>
+            </ul>
+
+            <a href="https://wa.me/6281234567890?text=Halo!%20Saya%20ingin%20tanya%20info%20lengkap%20tentang%20Kelas%20Public%20Speaking%20Offline%20Jogja%20di%20Dialogika." class="btn btn-primary" style="width: 100%;">Ambil Promo & Cek Slot</a>
+            <p style="margin-top: 15px; font-size: 0.85rem; color: var(--text-light);">Tersedia juga pilihan <strong>Kelas Private</strong></p>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="section-padding">
+    <div class="container">
+        <h2 class="text-center">Apa Kata Mereka?</h2>
+        <div class="testimonial-grid">
+            <div class="testi-card">
+                <p>"Dulu saya selalu gemeteran kalau meeting bareng bos. Setelah ikut 10 sesi di Dialogika, saya jadi lebih tenang dan tahu cara menyusun kata-kata biar nggak blank."</p>
+                <div class="testi-user">
+                    <span>👩‍💼</span>
+                    <div><strong>Riana</strong><br><small>Karyawan Swasta</small></div>
+                </div>
+            </div>
+            <div class="testi-card">
+                <p>"Mentornya asik banget! Suasana kelasnya santai jadi nggak malu buat praktik. Feedbacknya langsung kena ke inti kekurangan kita. Sangat worth it!"</p>
+                <div class="testi-user">
+                    <span>👨‍💼</span>
+                    <div><strong>Andika</strong><br><small>Supervisor</small></div>
+                </div>
+            </div>
+            <div class="testi-card">
+                <p>"Sempat takut kejauhan lokasinya, tapi ternyata aksesnya gampang banget dari Jakal. Kelasnya kecil jadi kita bener-bener diperhatiin satu-satu."</p>
+                <div class="testi-user">
+                    <span>👩‍🎓</span>
+                    <div><strong>Siska</strong><br><small>Mahasiswa Akhir</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Guarantee Box -->
+<div class="container">
+    <div class="guarantee-box text-center">
+        <h3>🛡️ Garansi "Sampai Bisa" 🛡️</h3>
+        <p style="margin: 15px 0;">Kami tidak memberikan refund uang, tapi kami memberikan <strong>Jaminan Pasti Bisa</strong>. Jika Anda merasa kurang maksimal, Anda boleh mengulang seluruh rangkaian kelas sepuasnya secara GRATIS hingga 1 tahun ke depan.</p>
+        <small>*Cukup konfirmasi H-3 sebelum kelas dimulai.</small>
+    </div>
+</div>
+
+<!-- FAQ -->
+<section class="section-padding faq-section">
+    <div class="container">
+        <h2 class="text-center">Pertanyaan Yang Sering Diajukan</h2>
+        <div style="max-width: 800px; margin: 40px auto 0;">
+            <div class="faq-item">
+                <div class="faq-question">Kalau saya pemula banget dan pemalu, apakah bisa? <span>+</span></div>
+                <div class="faq-answer">Sangat bisa! 90% peserta kami mulai dari nol. Kelas didesain agar Anda merasa aman dan nyaman saat praktik tanpa di-judge.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Gimana kalau saya sibuk kerja dan absen di satu sesi? <span>+</span></div>
+                <div class="faq-answer">Anda bisa mengejar materi di batch berikutnya atau menggunakan hak garansi mengulang sesi yang terlewat tersebut secara gratis.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Apa benar bisa mengulang sepuasnya? <span>+</span></div>
+                <div class="faq-answer">Ya, betul. Selama 1 tahun sejak sesi terakhir Anda berakhir, Anda berhak mendaftar ulang di batch manapun tanpa biaya tambahan.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Pembayarannya bisa dicicil? <span>+</span></div>
+                <div class="faq-answer">Tentu. Kami menyediakan opsi pembayaran DP terlebih dahulu untuk mengamankan slot, sisanya bisa dibayar saat kelas dimulai.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Kelasnya isinya ngapain aja? <span>+</span></div>
+                <div class="faq-answer">20% Teori, 80% Praktik. Setiap pertemuan akan ada sesi praktik langsung di depan kelas dengan tema yang sudah ditentukan mentor.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Final CTA -->
+<section class="section-padding text-center" style="background: var(--bg-light);">
+    <div class="container">
+        <h2>Siap Menjadi Versi Terbaik Dirimu?</h2>
+        <p style="margin: 20px 0 30px;">Batch baru dibuka hari Minggu ini. Slot terbatas hanya untuk 7 peserta saja per kelas.</p>
+        <a href="https://wa.me/6281234567890?text=Halo!%20Saya%20ingin%20tanya%20info%20lengkap%20tentang%20Kelas%20Public%20Speaking%20Offline%20Jogja%20di%20Dialogika." class="btn btn-primary">Daftar Sekarang via WhatsApp</a>
+    </div>
+</section>
+
+<footer style="padding: 30px 0; background: var(--primary); color: white; text-align: center; font-size: 0.9rem;">
+    <div class="container">
+        <p>&copy; 2024 Dialogika Yogyakarta. All Rights Reserved.</p>
+        <p>Jl. Sumbawa, Purwosari, Sinduadi, Sleman, DIY.</p>
+    </div>
+</footer>
+
+<!-- Sticky WhatsApp Button -->
+<a href="https://wa.me/6281234567890?text=Halo!%20Saya%20ingin%20tanya%20info%20lengkap%20tentang%20Kelas%20Public%20Speaking%20Offline%20Jogja%20di%20Dialogika." class="sticky-wa" title="Hubungi Kami via WA">
+    <svg viewBox="0 0 24 24" width="35" height="35" fill="currentColor">
+        <path d="M12.031 6.172c-2.203 0-4.394 1.242-4.394 3.941 0 1.977 1.382 2.989 3.007 3.593l.103.034-.034.12c-.037.129-.063.216-.103.348-.549 1.744-1.261 2.322-1.261 2.322l-.135.101.165.01c.041.002.101.006.178.006.941 0 2.015-.347 2.991-1.219l.127-.113.138.097c.519.36.927.529 1.391.529.808 0 1.539-.518 1.93-1.41.395-.9.399-2.062.012-3.003-.358-.87-.908-1.575-1.597-2.045-.724-.493-1.611-.811-2.524-.811zm0-2.172c1.234 0 2.454.401 3.473 1.096 1.103.751 1.93 1.838 2.391 3.125.467 1.303.483 2.802-.023 4.07-.464 1.166-1.353 2.101-2.484 2.664-.202.101-.413.189-.63.262-.218.074-.442.133-.671.176-.401.554-.91 1.056-1.488 1.487-.714.532-1.527.896-2.395 1.077-.168.035-.339.06-.512.074-.173.014-.349.021-.527.021-.184 0-.369-.007-.552-.021-.184-.015-.366-.041-.545-.079-.848-.181-1.643-.539-2.342-1.054-.589-.434-1.111-.949-1.525-1.517-.184-.05-.366-.112-.544-.188-.178-.076-.351-.164-.518-.266-1.119-.684-1.957-1.744-2.355-3.007-.403-1.282-.361-2.693.116-3.868.455-1.119 1.258-2.059 2.274-2.677 1.016-.618 2.2-.953 3.411-.953z"/>
+        <path d="M19.057 4.298c-2.023-2.028-4.708-3.144-7.562-3.144-5.889 0-10.686 4.793-10.689 10.685 0 1.881.494 3.716 1.433 5.343l-1.522 5.56 5.688-1.492c1.564.853 3.326 1.303 5.12 1.304h.005c5.887 0 10.686-4.793 10.689-10.685 0-2.855-1.111-5.539-3.142-7.571zm-7.562 17.519h-.004c-1.594 0-3.156-.43-4.516-1.24l-.324-.192-3.36.882.898-3.279-.211-.336c-.89-1.417-1.359-3.061-1.359-4.747.003-5.068 4.125-9.186 9.197-9.186 2.455 0 4.762.956 6.502 2.695 1.738 1.739 2.696 4.045 2.696 6.502-.003 5.069-4.125 9.189-9.199 9.189z"/>
+    </svg>
+</a>
+
+<script>
+    // Simple FAQ Accordion
+    document.querySelectorAll('.faq-question').forEach(item => {
+        item.addEventListener('click', () => {
+            const parent = item.parentElement;
+            parent.classList.toggle('active');
+            
+            // Toggle icon
+            const icon = item.querySelector('span');
+            icon.innerText = parent.classList.contains('active') ? '-' : '+';
+        });
+    });
+
+    // Tracking Simulation (Ready for Pixel/GTM)
+    document.querySelectorAll('a[href*="wa.me"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            console.log('Conversion: WhatsApp Button Clicked');
+        });
+    });
+</script>
+</body>
+</html>
