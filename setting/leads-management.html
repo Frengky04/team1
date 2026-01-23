@@ -193,8 +193,14 @@
         window.deleteDoc = deleteDoc;
 
         window.toggleSidebar = () => {
-            const sidebar = document.getElementById("sidebarNav");
-            if (sidebar) sidebar.classList.toggle("show");
+            const sidebar = document.getElementById('sidebarNav');
+            if (!sidebar) return;
+            const isMobile = window.innerWidth <= 991;
+            if (isMobile) {
+                sidebar.classList.toggle('show');
+            } else {
+                document.body.classList.toggle('sidebar-collapsed');
+            }
         };
 
         window.logout = async () => {

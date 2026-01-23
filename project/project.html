@@ -1070,7 +1070,16 @@
             }
         };
 
-        window.toggleSidebar = () => document.getElementById('sidebarNav').classList.toggle('show');
+        window.toggleSidebar = () => {
+            const sidebar = document.getElementById('sidebarNav');
+            if (!sidebar) return;
+            const isMobile = window.innerWidth <= 991;
+            if (isMobile) {
+                sidebar.classList.toggle('show');
+            } else {
+                document.body.classList.toggle('sidebar-collapsed');
+            }
+        };
 
         function animateGauge(percent) {
             const gaugeFill = document.getElementById('gaugeFill');

@@ -166,7 +166,7 @@
                         </select>
                     </div>
                     <div class="col-span-2 md:col-span-1">
-                        <label class="block text-sm font-bold text-slate-700 mb-3">Produk Terkait</label>
+                        <label class="block text-sm font-bold text-slate-700 mb-3">Produk Induk</label>
                         <select id="settingProductName" class="custom-input w-full p-4 bg-white/50 rounded-2xl font-medium appearance-none bg-[url('https://cdn-icons-png.flaticon.com/512/2985/2985150.png')] bg-[length:12px] bg-no-repeat bg-[right_1.5rem_center]">
                             <option value="">Memuat daftar product...</option>
                         </select>
@@ -444,7 +444,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Product Terkait</label>
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Produk Terkait</label>
                                 <div id="refProductDropdown" class="custom-input w-full p-4 bg-white rounded-2xl font-semibold text-slate-700 flex items-center justify-between cursor-pointer">
                                     <span id="refProductSummary" class="text-sm font-semibold text-slate-700">Pilih minimal 1 product</span>
                                     <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
@@ -872,7 +872,13 @@
 
         window.toggleSidebar = () => {
             const sidebar = document.getElementById("sidebarNav");
-            if (sidebar) sidebar.classList.toggle("show");
+            if (!sidebar) return;
+            const isMobile = window.innerWidth <= 991;
+            if (isMobile) {
+                sidebar.classList.toggle("show");
+            } else {
+                document.body.classList.toggle("sidebar-collapsed");
+            }
         };
 
         window.logout = async () => {
@@ -1660,7 +1666,7 @@
                     select.innerHTML = '<option value="">Produk tidak tersedia</option>';
                     return;
                 }
-                select.innerHTML = '<option value="">Pilih produk terkait (opsional)</option>';
+                select.innerHTML = '<option value="">Pilih produk terkait (wajib)</option>';
                 list.forEach(function (p) {
                     const opt = document.createElement("option");
                     opt.value = p.id;
@@ -2044,7 +2050,10 @@
             const modal = document.getElementById("copyLinkModal");
             const input = document.getElementById("invoiceLinkInput");
             if (!modal || !input) return;
-            const url = new URL("https://dialogika.co/invoice.html", window.location.href);
+            const isLocal = window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+            const url = isLocal
+                ? new URL("../example/invoice.html", window.location.href)
+                : new URL("/invoice.html", window.location.origin);
             if (invoiceId) {
                 url.searchParams.set("invoiceId", invoiceId);
             }
@@ -2106,7 +2115,10 @@
 
             const link = document.getElementById("viewInvoiceLink");
             if (link) {
-                const url = new URL("https://dialogika.co/invoice.html", window.location.href);
+                const isLocal = window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+                const url = isLocal
+                    ? new URL("../example/invoice.html", window.location.href)
+                    : new URL("/invoice.html", window.location.origin);
                 url.searchParams.set("invoiceId", inv.id);
                 link.href = url.href;
             }
@@ -2725,6 +2737,25 @@
                 if (deadlineHours < 1) {
                     deadlineHours = 1;
                 }
+                let productMaterials = [];
+                let productFeatures = [];
+                let productSpecifications = [];
+                if (selectedProductId && window.dlgGetDoc && window.dlgDoc) {
+                    try {
+                        const ref = window.dlgDoc(window.dlgDb, "products", selectedProductId);
+                        const snap = await window.dlgGetDoc(ref);
+                        if (snap.exists()) {
+                            const pd = snap.data() || {};
+                            productMaterials = Array.isArray(pd.materials) ? pd.materials : [];
+                            productFeatures = Array.isArray(pd.features) ? pd.features : [];
+                            productSpecifications = Array.isArray(pd.specifications) ? pd.specifications : [];
+                        }
+                    } catch (e) {
+                        productMaterials = [];
+                        productFeatures = [];
+                        productSpecifications = [];
+                    }
+                }
                 const data = {
                     leadName: document.getElementById("settingLeadName").value.trim(),
                     className: document.getElementById("settingClassName").value.trim(),
@@ -2737,7 +2768,10 @@
                     dpPercent: dpPercent,
                     dpAmount: dpAmount,
                     productId: selectedProductId,
-                    productName: selectedProductName
+                    productName: selectedProductName,
+                    productMaterials: productMaterials,
+                    productFeatures: productFeatures,
+                    productSpecifications: productSpecifications
                 };
                 data.classMeta = [batchLabel, classType, location].filter(function (s) { return s; }).join(" • ");
                 saveSettings(data);
@@ -2755,7 +2789,10 @@
                         dpPercent: data.dpPercent,
                         dpAmount: data.dpAmount,
                         productId: data.productId,
-                        productName: data.productName
+                        productName: data.productName,
+                        productMaterials: data.productMaterials,
+                        productFeatures: data.productFeatures,
+                        productSpecifications: data.productSpecifications
                     };
                     try {
                         if (savedInvoiceId) {

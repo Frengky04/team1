@@ -399,11 +399,13 @@
                 console.error('Login Error:', error);
                 errorMsg.style.display = 'block';
                 
-                // Terjemahkan Error Firebase ke Bahasa Indonesia
                 let pesan = "Email atau Password salah.";
                 if (error.code === 'auth/user-not-found') pesan = "Akun tidak terdaftar.";
                 if (error.code === 'auth/wrong-password') pesan = "Password salah.";
                 if (error.code === 'auth/invalid-credential') pesan = "Email atau Password salah.";
+                if (error.code === 'permission-denied') {
+                    pesan = "Login berhasil, tetapi akun ini belum punya izin akses data di sistem. Hubungi admin untuk diberikan akses.";
+                }
                 
                 errorMsg.innerText = pesan;
                 submitBtn.disabled = false;
