@@ -1316,17 +1316,28 @@
                     return normalizeStatus(recruitment.current || "") === "radar";
                 });
 
-                // Use today's date instead of the date range filter
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const endOfToday = new Date(today);
-                endOfToday.setHours(23, 59, 59, 999);
+                // Use provided date range or default to today
+                const { s, e } = normalizeRangeDates(startDate, endDate);
+                
+                // If no range provided (should theoretically not happen with current logic), default to today
+                let filterStart, filterEnd;
+                if (!s || !e) {
+                     const today = new Date();
+                     today.setHours(0, 0, 0, 0);
+                     const endOfToday = new Date(today);
+                     endOfToday.setHours(23, 59, 59, 999);
+                     filterStart = today;
+                     filterEnd = endOfToday;
+                } else {
+                    filterStart = s;
+                    filterEnd = e;
+                }
 
                 const filteredTalents = radarTalents.filter(item => {
                     const data = item.data || {};
                     const d = getTalentCreatedAtDate(data);
                     if (!(d instanceof Date) || isNaN(d.getTime())) return false;
-                    return d >= today && d <= endOfToday;
+                    return d >= filterStart && d <= filterEnd;
                 });
 
                 if (scoutingCountEl) {
