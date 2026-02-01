@@ -2349,8 +2349,7 @@
                 if (!container) return;
 
                 const items = Array.isArray(talentsItems) ? talentsItems : await fetchTalentsItems();
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Start of today
+                const now = new Date();
 
                 const overdueList = [];
 
@@ -2367,8 +2366,11 @@
                     const interviewDate = getInterviewScheduleDate(data);
                     if (!(interviewDate instanceof Date) || isNaN(interviewDate.getTime())) return;
 
-                    // Check if date is before today
-                    if (interviewDate < today) {
+                    // Check if date is today AND in the past
+                    const startOfToday = new Date(now);
+                    startOfToday.setHours(0, 0, 0, 0);
+
+                    if (interviewDate >= startOfToday && interviewDate < now) {
                         const d = getTalentDisplay(data, item.id);
                         overdueList.push({
                             id: item.id,
@@ -2395,7 +2397,7 @@
                             <div class="flex-grow-1" style="line-height: 1.2;">
                                 <div class="fw-bold text-dark small">${r.name}</div>
                                 <div class="text-danger small" style="font-size: 0.75rem;">
-                                    Late: ${formatDate(r.date)}
+                                    Late: ${r.date.toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </div>
                             </div>
                             <button class="btn btn-sm btn-outline-secondary py-0 px-2 small" onclick="document.querySelector('.interview-tab[data-role=all]').click(); document.getElementById('upcomingInterviewList').scrollIntoView({behavior: 'smooth'})">
