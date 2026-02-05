@@ -1836,11 +1836,13 @@
 
         function getInterviewScheduleDate(data) {
             const recruitment = (data && (data.recruitment_status || data.recruitment_system)) || {};
+            const scouting = (data && data.scouting_info) || {};
             const raw =
                 recruitment.due_date ||
                 recruitment.dueDate ||
                 recruitment.interview_date ||
                 recruitment.interviewDate ||
+                scouting.interview_due ||
                 data.interview_date ||
                 data.interviewDate ||
                 "";
@@ -1917,15 +1919,10 @@
             try {
                 const items = Array.isArray(talentsItems) ? talentsItems : await fetchTalentsItems();
 
-                // Use today's date instead of the date range filter
+                // Use today's date as the minimum (include today and all future dates)
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const min = today;
-
-                // Set max to 7 days from today
-                const max = new Date(today);
-                max.setDate(max.getDate() + 7);
-                max.setHours(23, 59, 59, 999);
 
                 const list = [];
                 items.forEach(item => {
@@ -1950,8 +1947,8 @@
                     const interviewDate = getInterviewScheduleDate(data);
                     if (!(interviewDate instanceof Date) || isNaN(interviewDate.getTime())) return;
 
-                    // Filter: must be >= today and <= 7 days from today
-                    if (interviewDate < min || interviewDate > max) return;
+                    // Filter: must be >= today (include today and all future dates)
+                    if (interviewDate < min) return;
 
                     const d = getTalentDisplay(data, item.id);
 
