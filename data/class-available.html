@@ -262,6 +262,18 @@
                                         <input type="number" class="form-control" min="1" x-model.number="editBatchMaxSeat">
                                     </div>
                                     <div class="col-md-6">
+                                        <label class="form-label">Kota</label>
+                                        <select class="form-select" x-model="editBatchLocation">
+                                            <option value="">Pilih Kota</option>
+                                            <option value="Yogyakarta">Yogyakarta</option>
+                                            <option value="Jakarta">Jakarta</option>
+                                            <option value="Surabaya">Surabaya</option>
+                                            <option value="Bandung">Bandung</option>
+                                            <option value="Bali">Bali</option>
+                                            <option value="Lainnya">Lainnya</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
                                         <label class="form-label">Mentor</label>
                                         <input type="text" class="form-control" x-model="editBatchMentor">
                                     </div>
@@ -332,6 +344,18 @@
                                     <div class="col-md-3">
                                         <label class="form-label">Max Seat</label>
                                         <input type="number" class="form-control" min="1" placeholder="Kapasitas" x-model.number="newBatchMaxSeat">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Kota</label>
+                                        <select class="form-select" x-model="newBatchLocation">
+                                            <option value="">Pilih Kota</option>
+                                            <option value="Yogyakarta">Yogyakarta</option>
+                                            <option value="Jakarta">Jakarta</option>
+                                            <option value="Surabaya">Surabaya</option>
+                                            <option value="Bandung">Tangsel</option>
+                                            <option value="Bali">Pontianak</option>
+                                            <option value="Lainnya">Lainnya</option>
+                                        </select>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Mentor</label>
@@ -437,6 +461,7 @@
                 newBatchMaxSeat: 1,
                 newBatchMentor: "",
                 newBatchStartDate: "",
+                newBatchLocation: "",
                 selectedBatch: null,
                 editBatchId: null,
                 editBatchName: "",
@@ -445,6 +470,7 @@
                 editBatchMaxSeat: 1,
                 editBatchMentor: "",
                 editBatchStartDate: "",
+                editBatchLocation: "",
                 classes: [],
                 products: [],
                 async init() {
@@ -488,7 +514,8 @@
                                 start_date: d.start_date || "Flexible",
                                 mentor_name: d.mentor_name || "Unknown",
                                 product_id: d.productId || d.product_id || null,
-                                product_name: d.productName || d.product_name || null
+                                product_name: d.productName || d.product_name || null,
+                                location: d.location || ""
                             });
                         });
                         this.classes = items;
@@ -635,6 +662,7 @@
                     this.editBatchMaxSeat = Number(item.max_seat || 1);
                     this.editBatchMentor = item.mentor_name || "";
                     this.editBatchStartDate = item.start_date && item.start_date !== "Flexible" ? item.start_date : "";
+                    this.editBatchLocation = item.location || "";
 
                     const modalEl = document.getElementById("editCapacityModal");
                     if (modalEl && typeof bootstrap !== "undefined" && bootstrap.Modal) {
@@ -650,6 +678,7 @@
                     const maxSeat = Number(this.editBatchMaxSeat) || 0;
                     const mentor = (this.editBatchMentor || "").trim();
                     const startDate = (this.editBatchStartDate || "").trim() || "Flexible";
+                    const location = (this.editBatchLocation || "").trim();
 
                     if (!name || maxSeat <= 0) {
                         alert("Nama class dan Max Seat wajib diisi.");
@@ -673,6 +702,7 @@
                     this.selectedBatch.mentor_name = mentor || "Unknown";
                     this.selectedBatch.product_id = productId;
                     this.selectedBatch.product_name = productRef ? productRef.name : null;
+                    this.selectedBatch.location = location;
 
                     if (this.selectedBatch.docId && window.db && window.doc && window.updateDoc) {
                         try {
@@ -686,7 +716,8 @@
                                     start_date: this.selectedBatch.start_date,
                                     mentor_name: this.selectedBatch.mentor_name,
                                     productId: this.selectedBatch.product_id,
-                                    productName: this.selectedBatch.product_name
+                                    productName: this.selectedBatch.product_name,
+                                    location: this.selectedBatch.location || ""
                                 }
                             );
                         } catch (e) {
@@ -709,6 +740,7 @@
                     this.editBatchMaxSeat = 1;
                     this.editBatchMentor = "";
                     this.editBatchStartDate = "";
+                    this.editBatchLocation = "";
                     this.selectedBatch = null;
                 },
                 async addBatch() {
@@ -718,6 +750,7 @@
                     const maxSeat = Number(this.newBatchMaxSeat) || 0;
                     const mentor = (this.newBatchMentor || "").trim();
                     const startDate = (this.newBatchStartDate || "").trim() || "Flexible";
+                    const location = (this.newBatchLocation || "").trim();
 
                     if (!name || maxSeat <= 0) {
                         alert("Nama class dan Max Seat wajib diisi.");
@@ -744,7 +777,8 @@
                         start_date: startDate,
                         mentor_name: mentor || "Unknown",
                         product_id: productId,
-                        product_name: productRef ? productRef.name : null
+                        product_name: productRef ? productRef.name : null,
+                        location
                     };
 
                     this.classes.push(newItem);
@@ -762,6 +796,7 @@
                                     mentor_name: newItem.mentor_name,
                                     productId: newItem.product_id,
                                     productName: newItem.product_name,
+                                    location: newItem.location || "",
                                     created_at: new Date()
                                 }
                             );
@@ -779,6 +814,7 @@
                     this.newBatchMaxSeat = 1;
                     this.newBatchMentor = "";
                     this.newBatchStartDate = "";
+                    this.newBatchLocation = "";
 
                     const modalEl = document.getElementById("addBatchModal");
                     if (modalEl && typeof bootstrap !== "undefined" && bootstrap.Modal) {
