@@ -1,607 +1,803 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice Management | Dialogika</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="../assets/css/style.css" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
             min-height: 100vh;
         }
+
         .glass-card {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
         }
+
         .tab-active {
             background: white;
             color: #2563eb;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
-        .tab-content { display: none; animation: fadeIn 0.4s ease-out; }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .custom-input {
             transition: all 0.3s ease;
             border: 1px solid #e2e8f0;
         }
+
         .custom-input:focus {
             border-color: #3b82f6;
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
             outline: none;
         }
+
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
+
         .scrollbar-hide {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
     </style>
 </head>
+
 <body class="p-8 text-slate-900">
 
     <div id="topbarContainer"></div>
-    
+
     <div class="dashboard-container">
         <div id="sidebarContainer"></div>
 
         <main class="main-content">
             <div class="max-w-6xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
-            <div class="space-y-1">
-                <div class="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-[0.2em] mb-2">
-                    <span class="w-8 h-[2px] bg-blue-600"></span> Administration
-                </div>
-                <nav class="flex gap-2 text-[10px] font-bold text-blue-600 uppercase tracking-widest">
-                    <a href="../home.html" class="hover:text-blue-800"><i class="fa-solid fa-house"></i></a>
-                    <span class="text-slate-300">/</span>
-                    <a href="../example/closing.html" class="hover:text-blue-800">Closing</a>
-                    <span class="text-slate-300">/</span>
-                    <span class="text-slate-400">Invoice Management</span>
-                </nav>
-                <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Invoice Center</h1>
-                <p class="text-slate-500 font-medium">Monitoring and configure your financial documents effortlessly.</p>
-            </div>
-            <div class="flex gap-3">
-                <a href="https://dialogika.co/invoice.html" target="_blank" class="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-all text-sm shadow-sm">
-                    <i class="fa-solid fa-eye text-blue-500"></i> Preview Invoice
-                </a>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 hidden md:grid">
-            <div id="invoiceStatCard" class="glass-card p-6 rounded-3xl relative overflow-hidden group cursor-pointer">
-                <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                <div class="flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
-                        <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
-                    </div>
-                    <span class="text-emerald-500 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-lg">Invoices</span>
-                </div>
-                <p class="text-slate-500 text-sm font-semibold">Configured Invoice</p>
-                <h3 class="text-3xl font-extrabold text-slate-800 configured-invoice-count">0</h3>
-            </div>
-            <div id="classStatCard" class="glass-card p-6 rounded-3xl relative overflow-hidden group cursor-pointer">
-                <div class="absolute -right-4 -top-4 w-20 h-20 bg-purple-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                <div class="flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center shadow-inner">
-                        <i class="fa-solid fa-graduation-cap text-xl"></i>
-                    </div>
-                    <span class="text-slate-400 text-xs font-bold bg-slate-100 px-2 py-1 rounded-lg">Classes</span>
-                </div>
-                <p class="text-slate-500 text-sm font-semibold">Upcoming Classes</p>
-                <h3 id="classStatCount" class="text-3xl font-extrabold text-slate-800">0</h3>
-            </div>
-            <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 w-20 h-20 bg-amber-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                <div class="flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner">
-                        <i class="fa-solid fa-ticket text-xl"></i>
-                    </div>
-                    <span class="text-emerald-500 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-lg">Referral</span>
-                </div>
-                <p class="text-slate-500 text-sm font-semibold">Referral Codes</p>
-                <h3 id="referralStatCount" class="text-3xl font-extrabold text-slate-800">0</h3>
-            </div>
-            <div id="receiptStatCard" class="glass-card p-6 rounded-3xl relative overflow-hidden group cursor-pointer">
-                <div class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                <div class="flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
-                        <i class="fa-solid fa-building-columns text-xl"></i>
-                    </div>
-                    <span class="text-blue-500 text-xs font-bold bg-blue-50 px-2 py-1 rounded-lg">Banks</span>
-                </div>
-                <p class="text-slate-500 text-sm font-semibold">Receipt Pembayaran</p>
-                <h3 id="receiptStatCount" class="text-3xl font-extrabold text-slate-800">0</h3>
-            </div>
-        </div>
-
-        <div class="flex justify-center mb-8">
-            <div class="bg-slate-200/50 p-1.5 rounded-2xl flex w-full max-w-2xl overflow-x-auto scrollbar-hide">
-                <button id="tabBtnInvoiceSettings" onclick="openTab(event, 'tab-invoice')" class="tab-btn tab-active flex-none min-w-[120px] md:flex-1 md:min-w-0 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-gears"></i> Invoice 
-                </button>
-                <button id="tabBtnInvoiceList" onclick="openTab(event, 'tab-invoice-list')" class="tab-btn flex-none min-w-[120px] md:flex-1 md:min-w-0 py-3 px-4 rounded-xl text-sm font-bold text-slate-500 transition-all duration-300 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-table-list"></i> List
-                </button>
-                <button onclick="openTab(event, 'tab-referral')" class="tab-btn flex-none min-w-[120px] md:flex-1 md:min-w-0 py-3 px-4 rounded-xl text-sm font-bold text-slate-500 transition-all duration-300 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-share-nodes"></i> Referral 
-                </button>
-                <button onclick="openTab(event, 'tab-bank')" class="tab-btn flex-none min-w-[120px] md:flex-1 md:min-w-0 py-3 px-4 rounded-xl text-sm font-bold text-slate-500 transition-all duration-300 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-building-columns"></i> Banks
-                </button>
-                <button id="tabBtnReceipt" onclick="openTab(event, 'tab-receipt')" class="tab-btn flex-none min-w-[120px] md:flex-1 md:min-w-0 py-3 px-4 rounded-xl text-sm font-bold text-slate-500 transition-all duration-300 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-receipt"></i> Receipt
-                </button>
-            </div>
-        </div>
-
-        <div id="tab-invoice" class="tab-content active">
-            <div class="glass-card rounded-[2.5rem] p-8 md:p-12 overflow-hidden relative">
-                <div class="flex items-center gap-3 mb-8">
-                    <div class="w-1.5 h-8 bg-blue-600 rounded-full"></div>
-                    <h2 class="text-2xl font-extrabold text-slate-800">Invoice Identity</h2>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-                    <div class="col-span-2">
-                        <label class="block text-sm font-bold text-slate-700 mb-3">Nama Penerima Invoice</label>
-                        <input id="settingLeadName" type="text" class="custom-input w-full p-4 bg-white/50 rounded-2xl font-medium" placeholder="Contoh: Andi Pratama">
-                        <input id="invoiceId" type="hidden">
-                    </div>
-                    <div class="col-span-2 md:col-span-1">
-                        <label class="block text-sm font-bold text-slate-700 mb-3">Program Kelas</label>
-                        <select id="settingClassName" class="custom-input w-full p-4 bg-white/50 rounded-2xl font-medium appearance-none bg-[url('https://cdn-icons-png.flaticon.com/512/2985/2985150.png')] bg-[length:12px] bg-no-repeat bg-[right_1.5rem_center]">
-                            <option value="">Memuat daftar kelas...</option>
-                        </select>
-                    </div>
-                    <div class="col-span-2 md:col-span-1">
-                        <label class="block text-sm font-bold text-slate-700 mb-3">Produk Induk</label>
-                        <select id="settingProductName" class="custom-input w-full p-4 bg-white/50 rounded-2xl font-medium appearance-none bg-[url('https://cdn-icons-png.flaticon.com/512/2985/2985150.png')] bg-[length:12px] bg-no-repeat bg-[right_1.5rem_center]">
-                            <option value="">Memuat daftar product...</option>
-                        </select>
-                    </div>
-                    <div class="col-span-2 md:col-span-1 grid grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Batch</label>
-                            <input id="settingBatchLabel" type="text" class="custom-input w-full p-4 bg-white/50 rounded-2xl text-center" placeholder="Batch 42">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+                    <div class="space-y-1">
+                        <div
+                            class="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-[0.2em] mb-2">
+                            <span class="w-8 h-[2px] bg-blue-600"></span> Administration
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Mode</label>
-                            <select id="settingClassType" class="custom-input w-full p-4 bg-white/50 rounded-2xl">
-                                <option value="Offline">Offline</option>
-                                <option value="Online">Online</option>
-                            </select>
+                        <nav class="flex gap-2 text-[10px] font-bold text-blue-600 uppercase tracking-widest">
+                            <a href="../home.html" class="hover:text-blue-800"><i class="fa-solid fa-house"></i></a>
+                            <span class="text-slate-300">/</span>
+                            <a href="../example/closing.html" class="hover:text-blue-800">Closing</a>
+                            <span class="text-slate-300">/</span>
+                            <span class="text-slate-400">Invoice Management</span>
+                        </nav>
+                        <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Invoice Center</h1>
+                        <p class="text-slate-500 font-medium">Monitoring and configure your financial documents
+                            effortlessly.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <a href="https://dialogika.co/invoice.html" target="_blank"
+                            class="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-all text-sm shadow-sm">
+                            <i class="fa-solid fa-eye text-blue-500"></i> Preview Invoice
+                        </a>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 hidden md:grid">
+                    <div id="invoiceStatCard"
+                        class="glass-card p-6 rounded-3xl relative overflow-hidden group cursor-pointer">
+                        <div
+                            class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/5 rounded-full group-hover:scale-150 transition-transform duration-700">
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">City</label>
-                            <div id="locationFieldWrapper">
-                                <input id="settingLocation" type="text" class="custom-input w-full p-4 bg-white/50 rounded-2xl" placeholder="Jakarta">
+                        <div class="flex justify-between items-start mb-4">
+                            <div
+                                class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
+                                <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
                             </div>
+                            <span
+                                class="text-emerald-500 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-lg">Invoices</span>
                         </div>
+                        <p class="text-slate-500 text-sm font-semibold">Configured Invoice</p>
+                        <h3 class="text-3xl font-extrabold text-slate-800 configured-invoice-count">0</h3>
                     </div>
-
-                    <div class="grid grid-cols-2 gap-6 col-span-2">
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Sisa Seat</label>
-                                <input id="settingSeatsLeft" type="number" min="0" class="custom-input w-full p-4 bg-white/50 rounded-2xl" placeholder="4">
+                    <div id="classStatCard"
+                        class="glass-card p-6 rounded-3xl relative overflow-hidden group cursor-pointer">
+                        <div
+                            class="absolute -right-4 -top-4 w-20 h-20 bg-purple-500/5 rounded-full group-hover:scale-150 transition-transform duration-700">
+                        </div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div
+                                class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center shadow-inner">
+                                <i class="fa-solid fa-graduation-cap text-xl"></i>
                             </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Batas Waktu (Jam)</label>
-                                <input id="settingDeadlineMinutes" type="number" min="1" class="custom-input w-full p-4 bg-white/50 rounded-2xl" placeholder="1">
-                            </div>
+                            <span
+                                class="text-slate-400 text-xs font-bold bg-slate-100 px-2 py-1 rounded-lg">Classes</span>
                         </div>
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Harga Kelas (Rp)</label>
-                                <input id="settingBasePrice" type="text" inputmode="numeric" class="custom-input w-full p-4 bg-white/50 rounded-2xl font-bold text-blue-600" placeholder="2.500.000">
-                            </div>
-                            <div>
-                                <label id="dpLabel" class="block text-sm font-bold text-slate-700 mb-2">Minimal DP</label>
-                                <input id="settingDpPercent" type="text" inputmode="numeric" class="custom-input w-full p-4 bg-white/50 rounded-2xl" placeholder="875.000">
-                            </div>
+                        <p class="text-slate-500 text-sm font-semibold">Upcoming Classes</p>
+                        <h3 id="classStatCount" class="text-3xl font-extrabold text-slate-800">0</h3>
+                    </div>
+                    <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
+                        <div
+                            class="absolute -right-4 -top-4 w-20 h-20 bg-amber-500/5 rounded-full group-hover:scale-150 transition-transform duration-700">
                         </div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div
+                                class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner">
+                                <i class="fa-solid fa-ticket text-xl"></i>
+                            </div>
+                            <span
+                                class="text-emerald-500 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-lg">Referral</span>
+                        </div>
+                        <p class="text-slate-500 text-sm font-semibold">Referral Codes</p>
+                        <h3 id="referralStatCount" class="text-3xl font-extrabold text-slate-800">0</h3>
+                    </div>
+                    <div id="receiptStatCard"
+                        class="glass-card p-6 rounded-3xl relative overflow-hidden group cursor-pointer">
+                        <div
+                            class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/5 rounded-full group-hover:scale-150 transition-transform duration-700">
+                        </div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div
+                                class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
+                                <i class="fa-solid fa-building-columns text-xl"></i>
+                            </div>
+                            <span class="text-blue-500 text-xs font-bold bg-blue-50 px-2 py-1 rounded-lg">Banks</span>
+                        </div>
+                        <p class="text-slate-500 text-sm font-semibold">Receipt Pembayaran</p>
+                        <h3 id="receiptStatCount" class="text-3xl font-extrabold text-slate-800">0</h3>
                     </div>
                 </div>
 
-                <div class="mt-12 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <p id="statusSettings" class="text-xs text-slate-400"></p>
-                    <button id="btnSaveSettings" class="w-full md:w-auto px-10 py-4 btn-dlg-blue text-white rounded-2xl font-bold hover:bg-black transition-all shadow-xl shadow-slate-200">
-                        Create Invoice
-                    </button>
+                <div class="flex justify-center mb-8">
+                    <div class="bg-slate-200/50 p-1.5 rounded-2xl flex w-full max-w-2xl overflow-x-auto scrollbar-hide">
+                        <button id="tabBtnInvoiceSettings" onclick="openTab(event, 'tab-invoice')"
+                            class="tab-btn tab-active flex-none min-w-[120px] md:flex-1 md:min-w-0 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-gears"></i> Invoice
+                        </button>
+                        <button id="tabBtnInvoiceList" onclick="openTab(event, 'tab-invoice-list')"
+                            class="tab-btn flex-none min-w-[120px] md:flex-1 md:min-w-0 py-3 px-4 rounded-xl text-sm font-bold text-slate-500 transition-all duration-300 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-table-list"></i> List
+                        </button>
+                        <button onclick="openTab(event, 'tab-referral')"
+                            class="tab-btn flex-none min-w-[120px] md:flex-1 md:min-w-0 py-3 px-4 rounded-xl text-sm font-bold text-slate-500 transition-all duration-300 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-share-nodes"></i> Referral
+                        </button>
+                        <button onclick="openTab(event, 'tab-bank')"
+                            class="tab-btn flex-none min-w-[120px] md:flex-1 md:min-w-0 py-3 px-4 rounded-xl text-sm font-bold text-slate-500 transition-all duration-300 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-building-columns"></i> Banks
+                        </button>
+                        <button id="tabBtnReceipt" onclick="openTab(event, 'tab-receipt')"
+                            class="tab-btn flex-none min-w-[120px] md:flex-1 md:min-w-0 py-3 px-4 rounded-xl text-sm font-bold text-slate-500 transition-all duration-300 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-receipt"></i> Receipt
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8 md:hidden">
-                <div id="invoiceStatCardMobile" class="glass-card p-6 rounded-3xl relative overflow-hidden group cursor-pointer">
-                    <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
-                            <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
-                        </div>
-                        <span class="text-emerald-500 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-lg">Invoices</span>
-                    </div>
-                    <p class="text-slate-500 text-sm font-semibold">Configured Invoice</p>
-                    <h3 class="text-3xl font-extrabold text-slate-800 configured-invoice-count">0</h3>
-                </div>
-                <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
-                    <div class="absolute -right-4 -top-4 w-20 h-20 bg-purple-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center shadow-inner">
-                            <i class="fa-solid fa-graduation-cap text-xl"></i>
-                        </div>
-                        <span class="text-slate-400 text-xs font-bold bg-slate-100 px-2 py-1 rounded-lg">Classes</span>
-                    </div>
-                    <p class="text-slate-500 text-sm font-semibold">Active Classes</p>
-                    <h3 class="text-3xl font-extrabold text-slate-800">24</h3>
-                </div>
-                <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
-                    <div class="absolute -right-4 -top-4 w-20 h-20 bg-amber-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner">
-                            <i class="fa-solid fa-ticket text-xl"></i>
-                        </div>
-                        <span class="text-emerald-500 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-lg">Referral</span>
-                    </div>
-                    <p class="text-slate-500 text-sm font-semibold">Referral Codes</p>
-                    <h3 class="text-3xl font-extrabold text-slate-800">45</h3>
-                </div>
-                <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
-                    <div class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
-                            <i class="fa-solid fa-building-columns text-xl"></i>
-                        </div>
-                        <span class="text-blue-500 text-xs font-bold bg-blue-50 px-2 py-1 rounded-lg">Banks</span>
-                    </div>
-                    <p class="text-slate-500 text-sm font-semibold">Bank Channels</p>
-                    <h3 class="text-3xl font-extrabold text-slate-800">3</h3>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-invoice-list" class="tab-content">
-            <div class="glass-card rounded-[2.5rem] p-8 md:p-10 overflow-hidden relative">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">Daftar Invoice</h2>
-                        <p class="text-slate-500 text-sm">Kelola invoice yang sudah dibuat.</p>
-                    </div>
-                </div>
-                <div class="glass-card rounded-3xl p-4 flex flex-col lg:flex-row gap-4 items-center justify-between mb-6">
-                    <div class="relative w-full lg:w-80">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input id="invoiceSearchInput" type="text" placeholder="Cari nama / program / invoice..." class="w-full pl-11 pr-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                        <div class="relative">
-                            <button type="button" id="invoiceDateRangeBtn" class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200 text-sm font-bold text-slate-700 outline-none">
-                                <i class="fa-regular fa-calendar-days text-slate-500"></i>
-                                <span id="invoiceDateRangeLabel" class="text-xs md:text-sm whitespace-nowrap">Tanggal: 30 hari terakhir</span>
-                            </button>
-                            <div id="invoiceDateRangePopover" class="absolute z-20 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-lg p-4 hidden">
-                                <div class="space-y-3">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">From</span>
-                                        <input id="invoiceDateFrom" type="date" class="flex-1 text-sm font-bold text-slate-700 outline-none bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
-                                    </div>
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">To</span>
-                                        <input id="invoiceDateTo" type="date" class="flex-1 text-sm font-bold text-slate-700 outline-none bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
-                                    </div>
-                                    <div class="flex justify-end gap-2 pt-1">
-                                        <button type="button" id="invoiceDateRangeClear" class="px-3 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-800">Reset</button>
-                                        <button type="button" id="invoiceDateRangeApply" class="px-3 py-1 text-[10px] font-bold text-white bg-blue-600 rounded-full hover:bg-blue-700">Apply</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <select id="invoiceExpiryFilter" class="bg-white px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-slate-700 outline-none">
-                            <option value="all">All</option>
-                            <option value="active">Not Expired</option>
-                            <option value="expired">Expired</option>
-                            <option value="not_started">Not Open</option>
-                        </select>
-                        <select id="invoicePageSize" class="bg-white px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-slate-700 outline-none">
-                            <option value="100">100</option>
-                            <option value="200">200</option>
-                            <option value="500">500</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="overflow-hidden rounded-2xl border border-slate-100 max-h-[420px] overflow-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest font-extrabold">
-                                <th class="p-3">Nama</th>
-                                <th class="p-3">Program</th>
-                                <th class="p-3">Invoice</th>
-                                <th class="p-3">Tgl Buat</th>
-                                <th class="p-3">Expired</th>
-                                <th class="p-3 text-right">Nominal</th>
-                                <th class="p-3 text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="invoiceTableBody" class="divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-receipt" class="tab-content">
-            <div class="glass-card rounded-[2.5rem] p-8 md:p-10 overflow-hidden relative">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">Receipt</h2>
-                        <p class="text-slate-500 text-sm">Client yang sudah bayar (Full / DP / Book).</p>
-                    </div>
-                </div>
-                <div class="glass-card rounded-3xl p-4 flex flex-col lg:flex-row gap-4 items-center justify-between mb-6">
-                    <div class="relative w-full lg:w-80">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input id="receiptSearchInput" type="text" placeholder="Cari nama / program / invoice..." class="w-full pl-11 pr-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                        <div class="relative">
-                            <button type="button" id="receiptDateRangeBtn" class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200 text-sm font-bold text-slate-700 outline-none">
-                                <i class="fa-regular fa-calendar-days text-slate-500"></i>
-                                <span id="receiptDateRangeLabel" class="text-xs md:text-sm whitespace-nowrap">Tanggal: 30 hari terakhir</span>
-                            </button>
-                            <div id="receiptDateRangePopover" class="absolute z-20 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-lg p-4 hidden">
-                                <div class="space-y-3">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">From</span>
-                                        <input id="receiptDateFrom" type="date" class="flex-1 text-sm font-bold text-slate-700 outline-none bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
-                                    </div>
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">To</span>
-                                        <input id="receiptDateTo" type="date" class="flex-1 text-sm font-bold text-slate-700 outline-none bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
-                                    </div>
-                                    <div class="flex justify-end gap-2 pt-1">
-                                        <button type="button" id="receiptDateRangeClear" class="px-3 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-800">Reset</button>
-                                        <button type="button" id="receiptDateRangeApply" class="px-3 py-1 text-[10px] font-bold text-white bg-blue-600 rounded-full hover:bg-blue-700">Apply</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200">
-                            <i class="fa-solid fa-filter text-slate-500"></i>
-                            <select id="receiptStatusFilter" class="bg-transparent text-sm font-bold text-slate-700 outline-none">
-                                <option value="all">All Status</option>
-                                <option value="full">Full</option>
-                                <option value="dp">DP</option>
-                                <option value="book">Book</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200">
-                            <i class="fa-solid fa-share-nodes text-slate-500"></i>
-                            <select id="receiptReferralFilter" class="bg-transparent text-sm font-bold text-slate-700 outline-none">
-                                <option value="all">All Referral</option>
-                            </select>
-                        </div>
-                        <select id="receiptPageSize" class="bg-white px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-slate-700 outline-none">
-                            <option value="100">100</option>
-                            <option value="200">200</option>
-                            <option value="500">500</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="overflow-hidden rounded-2xl border border-slate-100 max-h-[420px] overflow-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest font-extrabold">
-                                <th class="p-3">Invoice</th>
-                                <th class="p-3">Photo</th>
-                                <th class="p-3">Nama</th>
-                                <th class="p-3">Program</th>
-                                <th class="p-3">Status</th>
-                                <th class="p-3">Date</th>
-                                <th class="p-3 text-right">Payment</th>
-                                <th class="p-3 text-right">Liability</th>
-                                <th class="p-3 text-right">Nominal</th>
-                                <th class="p-3">Referral</th>
-                                <th class="p-3">Metode</th>
-                                <th class="p-3">Bank</th>
-                                <th class="p-3 text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="receiptTableBody" class="divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-                <div class="mt-4 flex justify-end">
-                    <p id="receiptTotalPayment" class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Total Payment: Rp 0</p>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-referral" class="tab-content">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div class="lg:col-span-4">
-                    <div class="glass-card rounded-[2.5rem] p-8 sticky top-10">
+                <div id="tab-invoice" class="tab-content active">
+                    <div class="glass-card rounded-[2.5rem] p-8 md:p-12 overflow-hidden relative">
                         <div class="flex items-center gap-3 mb-8">
-                            <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
-                                <i class="fa-solid fa-plus"></i>
-                            </div>
-                            <h2 class="text-xl font-bold text-slate-800">Create New Referral</h2>
+                            <div class="w-1.5 h-8 bg-blue-600 rounded-full"></div>
+                            <h2 class="text-2xl font-extrabold text-slate-800">Invoice Identity</h2>
                         </div>
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Pemegang Referral</label>
-                                <select id="refHolderType" class="custom-input w-full p-4 bg-white rounded-2xl font-semibold text-slate-700 appearance-none bg-[url('https://cdn-icons-png.flaticon.com/512/2985/2985150.png')] bg-[length:12px] bg-no-repeat bg-[right_1.5rem_center]">
-                                    <option value="system">System (Default)</option>
-                                    <option value="user">Specific User / Student</option>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+                            <div class="col-span-2">
+                                <label class="block text-sm font-bold text-slate-700 mb-3">Nama Penerima Invoice</label>
+                                <input id="settingLeadName" type="text"
+                                    class="custom-input w-full p-4 bg-white/50 rounded-2xl font-medium"
+                                    placeholder="Contoh: Andi Pratama">
+                                <input id="invoiceId" type="hidden">
+                            </div>
+                            <div class="col-span-2 md:col-span-1">
+                                <label class="block text-sm font-bold text-slate-700 mb-3">Program Kelas</label>
+                                <select id="settingClassName"
+                                    class="custom-input w-full p-4 bg-white/50 rounded-2xl font-medium appearance-none bg-[url('https://cdn-icons-png.flaticon.com/512/2985/2985150.png')] bg-[length:12px] bg-no-repeat bg-[right_1.5rem_center]">
+                                    <option value="">Memuat daftar kelas...</option>
                                 </select>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Produk Terkait</label>
-                                <div id="refProductDropdown" class="custom-input w-full p-4 bg-white rounded-2xl font-semibold text-slate-700 flex items-center justify-between cursor-pointer">
-                                    <span id="refProductSummary" class="text-sm font-semibold text-slate-700">Pilih minimal 1 product</span>
-                                    <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
-                                </div>
-                                <div id="refProductOptions" class="mt-2 bg-white border border-slate-200 rounded-2xl p-3 max-h-52 overflow-y-auto hidden">
-                                    <p class="text-[11px] text-slate-400">Memuat daftar product...</p>
-                                </div>
-                            </div>
-                            <div id="refOwnerNameWrapper">
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nama Pemegang</label>
-                                <input id="refOwnerName" type="text" placeholder="Nama user / student" class="custom-input w-full p-4 bg-white rounded-2xl">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kode Referral</label>
-                                <div class="relative">
-                                    <input id="refCode" type="text" placeholder="DLGFRIEND" class="custom-input w-full p-4 pl-11 bg-white rounded-2xl font-mono tracking-widest uppercase">
-                                    <i class="fa-solid fa-tag absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Fungsi Referral</label>
-                                <select id="refFunctionType" class="custom-input w-full p-4 bg-white rounded-2xl font-semibold text-slate-700 appearance-none bg-[url('https://cdn-icons-png.flaticon.com/512/2985/2985150.png')] bg-[length:12px] bg-no-repeat bg-[right_1.5rem_center]">
-                                    <option value="">Pilih fungsi referral</option>
-                                    <option value="discount">Discount</option>
-                                    <option value="cashback" disabled>Cashback (Soon)</option>
-                                    <option value="charity" disabled>Charity (Soon)</option>
-                                    <option value="point" disabled>Point (Soon)</option>
-                                    <option value="addon" disabled>Add On (Soon)</option>
-                                    <option value="reward" disabled>Reward (Soon)</option>
-                                    <option value="exclusivity" disabled>Exclusivity (Soon)</option>
+                            <div class="col-span-2 md:col-span-1">
+                                <label class="block text-sm font-bold text-slate-700 mb-3">Produk Induk</label>
+                                <select id="settingProductName"
+                                    class="custom-input w-full p-4 bg-white/50 rounded-2xl font-medium appearance-none bg-[url('https://cdn-icons-png.flaticon.com/512/2985/2985150.png')] bg-[length:12px] bg-no-repeat bg-[right_1.5rem_center]">
+                                    <option value="">Memuat daftar product...</option>
                                 </select>
                             </div>
-                            <div id="refDiscountWrapper" class="grid grid-cols-2 gap-4 mt-2 hidden">
+                            <div class="col-span-2 md:col-span-1 grid grid-cols-3 gap-3">
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Potongan (%)</label>
-                                    <input id="refDiscountPercent" type="number" min="0" max="100" class="custom-input w-full p-4 bg-white rounded-2xl font-bold text-slate-700" placeholder="10">
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Batch</label>
+                                    <input id="settingBatchLabel" type="text"
+                                        class="custom-input w-full p-4 bg-white/50 rounded-2xl text-center"
+                                        placeholder="Batch 42">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nilai Potongan</label>
-                                    <input id="refDiscountAmount" type="text" class="custom-input w-full p-4 bg-white rounded-2xl font-bold text-slate-700" placeholder="250000">
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Mode</label>
+                                    <select id="settingClassType"
+                                        class="custom-input w-full p-4 bg-white/50 rounded-2xl">
+                                        <option value="Offline">Offline</option>
+                                        <option value="Online">Online</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">City</label>
+                                    <div id="locationFieldWrapper">
+                                        <input id="settingLocation" type="text"
+                                            class="custom-input w-full p-4 bg-white/50 rounded-2xl"
+                                            placeholder="Jakarta">
+                                    </div>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Maks Pakai</label>
-                                    <input id="refMaxUsage" type="number" min="1" class="custom-input w-full p-4 bg-white rounded-2xl font-bold text-slate-700" placeholder="10">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Berlaku (Bln)</label>
-                                    <input id="refMonthsValid" type="number" min="1" class="custom-input w-full p-4 bg-white rounded-2xl font-bold text-slate-700" placeholder="2">
-                                    <p class="text-[10px] text-slate-400 mt-1">*Batas 2 bulan default</p>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Sudah Dipakai</label>
-                                    <input id="refUsedCount" type="number" min="0" class="custom-input w-full p-4 bg-white rounded-2xl font-bold text-slate-700" placeholder="0">
-                                </div>
-                            </div>
-                    <div class="pt-4">
-                                <button type="button" id="btnOpenDiscountCalculator" class="w-full py-3 mb-3 bg-white border border-slate-200 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2 text-sm text-slate-700">
-                                    <i class="fa-solid fa-calculator text-blue-600"></i> Kalkulator Discount
-                                </button>
-                                <button id="btnSaveReferral" class="w-full py-4 bg-[linear-gradient(to_bottom,#006a4e_5%,#003f2e_100%)] text-white rounded-2xl font-bold hover:bg-[linear-gradient(to_bottom,#003f2e_10%,#006a4e_95%)] transition-all shadow-sm shadow-emerald-700 flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-floppy-disk"></i> Simpan / Update Referral
-                                </button>
-                                <button id="btnClearReferralForm" class="w-full mt-4 text-xs font-bold text-slate-400 hover:text-red-400 transition-colors uppercase tracking-widest">
-                                    Reset Form
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="lg:col-span-8 space-y-6">
-                    <div class="glass-card rounded-3xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
-                        <div class="relative w-full md:w-72">
-                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input id="refSearchInput" type="text" placeholder="Cari kode atau pemegang..." class="w-full pl-11 pr-4 py-2 bg-slate-50 rounded-xl border border-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
-                        </div>
-                        <div class="flex gap-2">
-                            <button type="button" data-ref-filter="all" class="ref-filter-btn px-4 py-2 text-xs font-bold bg-white border border-slate-200 rounded-xl hover:bg-slate-50">Semua</button>
-                            <button type="button" data-ref-filter="active" class="ref-filter-btn px-4 py-2 text-xs font-bold text-slate-400 hover:text-emerald-600">Aktif</button>
-                            <button type="button" data-ref-filter="expired" class="ref-filter-btn px-4 py-2 text-xs font-bold text-slate-400 hover:text-red-500">Expired</button>
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-[2.5rem] overflow-hidden">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50/50 text-[11px] uppercase tracking-[0.15em] font-extrabold text-slate-400">
-                                    <th class="p-6">Pemegang &amp; Kode</th>
-                                    <th class="p-6">Masa Berlaku</th>
-                                    <th class="p-6">Penggunaan</th>
-                                    <th class="p-6 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="refTableBody" class="divide-y divide-slate-50"></tbody>
-                        </table>
-                        <div class="bg-slate-50/30 p-4 text-center border-t border-slate-50">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest" id="refFooterSummary">Referral List</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div id="tab-bank" class="tab-content">
-            <div class="glass-card rounded-[2.5rem] p-10 max-w-4xl mx-auto">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 border-b border-slate-100 pb-8">
-                    <div>
-                        <h2 class="text-2xl font-extrabold text-slate-800">Payment Channels</h2>
-                        <p class="text-slate-500 text-sm">Manage where your students send their payment.</p>
-                    </div>
-                    <button id="btnClearBankForm" class="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:shadow-xl transition shadow-blue-200 text-sm">
-                        Reset Form Rekening
-                    </button>
-                </div>
+                            <div class="grid grid-cols-2 gap-6 col-span-2">
+                                <div class="space-y-6">
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-700 mb-2">Sisa Seat</label>
+                                        <input id="settingSeatsLeft" type="number" min="0"
+                                            class="custom-input w-full p-4 bg-white/50 rounded-2xl" placeholder="4">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-700 mb-2">Batas Waktu
+                                            (Jam)</label>
+                                        <input id="settingDeadlineMinutes" type="number" min="1"
+                                            class="custom-input w-full p-4 bg-white/50 rounded-2xl" placeholder="1">
+                                    </div>
+                                </div>
+                                <div class="space-y-6">
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-700 mb-2">Harga Kelas
+                                            (Rp)</label>
+                                        <input id="settingBasePrice" type="text" inputmode="numeric"
+                                            class="custom-input w-full p-4 bg-white/50 rounded-2xl font-bold text-blue-600"
+                                            placeholder="2.500.000">
+                                    </div>
+                                    <div>
+                                        <label id="dpLabel" class="block text-sm font-bold text-slate-700 mb-2">Minimal
+                                            DP</label>
+                                        <input id="settingDpPercent" type="text" inputmode="numeric"
+                                            class="custom-input w-full p-4 bg-white/50 rounded-2xl"
+                                            placeholder="875.000">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                    <div class="p-6 rounded-3xl bg-gradient-to-br from-white to-slate-50 border border-slate-200">
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Nama Bank</label>
-                                <input id="bankName" type="text" class="custom-input w-full p-4 bg-white rounded-2xl text-sm" placeholder="BCA / BRI / BSI">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">No. Rekening</label>
-                                <input id="bankNumber" type="text" class="custom-input w-full p-4 bg-white rounded-2xl text-sm" placeholder="8920129301">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Atas Nama</label>
-                                <input id="bankHolder" type="text" class="custom-input w-full p-4 bg-white rounded-2xl text-sm" placeholder="PT Dialogika Indonesia">
-                            </div>
-                            <input id="bankId" type="hidden">
-                            <button id="btnSaveBank" class="w-full py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-black transition shadow-lg shadow-slate-200 text-sm">
-                                Simpan / Update Rekening
+                        <div class="mt-12 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <p id="statusSettings" class="text-xs text-slate-400"></p>
+                            <button id="btnSaveSettings"
+                                class="w-full md:w-auto px-10 py-4 btn-dlg-blue text-white rounded-2xl font-bold hover:bg-black transition-all shadow-xl shadow-slate-200">
+                                Create Invoice
                             </button>
                         </div>
                     </div>
-                    <div class="p-6 rounded-3xl bg-gradient-to-br from-white to-slate-50 border border-slate-200">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-extrabold text-slate-700 uppercase tracking-widest">Daftar Rekening</h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8 md:hidden">
+                        <div id="invoiceStatCardMobile"
+                            class="glass-card p-6 rounded-3xl relative overflow-hidden group cursor-pointer">
+                            <div
+                                class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/5 rounded-full group-hover:scale-150 transition-transform duration-700">
+                            </div>
+                            <div class="flex justify-between items-start mb-4">
+                                <div
+                                    class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
+                                    <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
+                                </div>
+                                <span
+                                    class="text-emerald-500 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-lg">Invoices</span>
+                            </div>
+                            <p class="text-slate-500 text-sm font-semibold">Configured Invoice</p>
+                            <h3 class="text-3xl font-extrabold text-slate-800 configured-invoice-count">0</h3>
                         </div>
-                        <div class="max-h-64 overflow-auto border border-slate-100 rounded-2xl">
+                        <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
+                            <div
+                                class="absolute -right-4 -top-4 w-20 h-20 bg-purple-500/5 rounded-full group-hover:scale-150 transition-transform duration-700">
+                            </div>
+                            <div class="flex justify-between items-start mb-4">
+                                <div
+                                    class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center shadow-inner">
+                                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                                </div>
+                                <span
+                                    class="text-slate-400 text-xs font-bold bg-slate-100 px-2 py-1 rounded-lg">Classes</span>
+                            </div>
+                            <p class="text-slate-500 text-sm font-semibold">Active Classes</p>
+                            <h3 class="text-3xl font-extrabold text-slate-800">24</h3>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
+                            <div
+                                class="absolute -right-4 -top-4 w-20 h-20 bg-amber-500/5 rounded-full group-hover:scale-150 transition-transform duration-700">
+                            </div>
+                            <div class="flex justify-between items-start mb-4">
+                                <div
+                                    class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shadow-inner">
+                                    <i class="fa-solid fa-ticket text-xl"></i>
+                                </div>
+                                <span
+                                    class="text-emerald-500 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-lg">Referral</span>
+                            </div>
+                            <p class="text-slate-500 text-sm font-semibold">Referral Codes</p>
+                            <h3 class="text-3xl font-extrabold text-slate-800">45</h3>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl relative overflow-hidden group">
+                            <div
+                                class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/5 rounded-full group-hover:scale-150 transition-transform duration-700">
+                            </div>
+                            <div class="flex justify-between items-start mb-4">
+                                <div
+                                    class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
+                                    <i class="fa-solid fa-building-columns text-xl"></i>
+                                </div>
+                                <span
+                                    class="text-blue-500 text-xs font-bold bg-blue-50 px-2 py-1 rounded-lg">Banks</span>
+                            </div>
+                            <p class="text-slate-500 text-sm font-semibold">Bank Channels</p>
+                            <h3 class="text-3xl font-extrabold text-slate-800">3</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-invoice-list" class="tab-content">
+                    <div class="glass-card rounded-[2.5rem] p-8 md:p-10 overflow-hidden relative">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">Daftar Invoice</h2>
+                                <p class="text-slate-500 text-sm">Kelola invoice yang sudah dibuat.</p>
+                            </div>
+                        </div>
+                        <div
+                            class="glass-card rounded-3xl p-4 flex flex-col lg:flex-row gap-4 items-center justify-between mb-6">
+                            <div class="relative w-full lg:w-80">
+                                <i
+                                    class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input id="invoiceSearchInput" type="text"
+                                    placeholder="Cari nama / program / invoice..."
+                                    class="w-full pl-11 pr-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                                <div class="relative">
+                                    <button type="button" id="invoiceDateRangeBtn"
+                                        class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200 text-sm font-bold text-slate-700 outline-none">
+                                        <i class="fa-regular fa-calendar-days text-slate-500"></i>
+                                        <span id="invoiceDateRangeLabel"
+                                            class="text-xs md:text-sm whitespace-nowrap">Tanggal: 30 hari
+                                            terakhir</span>
+                                    </button>
+                                    <div id="invoiceDateRangePopover"
+                                        class="absolute z-20 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-lg p-4 hidden">
+                                        <div class="space-y-3">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span
+                                                    class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">From</span>
+                                                <input id="invoiceDateFrom" type="date"
+                                                    class="flex-1 text-sm font-bold text-slate-700 outline-none bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
+                                            </div>
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span
+                                                    class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">To</span>
+                                                <input id="invoiceDateTo" type="date"
+                                                    class="flex-1 text-sm font-bold text-slate-700 outline-none bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
+                                            </div>
+                                            <div class="flex justify-end gap-2 pt-1">
+                                                <button type="button" id="invoiceDateRangeClear"
+                                                    class="px-3 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-800">Reset</button>
+                                                <button type="button" id="invoiceDateRangeApply"
+                                                    class="px-3 py-1 text-[10px] font-bold text-white bg-blue-600 rounded-full hover:bg-blue-700">Apply</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <select id="invoiceExpiryFilter"
+                                    class="bg-white px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-slate-700 outline-none">
+                                    <option value="all">All</option>
+                                    <option value="active">Not Expired</option>
+                                    <option value="expired">Expired</option>
+                                    <option value="not_started">Not Open</option>
+                                </select>
+                                <select id="invoicePageSize"
+                                    class="bg-white px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-slate-700 outline-none">
+                                    <option value="100">100</option>
+                                    <option value="200">200</option>
+                                    <option value="500">500</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-hidden rounded-2xl border border-slate-100 max-h-[420px] overflow-auto">
                             <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-50 text-slate-500">
-                                    <tr>
-                                        <th class="px-3 py-2 font-bold uppercase tracking-widest">Bank</th>
-                                        <th class="px-3 py-2 font-bold uppercase tracking-widest">No. Rekening</th>
-                                        <th class="px-3 py-2 font-bold uppercase tracking-widest">Atas Nama</th>
-                                        <th class="px-3 py-2 text-center font-bold uppercase tracking-widest">Aksi</th>
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest font-extrabold">
+                                        <th class="p-3">Nama</th>
+                                        <th class="p-3">Program</th>
+                                        <th class="p-3">Invoice</th>
+                                        <th class="p-3">Tgl Buat</th>
+                                        <th class="p-3">Expired</th>
+                                        <th class="p-3 text-right">Nominal</th>
+                                        <th class="p-3 text-center">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="bankTableBody" class="divide-y divide-slate-100"></tbody>
+                                <tbody id="invoiceTableBody" class="divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-            </div>
-            </div>
+
+                <div id="tab-receipt" class="tab-content">
+                    <div class="glass-card rounded-[2.5rem] p-8 md:p-10 overflow-hidden relative">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">Receipt</h2>
+                                <p class="text-slate-500 text-sm">Client yang sudah bayar (Full / DP / Book).</p>
+                            </div>
+                        </div>
+                        <div
+                            class="glass-card rounded-3xl p-4 flex flex-col lg:flex-row gap-4 items-center justify-between mb-6">
+                            <div class="relative w-full lg:w-80">
+                                <i
+                                    class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input id="receiptSearchInput" type="text"
+                                    placeholder="Cari nama / program / invoice..."
+                                    class="w-full pl-11 pr-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                                <div class="relative">
+                                    <button type="button" id="receiptDateRangeBtn"
+                                        class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200 text-sm font-bold text-slate-700 outline-none">
+                                        <i class="fa-regular fa-calendar-days text-slate-500"></i>
+                                        <span id="receiptDateRangeLabel"
+                                            class="text-xs md:text-sm whitespace-nowrap">Tanggal: 30 hari
+                                            terakhir</span>
+                                    </button>
+                                    <div id="receiptDateRangePopover"
+                                        class="absolute z-20 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-lg p-4 hidden">
+                                        <div class="space-y-3">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span
+                                                    class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">From</span>
+                                                <input id="receiptDateFrom" type="date"
+                                                    class="flex-1 text-sm font-bold text-slate-700 outline-none bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
+                                            </div>
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span
+                                                    class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">To</span>
+                                                <input id="receiptDateTo" type="date"
+                                                    class="flex-1 text-sm font-bold text-slate-700 outline-none bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
+                                            </div>
+                                            <div class="flex justify-end gap-2 pt-1">
+                                                <button type="button" id="receiptDateRangeClear"
+                                                    class="px-3 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-800">Reset</button>
+                                                <button type="button" id="receiptDateRangeApply"
+                                                    class="px-3 py-1 text-[10px] font-bold text-white bg-blue-600 rounded-full hover:bg-blue-700">Apply</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div
+                                    class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200">
+                                    <i class="fa-solid fa-filter text-slate-500"></i>
+                                    <select id="receiptStatusFilter"
+                                        class="bg-transparent text-sm font-bold text-slate-700 outline-none">
+                                        <option value="all">All Status</option>
+                                        <option value="full">Full</option>
+                                        <option value="dp">DP</option>
+                                        <option value="book">Book</option>
+                                    </select>
+                                </div>
+                                <div
+                                    class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200">
+                                    <i class="fa-solid fa-share-nodes text-slate-500"></i>
+                                    <select id="receiptReferralFilter"
+                                        class="bg-transparent text-sm font-bold text-slate-700 outline-none">
+                                        <option value="all">All Referral</option>
+                                    </select>
+                                </div>
+                                <select id="receiptPageSize"
+                                    class="bg-white px-4 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-slate-700 outline-none">
+                                    <option value="100">100</option>
+                                    <option value="200">200</option>
+                                    <option value="500">500</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-hidden rounded-2xl border border-slate-100 max-h-[420px] overflow-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr
+                                        class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-widest font-extrabold">
+                                        <th class="p-3">Invoice</th>
+                                        <th class="p-3">Photo</th>
+                                        <th class="p-3">Nama</th>
+                                        <th class="p-3">Program</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3">Date</th>
+                                        <th class="p-3 text-right">Payment</th>
+                                        <th class="p-3 text-right">Liability</th>
+                                        <th class="p-3 text-right">Nominal</th>
+                                        <th class="p-3">Referral</th>
+                                        <th class="p-3">Metode</th>
+                                        <th class="p-3">Bank</th>
+                                        <th class="p-3 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="receiptTableBody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <p id="receiptTotalPayment"
+                                class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Total Payment: Rp
+                                0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-referral" class="tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div class="lg:col-span-4">
+                            <div class="glass-card rounded-[2.5rem] p-8 sticky top-10">
+                                <div class="flex items-center gap-3 mb-8">
+                                    <div
+                                        class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </div>
+                                    <h2 class="text-xl font-bold text-slate-800">Create New Referral</h2>
+                                </div>
+                                <div class="space-y-6">
+                                    <div>
+                                        <label
+                                            class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Pemegang
+                                            Referral</label>
+                                        <select id="refHolderType"
+                                            class="custom-input w-full p-4 bg-white rounded-2xl font-semibold text-slate-700 appearance-none bg-[url('https://cdn-icons-png.flaticon.com/512/2985/2985150.png')] bg-[length:12px] bg-no-repeat bg-[right_1.5rem_center]">
+                                            <option value="system">System (Default)</option>
+                                            <option value="user">Specific User / Student</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Produk
+                                            Terkait</label>
+                                        <div id="refProductDropdown"
+                                            class="custom-input w-full p-4 bg-white rounded-2xl font-semibold text-slate-700 flex items-center justify-between cursor-pointer">
+                                            <span id="refProductSummary"
+                                                class="text-sm font-semibold text-slate-700">Pilih minimal 1
+                                                product</span>
+                                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs"></i>
+                                        </div>
+                                        <div id="refProductOptions"
+                                            class="mt-2 bg-white border border-slate-200 rounded-2xl p-3 max-h-52 overflow-y-auto hidden">
+                                            <p class="text-[11px] text-slate-400">Memuat daftar product...</p>
+                                        </div>
+                                    </div>
+                                    <div id="refOwnerNameWrapper">
+                                        <label
+                                            class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nama
+                                            Pemegang</label>
+                                        <input id="refOwnerName" type="text" placeholder="Nama user / student"
+                                            class="custom-input w-full p-4 bg-white rounded-2xl">
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kode
+                                            Referral</label>
+                                        <div class="relative">
+                                            <input id="refCode" type="text" placeholder="DLGFRIEND"
+                                                class="custom-input w-full p-4 pl-11 bg-white rounded-2xl font-mono tracking-widest uppercase">
+                                            <i
+                                                class="fa-solid fa-tag absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Fungsi
+                                            Referral</label>
+                                        <select id="refFunctionType"
+                                            class="custom-input w-full p-4 bg-white rounded-2xl font-semibold text-slate-700 appearance-none bg-[url('https://cdn-icons-png.flaticon.com/512/2985/2985150.png')] bg-[length:12px] bg-no-repeat bg-[right_1.5rem_center]">
+                                            <option value="">Pilih fungsi referral</option>
+                                            <option value="discount">Discount</option>
+                                            <option value="cashback" disabled>Cashback (Soon)</option>
+                                            <option value="charity" disabled>Charity (Soon)</option>
+                                            <option value="point" disabled>Point (Soon)</option>
+                                            <option value="addon" disabled>Add On (Soon)</option>
+                                            <option value="reward" disabled>Reward (Soon)</option>
+                                            <option value="exclusivity" disabled>Exclusivity (Soon)</option>
+                                        </select>
+                                    </div>
+                                    <div id="refDiscountWrapper" class="grid grid-cols-2 gap-4 mt-2 hidden">
+                                        <div>
+                                            <label
+                                                class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Potongan
+                                                (%)</label>
+                                            <input id="refDiscountPercent" type="number" min="0" max="100"
+                                                class="custom-input w-full p-4 bg-white rounded-2xl font-bold text-slate-700"
+                                                placeholder="10">
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nilai
+                                                Potongan</label>
+                                            <input id="refDiscountAmount" type="text"
+                                                class="custom-input w-full p-4 bg-white rounded-2xl font-bold text-slate-700"
+                                                placeholder="250000">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label
+                                                class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Maks
+                                                Pakai</label>
+                                            <input id="refMaxUsage" type="number" min="1"
+                                                class="custom-input w-full p-4 bg-white rounded-2xl font-bold text-slate-700"
+                                                placeholder="10">
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Berlaku
+                                                (Bln)</label>
+                                            <input id="refMonthsValid" type="number" min="1"
+                                                class="custom-input w-full p-4 bg-white rounded-2xl font-bold text-slate-700"
+                                                placeholder="2">
+                                            <p class="text-[10px] text-slate-400 mt-1">*Batas 2 bulan default</p>
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Sudah
+                                                Dipakai</label>
+                                            <input id="refUsedCount" type="number" min="0"
+                                                class="custom-input w-full p-4 bg-white rounded-2xl font-bold text-slate-700"
+                                                placeholder="0">
+                                        </div>
+                                    </div>
+                                    <div class="pt-4">
+                                        <button type="button" id="btnOpenDiscountCalculator"
+                                            class="w-full py-3 mb-3 bg-white border border-slate-200 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2 text-sm text-slate-700">
+                                            <i class="fa-solid fa-calculator text-blue-600"></i> Kalkulator Discount
+                                        </button>
+                                        <button id="btnSaveReferral"
+                                            class="w-full py-4 bg-[linear-gradient(to_bottom,#006a4e_5%,#003f2e_100%)] text-white rounded-2xl font-bold hover:bg-[linear-gradient(to_bottom,#003f2e_10%,#006a4e_95%)] transition-all shadow-sm shadow-emerald-700 flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-floppy-disk"></i> Simpan / Update Referral
+                                        </button>
+                                        <button id="btnClearReferralForm"
+                                            class="w-full mt-4 text-xs font-bold text-slate-400 hover:text-red-400 transition-colors uppercase tracking-widest">
+                                            Reset Form
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-8 space-y-6">
+                            <div
+                                class="glass-card rounded-3xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+                                <div class="relative w-full md:w-72">
+                                    <i
+                                        class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input id="refSearchInput" type="text" placeholder="Cari kode atau pemegang..."
+                                        class="w-full pl-11 pr-4 py-2 bg-slate-50 rounded-xl border border-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                                </div>
+                                <div class="flex gap-2">
+                                    <button type="button" data-ref-filter="all"
+                                        class="ref-filter-btn px-4 py-2 text-xs font-bold bg-white border border-slate-200 rounded-xl hover:bg-slate-50">Semua</button>
+                                    <button type="button" data-ref-filter="active"
+                                        class="ref-filter-btn px-4 py-2 text-xs font-bold text-slate-400 hover:text-emerald-600">Aktif</button>
+                                    <button type="button" data-ref-filter="expired"
+                                        class="ref-filter-btn px-4 py-2 text-xs font-bold text-slate-400 hover:text-red-500">Expired</button>
+                                </div>
+                            </div>
+                            <div class="glass-card rounded-[2.5rem] overflow-hidden">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr
+                                            class="bg-slate-50/50 text-[11px] uppercase tracking-[0.15em] font-extrabold text-slate-400">
+                                            <th class="p-6">Pemegang &amp; Kode</th>
+                                            <th class="p-6">Masa Berlaku</th>
+                                            <th class="p-6">Penggunaan</th>
+                                            <th class="p-6 text-center">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="refTableBody" class="divide-y divide-slate-50"></tbody>
+                                </table>
+                                <div class="bg-slate-50/30 p-4 text-center border-t border-slate-50">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
+                                        id="refFooterSummary">Referral List</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-bank" class="tab-content">
+                    <div class="glass-card rounded-[2.5rem] p-10 max-w-4xl mx-auto">
+                        <div
+                            class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 border-b border-slate-100 pb-8">
+                            <div>
+                                <h2 class="text-2xl font-extrabold text-slate-800">Payment Channels</h2>
+                                <p class="text-slate-500 text-sm">Manage where your students send their payment.</p>
+                            </div>
+                            <button id="btnClearBankForm"
+                                class="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:shadow-xl transition shadow-blue-200 text-sm">
+                                Reset Form Rekening
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                            <div
+                                class="p-6 rounded-3xl bg-gradient-to-br from-white to-slate-50 border border-slate-200">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Nama
+                                            Bank</label>
+                                        <input id="bankName" type="text"
+                                            class="custom-input w-full p-4 bg-white rounded-2xl text-sm"
+                                            placeholder="BCA / BRI / BSI">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">No.
+                                            Rekening</label>
+                                        <input id="bankNumber" type="text"
+                                            class="custom-input w-full p-4 bg-white rounded-2xl text-sm"
+                                            placeholder="8920129301">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Atas
+                                            Nama</label>
+                                        <input id="bankHolder" type="text"
+                                            class="custom-input w-full p-4 bg-white rounded-2xl text-sm"
+                                            placeholder="PT Dialogika Indonesia">
+                                    </div>
+                                    <input id="bankId" type="hidden">
+                                    <button id="btnSaveBank"
+                                        class="w-full py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-black transition shadow-lg shadow-slate-200 text-sm">
+                                        Simpan / Update Rekening
+                                    </button>
+                                </div>
+                            </div>
+                            <div
+                                class="p-6 rounded-3xl bg-gradient-to-br from-white to-slate-50 border border-slate-200">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-sm font-extrabold text-slate-700 uppercase tracking-widest">Daftar
+                                        Rekening</h3>
+                                </div>
+                                <div class="max-h-64 overflow-auto border border-slate-100 rounded-2xl">
+                                    <table class="w-full text-left text-xs">
+                                        <thead class="bg-slate-50 text-slate-500">
+                                            <tr>
+                                                <th class="px-3 py-2 font-bold uppercase tracking-widest">Bank</th>
+                                                <th class="px-3 py-2 font-bold uppercase tracking-widest">No. Rekening
+                                                </th>
+                                                <th class="px-3 py-2 font-bold uppercase tracking-widest">Atas Nama</th>
+                                                <th class="px-3 py-2 text-center font-bold uppercase tracking-widest">
+                                                    Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="bankTableBody" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
         </main>
     </div>
 
@@ -612,13 +808,16 @@
             <h2 class="text-lg font-extrabold text-slate-900 mb-2">Link Invoice Siap</h2>
             <p class="text-sm text-slate-500 mb-4">Copy link di bawah lalu kirim ke client.</p>
             <div class="flex items-center gap-2 mb-4">
-                <input id="invoiceLinkInput" type="text" class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm" readonly>
-                <button type="button" onclick="copyInvoiceLink()" class="px-3 py-2 rounded-xl bg-blue-600 text-white text-xs font-black uppercase tracking-widest">
+                <input id="invoiceLinkInput" type="text"
+                    class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm" readonly>
+                <button type="button" onclick="copyInvoiceLink()"
+                    class="px-3 py-2 rounded-xl bg-blue-600 text-white text-xs font-black uppercase tracking-widest">
                     Copy
                 </button>
             </div>
             <div class="flex justify-end">
-                <button type="button" onclick="closeCopyLinkModal()" class="text-xs font-bold text-slate-500 hover:text-slate-800">
+                <button type="button" onclick="closeCopyLinkModal()"
+                    class="text-xs font-bold text-slate-500 hover:text-slate-800">
                     Tutup
                 </button>
             </div>
@@ -629,7 +828,8 @@
         <div class="bg-white rounded-2xl shadow-xl max-w-4xl w-full mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg md:text-xl font-extrabold text-slate-900">Daftar Pembayaran</h2>
-                <button id="closePaidInvoiceModalBtn" class="text-slate-500 hover:text-slate-800 text-sm font-bold">Tutup</button>
+                <button id="closePaidInvoiceModalBtn"
+                    class="text-slate-500 hover:text-slate-800 text-sm font-bold">Tutup</button>
             </div>
             <div class="overflow-hidden rounded-2xl border border-slate-100 max-h-[420px] overflow-auto">
                 <table class="w-full text-left text-xs">
@@ -688,10 +888,12 @@
                 </div>
             </div>
             <div class="flex justify-between items-center">
-                <a id="viewInvoiceLink" href="#" target="_blank" class="text-xs font-bold text-blue-600 hover:text-blue-800">
+                <a id="viewInvoiceLink" href="#" target="_blank"
+                    class="text-xs font-bold text-blue-600 hover:text-blue-800">
                     Buka Halaman Invoice
                 </a>
-                <button type="button" onclick="closeInvoiceViewModal()" class="text-xs font-bold text-slate-500 hover:text-slate-800">
+                <button type="button" onclick="closeInvoiceViewModal()"
+                    class="text-xs font-bold text-slate-500 hover:text-slate-800">
                     Tutup
                 </button>
             </div>
@@ -699,16 +901,23 @@
     </div>
 
     <div id="paymentViewModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
-        <div class="max-w-5xl w-full bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 overflow-hidden border border-slate-100 mx-4 flex flex-col md:flex-row relative">
-            <div class="w-full md:w-[360px] bg-slate-100/50 p-6 md:p-8 flex flex-col border-b md:border-b-0 md:border-r border-slate-100">
+        <div
+            class="max-w-5xl w-full bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 overflow-hidden border border-slate-100 mx-4 flex flex-col md:flex-row relative">
+            <div
+                class="w-full md:w-[360px] bg-slate-100/50 p-6 md:p-8 flex flex-col border-b md:border-b-0 md:border-r border-slate-100">
                 <div class="flex justify-between items-center mb-4 md:mb-6">
                     <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Bukti Transfer</span>
-                    <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded tracking-tight">Digital Receipt</span>
+                    <span
+                        class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded tracking-tight">Digital
+                        Receipt</span>
                 </div>
                 <div class="relative group mx-auto w-full">
-                    <div class="absolute -inset-1 bg-gradient-to-b from-blue-200 to-transparent rounded-2xl blur opacity-20 transition duration-1000 group-hover:opacity-40"></div>
+                    <div
+                        class="absolute -inset-1 bg-gradient-to-b from-blue-200 to-transparent rounded-2xl blur opacity-20 transition duration-1000 group-hover:opacity-40">
+                    </div>
                     <div class="relative bg-white p-2.5 md:p-3 rounded-2xl shadow-xl shadow-slate-200/50">
-                        <div id="paymentViewProofWrapper" class="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden aspect-square flex items-center justify-center">
+                        <div id="paymentViewProofWrapper"
+                            class="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden aspect-square flex items-center justify-center">
                             <span class="text-slate-400 text-xs font-bold">No Photo</span>
                         </div>
                     </div>
@@ -718,12 +927,14 @@
                 </p>
             </div>
             <div class="flex-1 p-6 md:p-10 relative bg-white">
-                <button id="closePaymentViewModalBtn" class="absolute top-5 right-5 md:top-8 md:right-8 text-slate-300 hover:text-slate-900 transition-colors">
+                <button id="closePaymentViewModalBtn"
+                    class="absolute top-5 right-5 md:top-8 md:right-8 text-slate-300 hover:text-slate-900 transition-colors">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
                 <header class="mb-8 md:mb-10">
                     <div class="flex flex-wrap items-center gap-3 mb-3">
-                        <span id="paymentVerificationBadge" class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider rounded-full border border-emerald-100 flex items-center gap-1.5"></span>
+                        <span id="paymentVerificationBadge"
+                            class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider rounded-full border border-emerald-100 flex items-center gap-1.5"></span>
                         <span class="text-[10px] font-bold text-slate-300 uppercase tracking-[0.1em]">
                             Invoice: <span id="paymentViewInvoice" class="font-mono"></span>
                         </span>
@@ -733,15 +944,18 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6 text-sm text-slate-700">
                     <div class="space-y-5">
                         <section>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nama Peserta</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nama
+                                Peserta</p>
                             <p id="paymentViewName" class="text-sm font-semibold text-slate-800"></p>
                         </section>
                         <section>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Program Pelatihan</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Program
+                                Pelatihan</p>
                             <p id="paymentViewProgram" class="text-sm font-semibold text-slate-800 leading-relaxed"></p>
                         </section>
                         <section>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Metode & Bank</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Metode &
+                                Bank</p>
                             <div class="flex items-center gap-2">
                                 <span id="paymentViewMethod" class="text-sm font-semibold text-slate-800"></span>
                                 <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
@@ -749,7 +963,8 @@
                             </div>
                         </section>
                         <section>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Referral & Status</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Referral &
+                                Status</p>
                             <p class="text-sm font-semibold text-slate-800 flex items-center gap-2">
                                 <span id="paymentViewReferral" class="font-mono text-blue-600"></span>
                                 <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
@@ -759,13 +974,16 @@
                     </div>
                     <div class="space-y-5">
                         <section>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Tanggal Bayar</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Tanggal
+                                Bayar</p>
                             <p id="paymentViewDate" class="text-sm font-semibold text-slate-800"></p>
                         </section>
                         <section>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Verifikasi Admin</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Verifikasi
+                                Admin</p>
                             <div class="flex items-center gap-2">
-                                <select id="paymentVerificationStatus" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg py-1 pl-2 pr-8 focus:ring-0 cursor-pointer text-slate-700">
+                                <select id="paymentVerificationStatus"
+                                    class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg py-1 pl-2 pr-8 focus:ring-0 cursor-pointer text-slate-700">
                                     <option value="legit">Legit</option>
                                     <option value="not_verified">Not Verified</option>
                                     <option value="scam">Scam</option>
@@ -773,11 +991,13 @@
                             </div>
                         </section>
                         <section>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Payment Amount</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Payment
+                                Amount</p>
                             <p id="paymentViewPayment" class="text-sm font-semibold text-slate-800"></p>
                         </section>
                         <section>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Liability (Hutang)</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Liability
+                                (Hutang)</p>
                             <p id="paymentViewLiability" class="text-sm font-semibold text-slate-800"></p>
                         </section>
                     </div>
@@ -787,14 +1007,18 @@
                             <span id="paymentViewNominal" class="font-bold text-slate-900"></span>
                         </div>
                         <div class="flex justify-between items-center pt-4 border-t border-slate-50 mt-2">
-                            <a id="paymentViewReceiptLink" href="#" target="_blank" class="group flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-all font-bold text-xs md:text-sm">
+                            <a id="paymentViewReceiptLink" href="#" target="_blank"
+                                class="group flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-all font-bold text-xs md:text-sm">
                                 Buka Halaman Receipt
-                                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                 </svg>
                             </a>
                             <div class="flex items-center gap-3">
-                                <button type="button" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-[11px] hover:bg-slate-200 transition-all">
+                                <button type="button"
+                                    class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-[11px] hover:bg-slate-200 transition-all">
                                     Cetak PDF
                                 </button>
                             </div>
@@ -809,7 +1033,8 @@
         <div class="bg-white rounded-2xl shadow-xl max-w-3xl w-full mx-4 overflow-hidden">
             <div class="flex items-center justify-between p-4 border-b border-slate-100">
                 <h2 class="text-sm md:text-base font-extrabold text-slate-900">Kalkulator Discount</h2>
-                <button id="closeDiscountCalculatorModalBtn" class="text-slate-500 hover:text-slate-800 text-sm font-bold">Tutup</button>
+                <button id="closeDiscountCalculatorModalBtn"
+                    class="text-slate-500 hover:text-slate-800 text-sm font-bold">Tutup</button>
             </div>
             <iframe src="../frame/calculator.html" class="w-full h-[75vh] bg-white"></iframe>
         </div>
@@ -884,10 +1109,10 @@
         window.logout = async () => {
             try {
                 await signOut(auth);
-            } catch (e) {}
+            } catch (e) { }
             try {
                 localStorage.removeItem("userData");
-            } catch (e) {}
+            } catch (e) { }
             window.location.href = "../index.html";
         };
 
@@ -1414,9 +1639,9 @@
                     '<td class="px-3 py-2">' + expiryHtml + "</td>",
                     '<td class="px-3 py-2 text-right text-slate-800">' + amountLabel + "</td>",
                     '<td class="px-3 py-2 text-center space-x-2">' +
-                        '<button data-id="' + inv.id + '" class="view-invoice text-[10px] font-bold text-slate-600 hover:text-slate-900">View</button>' +
-                        '<button data-id="' + inv.id + '" class="edit-invoice text-[10px] font-bold text-blue-600 hover:text-blue-800">Edit</button>' +
-                        '<button data-id="' + inv.id + '" class="delete-invoice text-[10px] font-bold text-rose-600 hover:text-rose-800">Delete</button>' +
+                    '<button data-id="' + inv.id + '" class="view-invoice text-[10px] font-bold text-slate-600 hover:text-slate-900">View</button>' +
+                    '<button data-id="' + inv.id + '" class="edit-invoice text-[10px] font-bold text-blue-600 hover:text-blue-800">Edit</button>' +
+                    '<button data-id="' + inv.id + '" class="delete-invoice text-[10px] font-bold text-rose-600 hover:text-rose-800">Delete</button>' +
                     "</td>"
                 ].join("");
                 tbody.appendChild(tr);
@@ -1516,7 +1741,7 @@
                     '<td class="p-3 text-slate-700">' + (inv.paymentMethod || "-") + "</td>",
                     '<td class="p-3 text-slate-700">' + (inv.bankName || "-") + "</td>",
                     '<td class="p-3 text-center">' +
-                        '<button type="button" class="view-payment px-3 py-1 rounded-full text-[10px] font-bold bg-slate-900 text-white" data-id="' + inv.id + '">View</button>' +
+                    '<button type="button" class="view-payment px-3 py-1 rounded-full text-[10px] font-bold bg-slate-900 text-white" data-id="' + inv.id + '">View</button>' +
                     "</td>"
                 ].join("");
                 tbody.appendChild(tr);
@@ -2158,8 +2383,8 @@
                     '<td class="px-3 py-2 text-slate-700">' + b.number + "</td>",
                     '<td class="px-3 py-2 text-slate-500">' + b.holder + "</td>",
                     '<td class="px-3 py-2 text-center space-x-2">' +
-                        '<button data-id="' + b.id + '" class="edit-bank text-[10px] font-bold text-blue-600 hover:text-blue-800">Edit</button>' +
-                        '<button data-id="' + b.id + '" class="delete-bank text-[10px] font-bold text-rose-600 hover:text-rose-800">Delete</button>' +
+                    '<button data-id="' + b.id + '" class="edit-bank text-[10px] font-bold text-blue-600 hover:text-blue-800">Edit</button>' +
+                    '<button data-id="' + b.id + '" class="delete-bank text-[10px] font-bold text-rose-600 hover:text-rose-800">Delete</button>' +
                     "</td>"
                 ].join("");
                 tbody.appendChild(tr);
@@ -2284,46 +2509,46 @@
                 baseRow.className = rowClasses;
                 baseRow.innerHTML = [
                     '<td class="p-6">',
-                        '<div class="flex items-center gap-4">',
-                            '<div class="w-10 h-10 rounded-full ' + (expiryMeta.isActive ? "bg-blue-100 text-blue-600" : "bg-slate-200 text-slate-600") + ' flex items-center justify-center font-bold text-xs">',
-                                initials,
-                            "</div>",
-                            '<div>',
-                                '<p class="text-xs font-bold text-slate-400 uppercase tracking-tight">' + ownerLabel + "</p>",
-                                '<p class="text-base font-extrabold text-slate-800 font-mono tracking-wider">' + (r.code || "-") + "</p>",
-                                (functionLabel ? '<p class="text-[10px] font-semibold text-emerald-600 mt-1 uppercase tracking-widest">' + functionLabel + "</p>" : ""),
-                            "</div>",
-                        "</div>",
+                    '<div class="flex items-center gap-4">',
+                    '<div class="w-10 h-10 rounded-full ' + (expiryMeta.isActive ? "bg-blue-100 text-blue-600" : "bg-slate-200 text-slate-600") + ' flex items-center justify-center font-bold text-xs">',
+                    initials,
+                    "</div>",
+                    '<div>',
+                    '<p class="text-xs font-bold text-slate-400 uppercase tracking-tight">' + ownerLabel + "</p>",
+                    '<p class="text-base font-extrabold text-slate-800 font-mono tracking-wider">' + (r.code || "-") + "</p>",
+                    (functionLabel ? '<p class="text-[10px] font-semibold text-emerald-600 mt-1 uppercase tracking-widest">' + functionLabel + "</p>" : ""),
+                    "</div>",
+                    "</div>",
                     "</td>",
                     '<td class="p-6">',
-                        '<div class="flex flex-col">',
-                            '<span class="text-sm font-bold text-slate-700 italic">' + expiryMeta.expiryLabel + "</span>",
-                            (expiryMeta.statusLabel ? ('<span class="text-[10px] font-bold ' + (expiryMeta.isActive ? "text-emerald-500 bg-emerald-50" : "text-red-500 bg-red-50") + ' px-2 py-0.5 rounded-full w-fit mt-1 uppercase tracking-tighter">' + expiryMeta.statusLabel + "</span>") : ""),
-                        "</div>",
+                    '<div class="flex flex-col">',
+                    '<span class="text-sm font-bold text-slate-700 italic">' + expiryMeta.expiryLabel + "</span>",
+                    (expiryMeta.statusLabel ? ('<span class="text-[10px] font-bold ' + (expiryMeta.isActive ? "text-emerald-500 bg-emerald-50" : "text-red-500 bg-red-50") + ' px-2 py-0.5 rounded-full w-fit mt-1 uppercase tracking-tighter">' + expiryMeta.statusLabel + "</span>") : ""),
+                    "</div>",
                     "</td>",
                     '<td class="p-6">',
-                        '<div class="w-full max-w-[140px]">',
-                            '<div class="flex justify-between items-center mb-1">',
-                                '<span class="text-xs font-extrabold text-slate-700">' + used + " / " + max + "</span>",
-                                '<span class="text-[10px] text-slate-400 font-bold">' + percent + "%</span>",
-                            "</div>",
-                            '<div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">',
-                                '<div class="progress-bar h-full ' + (expiryMeta.isActive ? "bg-emerald-500" : "bg-slate-400") + '" style="width: ' + percent + '%;"></div>',
-                            "</div>",
-                        "</div>",
+                    '<div class="w-full max-w-[140px]">',
+                    '<div class="flex justify-between items-center mb-1">',
+                    '<span class="text-xs font-extrabold text-slate-700">' + used + " / " + max + "</span>",
+                    '<span class="text-[10px] text-slate-400 font-bold">' + percent + "%</span>",
+                    "</div>",
+                    '<div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">',
+                    '<div class="progress-bar h-full ' + (expiryMeta.isActive ? "bg-emerald-500" : "bg-slate-400") + '" style="width: ' + percent + '%;"></div>',
+                    "</div>",
+                    "</div>",
                     "</td>",
                     '<td class="p-6">',
-                        '<div class="flex items-center justify-center gap-2">',
-                            '<button type="button" data-history-id="' + historyId + '" class="toggle-ref-history w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white transition-all" title="Lihat Riwayat Invoice">',
-                                '<i class="fa-solid fa-receipt"></i>',
-                            "</button>",
-                            '<button type="button" data-idx="' + idx + '" class="edit-ref w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-amber-500 hover:text-white transition-all" title="Edit Referral">',
-                                '<i class="fa-solid fa-pen-to-square text-sm"></i>',
-                            "</button>",
-                            '<button type="button" data-idx="' + idx + '" class="delete-ref w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-rose-500 hover:text-white transition-all" title="Hapus Referral">',
-                                '<i class="fa-solid fa-trash-can text-sm"></i>',
-                            "</button>",
-                        "</div>",
+                    '<div class="flex items-center justify-center gap-2">',
+                    '<button type="button" data-history-id="' + historyId + '" class="toggle-ref-history w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white transition-all" title="Lihat Riwayat Invoice">',
+                    '<i class="fa-solid fa-receipt"></i>',
+                    "</button>",
+                    '<button type="button" data-idx="' + idx + '" class="edit-ref w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-amber-500 hover:text-white transition-all" title="Edit Referral">',
+                    '<i class="fa-solid fa-pen-to-square text-sm"></i>',
+                    "</button>",
+                    '<button type="button" data-idx="' + idx + '" class="delete-ref w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-rose-500 hover:text-white transition-all" title="Hapus Referral">',
+                    '<i class="fa-solid fa-trash-can text-sm"></i>',
+                    "</button>",
+                    "</div>",
                     "</td>"
                 ].join("");
                 tbody.appendChild(baseRow);
@@ -2340,11 +2565,11 @@
                         const onclickAttr = inv.id ? ' onclick="openCopyLinkModal(\'' + inv.id + '\')"' : "";
                         historyItemsHtml += [
                             '<div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">',
-                                '<div>',
-                                    '<p class="text-xs font-bold text-slate-800">' + invNumber + "</p>",
-                                    '<p class="text-[10px] text-slate-500 font-medium">Customer: ' + customer + "</p>",
-                                "</div>",
-                                '<button type="button"' + onclickAttr + ' class="text-[10px] font-bold text-blue-600 hover:underline">' + viewLabel + ' <i class="fa-solid fa-arrow-right ml-1"></i></button>',
+                            '<div>',
+                            '<p class="text-xs font-bold text-slate-800">' + invNumber + "</p>",
+                            '<p class="text-[10px] text-slate-500 font-medium">Customer: ' + customer + "</p>",
+                            "</div>",
+                            '<button type="button"' + onclickAttr + ' class="text-[10px] font-bold text-blue-600 hover:underline">' + viewLabel + ' <i class="fa-solid fa-arrow-right ml-1"></i></button>',
                             "</div>"
                         ].join("");
                     });
@@ -2353,13 +2578,13 @@
                 }
                 historyRow.innerHTML = [
                     '<td colspan="4" class="p-6">',
-                        '<div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-inner">',
-                            '<div class="flex justify-between items-center mb-4">',
-                                '<h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-500"></i> Riwayat Penggunaan Invoice</h4>',
-                                '<span class="text-[10px] font-bold text-slate-400 italic">Digunakan di ' + usedInvoices.length + " Invoice</span>",
-                            "</div>",
-                            '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' + historyItemsHtml + "</div>",
-                        "</div>",
+                    '<div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-inner">',
+                    '<div class="flex justify-between items-center mb-4">',
+                    '<h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-clock-rotate-left mr-2 text-blue-500"></i> Riwayat Penggunaan Invoice</h4>',
+                    '<span class="text-[10px] font-bold text-slate-400 italic">Digunakan di ' + usedInvoices.length + " Invoice</span>",
+                    "</div>",
+                    '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' + historyItemsHtml + "</div>",
+                    "</div>",
                     "</td>"
                 ].join("");
                 tbody.appendChild(historyRow);
@@ -3017,7 +3242,7 @@
                 const holderTypeFieldClear = document.getElementById("refHolderType");
                 const ownerNameFieldClear = document.getElementById("refOwnerName");
                 const functionFieldClear = document.getElementById("refFunctionType");
-                 const productCheckboxes = getReferralProductCheckboxes();
+                const productCheckboxes = getReferralProductCheckboxes();
                 document.getElementById("refCode").value = "";
                 document.getElementById("refMaxUsage").value = "";
                 document.getElementById("refMonthsValid").value = "";
@@ -3028,13 +3253,13 @@
                 if (ownerNameFieldClear) {
                     ownerNameFieldClear.value = "";
                 }
-                 if (functionFieldClear) {
-                     functionFieldClear.value = "";
-                 }
-                 productCheckboxes.forEach(function (cb) {
-                     cb.checked = false;
-                 });
-                 updateReferralProductSummaryFromSelection();
+                if (functionFieldClear) {
+                    functionFieldClear.value = "";
+                }
+                productCheckboxes.forEach(function (cb) {
+                    cb.checked = false;
+                });
+                updateReferralProductSummaryFromSelection();
                 if (ownerNameWrapper) {
                     ownerNameWrapper.classList.add("hidden");
                 }
@@ -3229,7 +3454,24 @@
                     await syncReferralsToFirestore(currentReferrals);
                 }
             })();
+
+            // Handle hash-based tab selection
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                const targetTabId = hash.startsWith('tab-') ? hash : 'tab-' + hash;
+                const targetTab = document.getElementById(targetTabId);
+                if (targetTab) {
+                    const btns = document.querySelectorAll('.tab-btn');
+                    for (let btn of btns) {
+                        if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("'" + targetTabId + "'")) {
+                            btn.click();
+                            break;
+                        }
+                    }
+                }
+            }
         });
     </script>
 </body>
+
 </html>
