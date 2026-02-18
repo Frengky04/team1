@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referral Dashboard | Dialogika</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="../assets/css/style.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .premium-card {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+        }
+
+        .premium-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        }
+
+        .header-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 32px;
+            color: white;
+        }
+
+        .glass-stats {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            color: #1e293b;
+        }
+
+        .progress-gradient {
+            background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
+        }
+
+        .step-bubble {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            color: #94a3b8;
+            font-weight: 700;
+            border: 2px solid #e2e8f0;
+        }
+
+        .drop-zone {
+            min-height: 150px;
+            transition: background-color 0.2s ease;
+        }
+
+        .drop-zone.over {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-style: dashed;
+        }
+
+        .draggable-item {
+            cursor: grab;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .draggable-item:active {
+            cursor: grabbing;
+        }
+
+        .draggable-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .nav-link-custom {
+            transition: all 0.2s;
+        }
+
+        .nav-link-custom:hover {
+            color: #2563eb !important;
+            background-color: #eff6ff;
+        }
+
+        /* Override style.css if needed */
+        .main-content {
+            margin-left: 290px;
+            padding: 40px;
+            width: calc(100% - 290px);
+        }
+
+        @media (max-width: 991px) {
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="topbarContainer"></div>
+
+    <div class="dashboard-container">
+        <div id="sidebarContainer"></div>
+
+        <main class="main-content">
+            <div class="max-w-6xl mx-auto space-y-8">
+
+                <!-- HEADER SECTION -->
+                <div class="header-bg p-8 md:p-12 relative overflow-hidden">
+                    <div
+                        class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                        <div class="space-y-4">
+                            <span class="text-blue-400 font-bold text-xs uppercase tracking-[0.2em]">Dashboard
+                                Overview</span>
+                            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight">Fullstack AI Mastery 2024
+                            </h1>
+                            <div class="flex flex-wrap gap-3">
+                                <div
+                                    class="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl text-sm border border-white/5 backdrop-blur-sm">
+                                    <i class="bi bi-person text-blue-400"></i>
+                                    <span>Budi Santoso</span>
+                                </div>
+                                <div
+                                    class="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl text-sm border border-white/5 backdrop-blur-sm">
+                                    <i class="bi bi-calendar-event text-blue-400"></i>
+                                    <span>Valid until: 2025-12-31</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Usage Stats Card -->
+                        <div class="glass-stats p-6 w-full md:w-80 shadow-2xl">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Usage
+                                        Statistics</h4>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-3xl font-black text-slate-800">42</span>
+                                        <span class="text-slate-400 font-bold">/ 100</span>
+                                    </div>
+                                </div>
+                                <span
+                                    class="px-2 py-1 bg-emerald-100 text-emerald-600 text-[10px] font-black rounded-lg">42%
+                                    Used</span>
+                            </div>
+                            <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-3">
+                                <div class="h-full progress-gradient" style="width: 42%;"></div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 leading-tight">
+                                Referral code usage is calculated based on successful activations. Limit reset upon
+                                renewal.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-white/10 flex items-center gap-2 text-slate-400 text-xs">
+                        <i class="bi bi-clock-history"></i>
+                        <span>47 days remaining until expiry</span>
+                    </div>
+                </div>
+
+                <!-- MAIN GRID -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+                    <!-- Left Column -->
+                    <div class="lg:col-span-8 space-y-8">
+
+                        <!-- Product Specifications -->
+                        <div class="premium-card p-8">
+                            <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i class="bi bi-info-circle text-blue-600"></i> Product Specifications
+                            </h3>
+                            <div class="grid grid-cols-2 gap-y-6 gap-x-12">
+                                <div>
+                                    <span
+                                        class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Platform</span>
+                                    <p class="text-sm font-bold text-slate-700">Web & Mobile App</p>
+                                </div>
+                                <div>
+                                    <span
+                                        class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Language</span>
+                                    <p class="text-sm font-bold text-slate-700">Bahasa Indonesia & English</p>
+                                </div>
+                                <div>
+                                    <span
+                                        class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Format</span>
+                                    <p class="text-sm font-bold text-slate-700">Video (4K) & Interactive Labs</p>
+                                </div>
+                                <div>
+                                    <span
+                                        class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Support</span>
+                                    <p class="text-sm font-bold text-slate-700">Discord Community 24/7</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Curriculum Path -->
+                        <div class="premium-card p-8">
+                            <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i class="bi bi-path-center text-blue-600"></i> Curriculum Path
+                            </h3>
+                            <div class="space-y-6">
+                                <div class="flex gap-4">
+                                    <div class="step-bubble">1</div>
+                                    <div class="pt-1">
+                                        <h4 class="text-sm font-bold text-slate-800">Introduction to Generative AI</h4>
+                                        <p class="text-xs text-slate-400">2 hours</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <div class="step-bubble">2</div>
+                                    <div class="pt-1">
+                                        <h4 class="text-sm font-bold text-slate-800">Advanced React Patterns with Gemini
+                                        </h4>
+                                        <p class="text-xs text-slate-400">5 hours</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <div class="step-bubble">3</div>
+                                    <div class="pt-1">
+                                        <h4 class="text-sm font-bold text-slate-800">Building Autonomous Agents</h4>
+                                        <p class="text-xs text-slate-400">8 hours</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-4">
+                                    <div class="step-bubble">4</div>
+                                    <div class="pt-1">
+                                        <h4 class="text-sm font-bold text-slate-800">Deployment & Scaling AI Apps</h4>
+                                        <p class="text-xs text-slate-400">4 hours</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Column (Sidebar) -->
+                    <div class="lg:col-span-4 space-y-8">
+
+                        <!-- Highlights & Renew -->
+                        <div class="premium-card p-8 flex flex-col h-full">
+                            <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <i class="bi bi-stars text-amber-500"></i> Highlights
+                            </h3>
+                            <div class="space-y-6 flex-grow">
+                                <div class="flex items-start gap-4">
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center flex-shrink-0">
+                                        <i class="bi bi-clock"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-800">Lifetime Access</h4>
+                                        <p class="text-xs text-slate-400">One-time payment, forever yours.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4">
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0">
+                                        <i class="bi bi-award"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-800">Certificate</h4>
+                                        <p class="text-xs text-slate-400">Official accreditation upon completion.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4">
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-800">1-on-1 Mentoring</h4>
+                                        <p class="text-xs text-slate-400">Weekly calls with industry experts.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4">
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0">
+                                        <i class="bi bi-terminal"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-slate-800">Source Code</h4>
+                                        <p class="text-xs text-slate-400">Complete GitHub repository access.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                class="w-full mt-12 py-4 bg-blue-50 text-blue-600 rounded-2xl font-bold hover:bg-blue-100 transition-all border border-blue-100 shadow-sm">
+                                Renew Product License
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- FEATURE MANAGEMENT (DRAG & DROP) -->
+                <div class="premium-card p-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                        <div>
+                            <h3 class="text-xl font-extrabold text-slate-800">Feature Management</h3>
+                            <p class="text-sm text-slate-500">Customize your product experience by moving modules.</p>
+                        </div>
+                        <span
+                            class="px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-black rounded-full uppercase tracking-widest border border-slate-200">Drag
+                            & Drop to exclude</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Active Features -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span id="active-count-badge" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <h4 class="text-sm font-black text-slate-700 uppercase tracking-widest">Active Features
+                                    (<span id="active-count">4</span>)</h4>
+                            </div>
+                            <div id="active-zone"
+                                class="drop-zone p-4 bg-emerald-50/50 border-2 border-emerald-100 rounded-[2rem] space-y-3"
+                                ondrop="drop(event)" ondragover="allowDrop(event)">
+
+                                <div id="feat-1"
+                                    class="draggable-item p-4 bg-white border border-emerald-100 rounded-2xl shadow-sm flex items-center gap-4"
+                                    draggable="true" ondragstart="drag(event)">
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center flex-shrink-0">
+                                        <i class="bi bi-clock"></i>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <h4 class="text-sm font-bold text-slate-800">Lifetime Access</h4>
+                                        <p class="text-[10px] text-slate-400">One-time payment, forever yours.</p>
+                                    </div>
+                                </div>
+
+                                <div id="feat-2"
+                                    class="draggable-item p-4 bg-white border border-emerald-100 rounded-2xl shadow-sm flex items-center gap-4"
+                                    draggable="true" ondragstart="drag(event)">
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center flex-shrink-0">
+                                        <i class="bi bi-award"></i>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <h4 class="text-sm font-bold text-slate-800">Certificate</h4>
+                                        <p class="text-[10px] text-slate-400">Official accreditation upon completion.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div id="feat-3"
+                                    class="draggable-item p-4 bg-white border border-emerald-100 rounded-2xl shadow-sm flex items-center gap-4"
+                                    draggable="true" ondragstart="drag(event)">
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <h4 class="text-sm font-bold text-slate-800">1-on-1 Mentoring</h4>
+                                        <p class="text-[10px] text-slate-400">Weekly calls with industry experts.</p>
+                                    </div>
+                                </div>
+
+                                <div id="feat-4"
+                                    class="draggable-item p-4 bg-white border border-emerald-100 rounded-2xl shadow-sm flex items-center gap-4"
+                                    draggable="true" ondragstart="drag(event)">
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0">
+                                        <i class="bi bi-terminal"></i>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <h4 class="text-sm font-bold text-slate-800">Source Code</h4>
+                                        <p class="text-[10px] text-slate-400">Complete GitHub repository access.</p>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Excluded Modules -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span id="excluded-count-badge" class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                <h4 class="text-sm font-black text-slate-700 uppercase tracking-widest">Excluded Modules
+                                    (<span id="excluded-count">0</span>)</h4>
+                            </div>
+                            <div id="excluded-zone"
+                                class="drop-zone p-4 bg-rose-50/50 border-2 border-rose-100 border-dashed rounded-[2rem] space-y-3 flex flex-col items-center justify-center text-rose-300"
+                                ondrop="drop(event)" ondragover="allowDrop(event)">
+                                <div id="placeholder-text" class="text-center py-8">
+                                    <i class="bi bi-box-arrow-in-right text-3xl mb-2 block"></i>
+                                    <p class="text-xs font-bold uppercase tracking-widest">Drop here to exclude</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Render Elements -->
+    <script type="module">
+        import { renderTopBar } from "../element/topbar.js";
+        import { renderSidebar } from "../element/sidebar.js";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const topbarTarget = document.getElementById('topbarContainer');
+            if (topbarTarget) renderTopBar(topbarTarget);
+
+            const sidebarTarget = document.getElementById('sidebarContainer');
+            if (sidebarTarget) renderSidebar(sidebarTarget);
+        });
+    </script>
+
+    <!-- Drag and Drop Handler -->
+    <script>
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('over');
+        }
+
+        // Remove the 'over' class when drag leaves the zone
+        document.addEventListener('dragleave', (ev) => {
+            if (ev.target.classList.contains('drop-zone')) {
+                ev.target.classList.remove('over');
+            }
+        });
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+            ev.target.classList.add('dragging');
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const zone = ev.currentTarget;
+            zone.classList.remove('over');
+
+            const data = ev.dataTransfer.getData("text");
+            const element = document.getElementById(data);
+            element.classList.remove('dragging');
+
+            // Append the element to the drop zone
+            zone.appendChild(element);
+
+            // Clean up placeholder if moving TO excluded zone or restore it if empty
+            updateCounters();
+        }
+
+        function updateCounters() {
+            const activeZone = document.getElementById('active-zone');
+            const excludedZone = document.getElementById('excluded-zone');
+            const placeholder = document.getElementById('placeholder-text');
+
+            const activeItems = activeZone.querySelectorAll('.draggable-item').length;
+            const excludedItems = excludedZone.querySelectorAll('.draggable-item').length;
+
+            document.getElementById('active-count').innerText = activeItems;
+            document.getElementById('excluded-count').innerText = excludedItems;
+
+            // Toggle placeholder visibility
+            if (excludedItems > 0) {
+                if (placeholder) placeholder.style.display = 'none';
+                excludedZone.classList.remove('justify-center');
+                excludedZone.classList.remove('items-center');
+            } else {
+                if (placeholder) placeholder.style.display = 'block';
+                excludedZone.classList.add('justify-center');
+                excludedZone.classList.add('items-center');
+            }
+
+            // Sync color borders of active items based on zone
+            activeZone.querySelectorAll('.draggable-item').forEach(item => {
+                item.classList.remove('border-rose-100');
+                item.classList.add('border-emerald-100');
+            });
+            excludedZone.querySelectorAll('.draggable-item').forEach(item => {
+                item.classList.remove('border-emerald-100');
+                item.classList.add('border-rose-100');
+            });
+        }
+    </script>
+</body>
+
+</html>
