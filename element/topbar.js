@@ -107,6 +107,57 @@ export function renderTopBar(target) {
         }
     } catch (e) {}
 
+    // Async update for position name if it looks like an ID
+    (async function updatePositionName() {
+        const roleDisplay = target.querySelector('#user-role-display');
+        if (!roleDisplay) return;
+        
+        // Wait for window.db to be ready if it's not immediately available
+        const waitForDb = () => new Promise(resolve => {
+            if (window.db || window.dlgDb) return resolve(window.db || window.dlgDb);
+            const check = setInterval(() => {
+                if (window.db || window.dlgDb) {
+                    clearInterval(check);
+                    resolve(window.db || window.dlgDb);
+                }
+            }, 100);
+            // Timeout after 5s
+            setTimeout(() => { clearInterval(check); resolve(null); }, 5000);
+        });
+
+        const db = await waitForDb();
+        if (!db) return;
+
+        let currentRole = roleDisplay.textContent;
+        // Logic: if no spaces and >10 chars, treat as ID
+        if (currentRole && currentRole.trim().length > 10 && !currentRole.includes(' ')) {
+            try {
+                // Dynamically import Firestore SDK to avoid module issues if not already imported
+                const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+                
+                // Try 'position' collection first
+                let ref = doc(db, "position", currentRole);
+                let snap = await getDoc(ref);
+                
+                // Fallback to 'positions' if not found
+                if (!snap.exists()) {
+                    ref = doc(db, "positions", currentRole);
+                    snap = await getDoc(ref);
+                }
+
+                if (snap.exists()) {
+                    const d = snap.data();
+                    const realName = d.name || d.title || d.position || d.label;
+                    if (realName) {
+                        roleDisplay.textContent = realName;
+                    }
+                }
+            } catch (err) {
+                console.warn("Failed to resolve position name:", err);
+            }
+        }
+    })();
+
     if (toggle && menu && wrapper) {
         toggle.addEventListener('click', function (ev) {
             ev.stopPropagation();
